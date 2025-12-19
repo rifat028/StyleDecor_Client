@@ -1,8 +1,65 @@
-import React from "react";
+import React, { use } from "react";
+import logo from "../assets/Logo.png";
+import { NavLink, useNavigate } from "react-router";
+import { AuthContext } from "../Authentication/AuthContext";
+import toast, { Toaster } from "react-hot-toast";
+// import { Tooltip } from "react-tooltip";
+import { ScaleLoader } from "react-spinners";
 
 const NavBar = () => {
+  const navigate = useNavigate();
+  const { user, logOutUser, loading } = use(AuthContext);
+  //   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+
+  // console.log(user, user.photoURL);
+
+  const links = (
+    <>
+      <li className="font-bold">
+        <NavLink to="/">Home</NavLink>
+      </li>
+      <li className="font-bold">
+        <NavLink to="/services">Services</NavLink>
+      </li>
+      <li className="font-bold">
+        <NavLink to="/about">About</NavLink>
+      </li>
+      <li className="font-bold">
+        <NavLink to="/contact">Contact</NavLink>
+      </li>
+      {/* <li className="font-bold">
+        <NavLink to={user ? `/my-books?userEmail=${user.email}` : `/my-books`}>
+          My Books
+        </NavLink>
+      </li> */}
+    </>
+  );
+
+  const HandleLogOut = () => {
+    logOutUser()
+      .then(() => toast.success("Sign Out Successful"))
+      .catch((error) => toast.error(error.message));
+  };
+
+  //   const HandleTheme = (e) => {
+  //     // console.log(e.target.checked);
+  //     const status = e.target.checked;
+  //     // console.log(html.getAttribute("data-theme"));
+  //     if (status) {
+  //       localStorage.setItem("theme", "dark");
+  //       setTheme("dark");
+  //     } else {
+  //       localStorage.setItem("theme", "light");
+  //       setTheme("light");
+  //     }
+  //   };
+
+  //   const html = document.querySelector("html");
+  //   html.setAttribute("data-theme", theme);
+
   return (
     <div className="navbar bg-base-100 shadow-sm">
+      <Toaster position="top-center" reverseOrder={false} />
       <div className="navbar-start">
         <div className="dropdown">
           <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
@@ -24,55 +81,82 @@ const NavBar = () => {
           </div>
           <ul
             tabIndex="-1"
-            className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
+            className="menu menu-sm dropdown-content bg-base-100 rounded-box mt-3 w-52 p-2 shadow z-10"
           >
-            <li>
-              <a>Item 1</a>
-            </li>
-            <li>
-              <a>Parent</a>
-              <ul className="p-2">
-                <li>
-                  <a>Submenu 1</a>
-                </li>
-                <li>
-                  <a>Submenu 2</a>
-                </li>
-              </ul>
-            </li>
-            <li>
-              <a>Item 3</a>
-            </li>
+            {links}
           </ul>
         </div>
-        <a className="btn btn-ghost text-xl">daisyUI</a>
+        <a href="/">
+          <div className="flex items-center justify-between btn btn-ghost text-4xl font-bold">
+            <div>
+              <img
+                className="rounded-full h-10 border-2 border-blue-500"
+                src={logo}
+                alt=""
+              />
+            </div>
+            <div className="hidden md:block text-blue-700">StyleDecor</div>
+          </div>
+        </a>
       </div>
       <div className="navbar-center hidden lg:flex">
-        <ul className="menu menu-horizontal px-1">
-          <li>
-            <a>Item 1</a>
-          </li>
-          <li>
-            <details>
-              <summary>Parent</summary>
-              <ul className="p-2 bg-base-100 w-40 z-1">
-                <li>
-                  <a>Submenu 1</a>
-                </li>
-                <li>
-                  <a>Submenu 2</a>
-                </li>
-              </ul>
-            </details>
-          </li>
-          <li>
-            <a>Item 3</a>
-          </li>
-        </ul>
+        <ul className="menu menu-horizontal px-1">{links}</ul>
       </div>
-      <div className="navbar-end">
-        <a className="btn">Button</a>
-      </div>
+      {user && loading ? (
+        <div className="navbar-end flex gap-4">
+          <ScaleLoader color={"#7C3AED"} />
+        </div>
+      ) : user ? (
+        <div className="navbar-end flex gap-4">
+          {/* <input
+            type="checkbox"
+            defaultChecked={theme == "dark"}
+            onChange={HandleTheme}
+            value="synthwave"
+            className="toggle"
+          /> */}
+          <button
+            onClick={HandleLogOut}
+            className=" bg-indigo-600 hover:bg-indigo-700 text-white font-bold 
+                       py-2 px-4 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+          >
+            Log Out
+          </button>
+          <div
+            className="ring-2 ring-blue-500 rounded-full border-gray-100 border-2"
+            // data-tooltip-id="profile-name-tooltip"
+            // data-tooltip-content={user.displayName}
+            // data-tooltip-place="right"
+          >
+            <img src={user.photoURL} className="rounded-full h-8" />
+          </div>
+        </div>
+      ) : (
+        <div className="navbar-end flex gap-4">
+          {/* <input
+            type="checkbox"
+            defaultChecked={theme == "dark"}
+            onChange={HandleTheme}
+            value="synthwave"
+            className="toggle"
+          /> */}
+          <button
+            onClick={() => navigate("/login")}
+            className=" bg-indigo-600 hover:bg-indigo-700 text-white font-bold 
+                       py-2 px-4 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+          >
+            LogIn
+          </button>
+          <button
+            onClick={() => navigate("/register")}
+            className=" bg-indigo-600 hover:bg-indigo-700 text-white font-bold hidden md:block
+                       py-2 px-4 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+          >
+            Register
+          </button>
+        </div>
+      )}
+      {/* <Tooltip id="profile-name-tooltip" /> */}
     </div>
   );
 };
