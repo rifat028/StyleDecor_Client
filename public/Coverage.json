@@ -1,0 +1,122 @@
+[
+  {
+    "district": "Dhaka",
+    "address": "Gulshan Avenue, Gulshan-1, Dhaka",
+    "latitude": 23.7925,
+    "longitude": 90.4078
+  },
+  {
+    "district": "Dhaka",
+    "address": "Dhanmondi 27, Dhaka",
+    "latitude": 23.7465,
+    "longitude": 90.376
+  },
+  {
+    "district": "Dhaka",
+    "address": "Uttara Sector 7, Dhaka",
+    "latitude": 23.8729,
+    "longitude": 90.3981
+  },
+  {
+    "district": "Chattogram",
+    "address": "GEC Circle, Chattogram",
+    "latitude": 22.3596,
+    "longitude": 91.8217
+  },
+  {
+    "district": "Chattogram",
+    "address": "Agrabad Commercial Area, Chattogram",
+    "latitude": 22.3259,
+    "longitude": 91.8111
+  },
+  {
+    "district": "Sylhet",
+    "address": "Zindabazar, Sylhet",
+    "latitude": 24.8949,
+    "longitude": 91.8687
+  },
+  {
+    "district": "Rajshahi",
+    "address": "Shaheb Bazar, Rajshahi",
+    "latitude": 24.3745,
+    "longitude": 88.6042
+  },
+  {
+    "district": "Khulna",
+    "address": "Shib Bari More, Khulna",
+    "latitude": 22.8158,
+    "longitude": 89.5686
+  },
+  {
+    "district": "Barishal",
+    "address": "Sadar Road, Barishal",
+    "latitude": 22.701,
+    "longitude": 90.3535
+  },
+  {
+    "district": "Rangpur",
+    "address": "Jahaj Company More, Rangpur",
+    "latitude": 25.7439,
+    "longitude": 89.2752
+  },
+  {
+    "district": "Mymensingh",
+    "address": "Ganginarpar, Mymensingh",
+    "latitude": 24.7471,
+    "longitude": 90.4203
+  },
+  {
+    "district": "Cumilla",
+    "address": "Kandirpar, Cumilla",
+    "latitude": 23.4607,
+    "longitude": 91.1809
+  },
+  {
+    "district": "Narayanganj",
+    "address": "Chashara, Narayanganj",
+    "latitude": 23.6238,
+    "longitude": 90.5015
+  },
+  {
+    "district": "Gazipur",
+    "address": "Joydebpur Chowrasta, Gazipur",
+    "latitude": 23.9999,
+    "longitude": 90.4203
+  },
+  {
+    "district": "Bogura",
+    "address": "Satmatha, Bogura",
+    "latitude": 24.8465,
+    "longitude": 89.3776
+  },
+  {
+    "district": "Jessore",
+    "address": "Railgate, Jessore",
+    "latitude": 23.1667,
+    "longitude": 89.2083
+  },
+  {
+    "district": "Noakhali",
+    "address": "Maijdee Court, Noakhali",
+    "latitude": 22.8696,
+    "longitude": 91.0994
+  },
+  {
+    "district": "Cox's Bazar",
+    "address": "Hotel Motel Zone, Cox's Bazar",
+    "latitude": 21.4272,
+    "longitude": 92.0058
+  },
+  {
+    "district": "Pabna",
+    "address": "Pabna Sadar, Pabna",
+    "latitude": 24.0064,
+    "longitude": 89.2372
+  },
+  {
+    "district": "Dinajpur",
+    "address": "Kalitola, Dinajpur",
+    "latitude": 25.6279,
+    "longitude": 88.6332
+  }
+]

@@ -18,6 +18,7 @@ const router = createBrowserRouter([
         index: true,
         path: "/",
         Component: Home,
+        loader: () => fetch("/Coverage.json").then((res) => res.json()),
       },
       {
         path: "/login",

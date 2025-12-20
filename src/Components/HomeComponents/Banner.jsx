@@ -4,7 +4,7 @@ import Hero from "../../assets/Hero.png";
 
 const Banner = () => {
   return (
-    <section className="px-2 md:px-10">
+    <section className="px-2 md:px-20">
       <div className="relative overflow-hidden rounded-2xl">
         {/* Background Image */}
         <img
@@ -21,8 +21,10 @@ const Banner = () => {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="mt-2 text-xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight max-w-[50vw] bg-linear-to-r from-gray-50 to-blue-50 bg-clip-text text-transparent"
             >
-              Bringing Your Vision to Life with Expert Decor
-              <span className="text-green-400"></span>{" "}
+              Bringing Your Vision to
+              <span className="text-purple-400">Life </span>with
+              <span className="text-purple-400">Expert </span>
+              Decor
             </motion.h1>
 
             <motion.p

@@ -41,22 +41,6 @@ const NavBar = () => {
       .catch((error) => toast.error(error.message));
   };
 
-  //   const HandleTheme = (e) => {
-  //     // console.log(e.target.checked);
-  //     const status = e.target.checked;
-  //     // console.log(html.getAttribute("data-theme"));
-  //     if (status) {
-  //       localStorage.setItem("theme", "dark");
-  //       setTheme("dark");
-  //     } else {
-  //       localStorage.setItem("theme", "light");
-  //       setTheme("light");
-  //     }
-  //   };
-
-  //   const html = document.querySelector("html");
-  //   html.setAttribute("data-theme", theme);
-
   return (
     <div className="navbar bg-base-100 shadow-sm">
       <Toaster position="top-center" reverseOrder={false} />
@@ -156,7 +140,6 @@ const NavBar = () => {
           </button>
         </div>
       )}
-      {/* <Tooltip id="profile-name-tooltip" /> */}
     </div>
   );
 };
