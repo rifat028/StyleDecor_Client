@@ -95,7 +95,7 @@ const NavBar = () => {
                 alt=""
               />
             </div>
-            <div className="hidden md:block text-blue-700">StyleDecor</div>
+            <div className="hidden md:block text-blue-700 mb-1">StyleDecor</div>
           </div>
         </a>
       </div>

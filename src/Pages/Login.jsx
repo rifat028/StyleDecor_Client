@@ -21,11 +21,7 @@ const Login = () => {
         toast.success("Login Success");
         // console.log(result.user);
         setTimeout(() => {
-          if (location.state == "/my-books")
-            //--------------------------------------------------------
-            navigate(`/my-books?userEmail=${email}`);
-          //-----------------------------------------------
-          else navigate(location.state || "/");
+          navigate(location.state || "/");
         }, 1000);
       })
       .catch((error) => {
@@ -44,11 +40,7 @@ const Login = () => {
       .then((result) => {
         // console.log(result.user);
         setTimeout(() => {
-          if (location.state == "/my-books")
-            //--------------------------------------------------------
-            navigate(`/my-books?userEmail=${result.user.email}`);
-          //-----------------------------------
-          else navigate(location.state || "/");
+          navigate(location.state || "/");
         }, 1000);
       })
       .catch((error) => {
