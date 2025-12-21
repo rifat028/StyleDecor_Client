@@ -22,7 +22,7 @@ const CoverageMap = ({ coverage }) => {
     <div>
       <h1 className="text-3xl md:text-5xl font-bold text-center dark:text-white py-6 md:py-10">
         Wanna get Connected? <br />
-        <span className="text-purple-400">Find us in the </span>
+        <span className="text-purple-500">Find us in the </span>
         following areas
       </h1>
       {/* Search Box */}

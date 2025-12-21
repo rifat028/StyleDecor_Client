@@ -45,7 +45,7 @@ const HowItWorks = ({ steps }) => {
             {steps.map((s, idx) => (
               <div
                 key={s.title}
-                className="rounded-2xl bg-base-200 dark:bg-slate-900 p-5"
+                className="rounded-2xl bg-base-200 dark:bg-slate-900 p-5 hover:-translate-y-2 transition duration-500"
               >
                 <div className="flex items-center justify-between">
                   <p className="font-semibold text-base-content dark:text-slate-100">

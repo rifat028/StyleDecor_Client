@@ -22,8 +22,8 @@ const Banner = () => {
               className="mt-2 text-xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight max-w-[50vw] bg-linear-to-r from-gray-50 to-blue-50 bg-clip-text text-transparent"
             >
               Bringing Your Vision to
-              <span className="text-purple-400">Life </span>with
-              <span className="text-purple-400">Expert </span>
+              <span className="text-purple-500">Life </span>with
+              <span className="text-purple-500">Expert </span>
               Decor
             </motion.h1>
 

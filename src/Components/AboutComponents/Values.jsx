@@ -25,7 +25,7 @@ const Values = ({ values }) => {
           {values.map((v) => (
             <div
               key={v.title}
-              className="rounded-2xl bg-base-200 dark:bg-slate-900 p-5"
+              className="rounded-2xl bg-base-200 dark:bg-slate-900 p-5 hover:scale-105 transition duration-500"
             >
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-base-100 dark:bg-slate-950 flex items-center justify-center border border-base-300 dark:border-slate-800">

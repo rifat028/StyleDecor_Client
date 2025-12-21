@@ -7,7 +7,7 @@ const Stats = ({ stats }) => {
         {stats.map((item) => (
           <div
             key={item.label}
-            className="rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-slate-950 p-5 shadow-sm"
+            className="rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-slate-950 p-5 shadow-sm hover:-translate-y-2 transition duration-500"
           >
             <p className="text-2xl sm:text-3xl font-bold text-base-content dark:text-slate-100">
               {item.value}

@@ -106,19 +106,19 @@ const Contact = () => {
 
                 {/* Social */}
                 <div className="pt-2">
-                  <p className="font-medium text-base-content dark:text-slate-100">
+                  <p className="font-medium text-base-content dark:text-slate-100 hover:scale-105 transition duration-300">
                     Social
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <a
                       href="#"
-                      className="btn btn-sm btn-outline dark:border-slate-700 dark:text-slate-100"
+                      className="btn btn-sm btn-outline dark:border-slate-700 dark:text-slate-100 hover:scale-105 transition duration-300"
                     >
                       Facebook
                     </a>
                     <a
                       href="#"
-                      className="btn btn-sm btn-outline dark:border-slate-700 dark:text-slate-100"
+                      className="btn btn-sm btn-outline dark:border-slate-700 dark:text-slate-100 hover:scale-105 transition duration-300"
                     >
                       Instagram
                     </a>
