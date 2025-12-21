@@ -1,0 +1,60 @@
+{
+  "stats": [
+    {
+      "label": "Years of Experience",
+      "value": "8+"
+    },
+    {
+      "label": "Successful Events",
+      "value": "1,200+"
+    },
+    {
+      "label": "Decorators & Artists",
+      "value": "60+"
+    },
+    {
+      "label": "Service Areas",
+      "value": "20+"
+    }
+  ],
+  "values": [
+    {
+      "title": "Quality First",
+      "desc": "We use trusted materials and follow a clean setup process to deliver premium-looking decorations every time.",
+      "icon": "✨"
+    },
+    {
+      "title": "On-Time Delivery",
+      "desc": "From planning to setup, our team follows a schedule so your ceremony starts stress-free and on time.",
+      "icon": "⏱️"
+    },
+    {
+      "title": "Customer-Friendly Support",
+      "desc": "We guide you with package selection, date booking, and service updates from start to finish.",
+      "icon": "🤝"
+    },
+    {
+      "title": "Transparent Pricing",
+      "desc": "No confusing hidden fees. You can see service details, budget range, and payment status clearly.",
+      "icon": "💳"
+    }
+  ],
+  "steps": [
+    {
+      "title": "Browse Services",
+      "desc": "Choose a package that matches your home or event."
+    },
+    {
+      "title": "Pick a Slot",
+      "desc": "Select a date & time based on availability."
+    },
+    {
+      "title": "Pay Securely",
+      "desc": "Use online payment and receive a receipt."
+    },
+    {
+      "title": "Track Progress",
+      "desc": "Get updates until the service is completed."
+    }
+  ]
+}

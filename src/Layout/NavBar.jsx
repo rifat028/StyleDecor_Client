@@ -101,8 +101,8 @@ const NavBar = () => {
           /> */}
           <button
             onClick={HandleLogOut}
-            className=" bg-indigo-600 hover:bg-indigo-700 text-white font-bold 
-                       py-2 px-4 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+            className=" bg-indigo-700 hover:bg-indigo-600 text-white font-bold 
+                       py-2 px-4 rounded-lg shadow-lg transition duration-300 transform hover:scale-105"
           >
             Log Out
           </button>
@@ -126,15 +126,15 @@ const NavBar = () => {
           /> */}
           <button
             onClick={() => navigate("/login")}
-            className=" bg-indigo-600 hover:bg-indigo-700 text-white font-bold 
-                       py-2 px-4 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+            className=" bg-indigo-700 hover:bg-indigo-600 text-white font-bold 
+                       py-2 px-4 rounded-lg shadow-lg transition duration-300 transform hover:scale-105"
           >
             LogIn
           </button>
           <button
             onClick={() => navigate("/register")}
-            className=" bg-indigo-600 hover:bg-indigo-700 text-white font-bold hidden md:block
-                       py-2 px-4 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+            className=" bg-indigo-700 hover:bg-indigo-600 text-white font-bold hidden md:block
+                       py-2 px-4 rounded-lg shadow-lg transition duration-300 transform hover:scale-105"
           >
             Register
           </button>

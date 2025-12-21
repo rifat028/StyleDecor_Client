@@ -246,7 +246,7 @@ const Contact = () => {
                 <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between pt-2">
                   <button
                     type="submit"
-                    className="btn btn-primary w-full sm:w-auto"
+                    className="btn btn-primary w-full sm:w-auto transition duration-300 transform hover:scale-105 hover:bg-indigo-600"
                     disabled={loading}
                   >
                     {loading ? "Sending..." : "Send Message"}
