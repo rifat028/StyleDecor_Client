@@ -11,7 +11,7 @@ const LatestServices = () => {
     axiosSecure("/services/latest").then((data) =>
       setLatestServices(data.data)
     );
-  }, []);
+  }, [axiosSecure]);
   console.log(latestServices);
   return (
     <div>
