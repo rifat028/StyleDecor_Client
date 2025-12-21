@@ -84,7 +84,7 @@ const ServiceCard = ({ service }) => {
       {/* View Details Button */}
       <div className="mt-5">
         <button
-          className="btn btn-primary w-full transition duration-300 transform hover:scale-105 hover:bg-indigo-600"
+          className="btn btn-primary w-full transition duration-300 transform hover:scale-103 hover:bg-indigo-600 mt-auto"
           onClick={() => navigate(`/services/${service._id}`)}
         >
           View Details
