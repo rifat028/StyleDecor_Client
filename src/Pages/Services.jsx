@@ -16,43 +16,71 @@ const Services = () => {
   const [category, setCategory] = useState("all");
   const [minCost, setMinCost] = useState("");
   const [maxCost, setMaxCost] = useState("");
-  const [sortBy, setSortBy] = useState("latest");
+
+  const [query, setQuery] = useState("");
+
+  const queryFilter = `?category=${category}${
+    minCost && `&min_cost=${minCost}`
+  }${maxCost && `&max_cost=${maxCost}`}${
+    searchText && `&search_text=${searchText}`
+  }`;
+
+  // const querySearch = `${searchText && `?search_text=${searchText}`}`;
+
+  // const query = querySearch || queryFilter;
+
+  // console.log(queryFilter, querySearch);
 
   // load all services
   useEffect(() => {
     axiosSecure
-      .get("/services")
-      .then((res) => setServices(res.data))
+      .get(`/services${query}`)
+      .then((res) => {
+        setServices(res.data);
+        console.log(res.data);
+        console.log(query);
+      })
       .catch((err) => {
         console.error("Failed to load services", err);
         setServices([]);
       })
       .finally(() => setLoading(false));
-  }, [axiosSecure]);
+  }, [axiosSecure, query]);
 
   return (
     <div className="min-h-screen bg-base-100 dark:bg-slate-950">
       {/* ================= TOP SECTION ================= */}
       <TopSection></TopSection>
 
-      {/* ================= FILTER SECTION ================= */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-base-100 dark:bg-slate-950 border border-base-300 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-            {/* Search */}
-            <div className="md:col-span-4">
-              <label className="label">
-                <span className="label-text dark:text-slate-200">Search</span>
-              </label>
+        {/* ================= SEARCH SECTION ================= */}
+        <div className="bg-base-100 dark:bg-slate-950 border border-base-300 dark:border-slate-800 rounded-2xl p-5 shadow-sm  mb-3 md:mb-6 md:mx-30">
+          {/* Search */}
+          <div className="md:col-span-3">
+            <label className="label">
+              <span className="label-text dark:text-slate-200">Search</span>
+            </label>
+            <div className="flex">
               <input
                 type="text"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 placeholder="Search service..."
-                className="input input-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                className="input input-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white rounded-r-none"
               />
+              <button
+                className="btn btn-primary rounded-l-none w-[30%]"
+                onClick={() => setQuery(queryFilter)}
+              >
+                Search
+              </button>
             </div>
+          </div>
+        </div>
 
+        {/* ================= FILTER SECTION ================= */}
+        <div className="bg-base-100 dark:bg-slate-950 border border-base-300 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-9 gap-4">
             {/* Category */}
             <div className="md:col-span-3">
               <label className="label">
@@ -101,27 +129,28 @@ const Services = () => {
                 className="input input-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white"
               />
             </div>
-
-            {/* Sort */}
-            <div className="md:col-span-1">
+            <div className="md:col-span-2 flex items-center flex-col">
               <label className="label">
-                <span className="label-text dark:text-slate-200">Sort</span>
+                <span className="label-text dark:text-slate-200">
+                  Apply Filters
+                </span>
               </label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="select select-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+              <button
+                className="btn btn-primary"
+                onClick={() => setQuery(queryFilter)}
               >
-                <option value="latest">Latest</option>
-                <option value="low">Low Price</option>
-                <option value="high">High Price</option>
-                <option value="rating">Rating</option>
-              </select>
+                Apply Filters
+              </button>
             </div>
           </div>
         </div>
 
         {/* ================= SERVICES CARDS ================= */}
+        {services.length == 0 && (
+          <div className="text-center text-red-400 font-semibold text-3xl py-6 md:py-20">
+            No service found
+          </div>
+        )}
         <div className="mt-10">
           {loading ? (
             <Spinner></Spinner>
