@@ -7,6 +7,11 @@ import Login from "../Pages/LogIn";
 import Services from "../Pages/Services";
 import About from "../Pages/About";
 import Contact from "../Pages/Contact";
+import ServiceDetails from "../Pages/ServiceDetails";
+import PrivateRoutes from "./PrivateRoutes";
+import ServiceBooking from "../Pages/ServiceBooking";
+import DashboardLayout from "../Dashboard Layout/DashboardLayout";
+import MyBookings from "../DashBoard/MyBookings";
 
 const router = createBrowserRouter([
   {
@@ -33,6 +38,18 @@ const router = createBrowserRouter([
         Component: Services,
       },
       {
+        path: "/services/:id",
+        Component: ServiceDetails,
+      },
+      {
+        path: "/service-booking/:id",
+        element: (
+          <PrivateRoutes>
+            <ServiceBooking></ServiceBooking>
+          </PrivateRoutes>
+        ),
+      },
+      {
         path: "/about",
         Component: About,
         loader: () => fetch("/AboutData.json").then((res) => res.json()),
@@ -40,6 +57,20 @@ const router = createBrowserRouter([
       {
         path: "/contact",
         Component: Contact,
+      },
+    ],
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <PrivateRoutes>
+        <DashboardLayout></DashboardLayout>
+      </PrivateRoutes>
+    ),
+    children: [
+      {
+        path: "my-bookings",
+        Component: MyBookings,
       },
     ],
   },

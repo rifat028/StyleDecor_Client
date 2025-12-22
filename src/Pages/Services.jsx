@@ -37,8 +37,8 @@ const Services = () => {
       .get(`/services${query}`)
       .then((res) => {
         setServices(res.data);
-        console.log(res.data);
-        console.log(query);
+        // console.log(res.data);
+        // console.log(query);
       })
       .catch((err) => {
         console.error("Failed to load services", err);

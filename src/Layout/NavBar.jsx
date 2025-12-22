@@ -21,17 +21,17 @@ const NavBar = () => {
       <li className="font-bold">
         <NavLink to="/services">Services</NavLink>
       </li>
+      {user && (
+        <li className="font-bold">
+          <NavLink to="/dashboard">Dashboard</NavLink>
+        </li>
+      )}
       <li className="font-bold">
         <NavLink to="/about">About</NavLink>
       </li>
       <li className="font-bold">
         <NavLink to="/contact">Contact</NavLink>
       </li>
-      {/* <li className="font-bold">
-        <NavLink to={user ? `/my-books?userEmail=${user.email}` : `/my-books`}>
-          My Books
-        </NavLink>
-      </li> */}
     </>
   );
 
