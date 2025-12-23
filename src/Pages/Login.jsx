@@ -5,12 +5,15 @@ import { IoEye } from "react-icons/io5";
 import { AuthContext } from "../Authentication/AuthContext";
 import { useLocation, useNavigate } from "react-router";
 import toast, { Toaster } from "react-hot-toast";
+import useAxiosSecure from "../Hooks/useAxiosSecure";
 
 const Login = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [eye, setEye] = useState(false);
   const { GoogleSignIN, SignInUser } = use(AuthContext);
+
+  const axiosSecure = useAxiosSecure();
 
   const HandleLogIn = (e) => {
     e.preventDefault();
@@ -39,6 +42,20 @@ const Login = () => {
     GoogleSignIN()
       .then((result) => {
         // console.log(result.user);
+        //============ send user to DB ===============
+        const user = result.user;
+        const newUser = {
+          name: user.displayName,
+          email: user.email,
+          photoUrl:
+            user.photoURL ||
+            `https://placehold.co/150x150/4F46E5/FFFFFF?text=${user.displayName
+              .slice(0, 2)
+              .toUpperCase()}`,
+        };
+        axiosSecure.post("/users", newUser).then((data) => {
+          // console.log(data.data);
+        });
         setTimeout(() => {
           navigate(location.state || "/");
         }, 1000);

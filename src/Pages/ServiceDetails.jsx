@@ -53,7 +53,7 @@ const ServiceDetails = () => {
   } = service;
 
   return (
-    <div className="min-h-screen bg-base-100 dark:bg-slate-950">
+    <div className="min-h-screen bg-base-100 dark:bg-gray-900">
       {/* Header */}
       <div className="bg-base-200 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 py-10 md:py-14 text-center">

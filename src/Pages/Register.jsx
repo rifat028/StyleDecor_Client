@@ -6,11 +6,14 @@ import { AuthContext } from "../Authentication/AuthContext";
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router";
+import useAxiosSecure from "../Hooks/useAxiosSecure";
 
 const Register = () => {
   const { CreateUserWithEmail, updateProfileInfo, GoogleSignIN } =
     use(AuthContext);
   const navigate = useNavigate();
+
+  const axiosSecure = useAxiosSecure();
 
   const [eye, setEye] = useState(false);
   const [error, setError] = useState("");
@@ -25,6 +28,16 @@ const Register = () => {
     const password = e.target.password.value;
     const photoUrl = e.target.photoUrl.value;
     // console.log(name, email, photoUrl, password);
+
+    const newUser = {
+      name,
+      email,
+      photoUrl:
+        photoUrl ||
+        `https://placehold.co/150x150/4F46E5/FFFFFF?text=${name
+          .slice(0, 2)
+          .toUpperCase()}`,
+    };
 
     setError("");
     if (password.length < 6) {
@@ -46,6 +59,10 @@ const Register = () => {
         updateProfileInfo(name, photoUrl)
           .then(() => {
             toast.success("User info updated...!");
+            //============ send user to DB ===============
+            axiosSecure.post("/users", newUser).then((data) => {
+              // console.log(data.data.insertedId);
+            });
             setTimeout(() => {
               navigate("/");
             }, 1000);
@@ -64,8 +81,22 @@ const Register = () => {
 
   const HandleGoogleLogIn = () => {
     GoogleSignIN()
-      .then(() => {
+      .then((result) => {
         // console.log(result.user);
+        //============ send user to DB ===============
+        const user = result.user;
+        const newUser = {
+          name: user.displayName,
+          email: user.email,
+          photoUrl:
+            user.photoURL ||
+            `https://placehold.co/150x150/4F46E5/FFFFFF?text=${user.displayName
+              .slice(0, 2)
+              .toUpperCase()}`,
+        };
+        axiosSecure.post("/users", newUser).then((data) => {
+          // console.log(data.data);
+        });
         setTimeout(() => {
           navigate("/");
         }, 1000);

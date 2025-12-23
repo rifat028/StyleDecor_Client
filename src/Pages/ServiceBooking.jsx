@@ -20,6 +20,7 @@ const ServiceBooking = () => {
   const [location, setLocation] = useState("");
   const [unit, setUnit] = useState(0);
   const [totalCost, setTotalCost] = useState(0);
+  const [contact, setContact] = useState(0);
 
   // load single service
   useEffect(() => {
@@ -46,6 +47,7 @@ const ServiceBooking = () => {
     const bookingData = {
       clientName: user?.displayName,
       clientEmail: user?.email,
+      contact,
       serviceId: id,
       serviceName: service?.serviceName,
       serviceCategory: service?.serviceCategory,
@@ -57,7 +59,7 @@ const ServiceBooking = () => {
       // optional extra fields (helpful later)
       status: "pending",
       paid: false,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString().split("T")[0],
     };
     // console.log(bookingData);
 
@@ -98,7 +100,7 @@ const ServiceBooking = () => {
   }
 
   return (
-    <div className="min-h-screen bg-base-100 dark:bg-slate-950">
+    <div className="min-h-screen bg-base-100 dark:bg-gray-900">
       <Toaster position="top-center" reverseOrder={false} />
 
       {/* Header */}
@@ -108,8 +110,8 @@ const ServiceBooking = () => {
             Book <span className="text-purple-500">Service</span>
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-sm md:text-base text-base-content/70 dark:text-slate-300">
-            Your basic details are auto-filled. Please choose booking date, unit
-            and location.
+            Your basic details are auto-filled. Please choose booking date and
+            location. Also provide contact no and unit required
           </p>
         </div>
       </div>
@@ -138,6 +140,22 @@ const ServiceBooking = () => {
                   type="text"
                   value={user?.displayName || ""}
                   disabled
+                  className="input input-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                />
+              </div>
+
+              {/* Client Contact info */}
+              <div>
+                <label className="label">
+                  <span className="label-text dark:text-slate-200">
+                    Client Contact
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter mobile no"
+                  required
+                  onChange={(e) => setContact(e.target.value)}
                   className="input input-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white"
                 />
               </div>
@@ -256,17 +274,37 @@ const ServiceBooking = () => {
               <div>
                 <label className="label">
                   <span className="label-text dark:text-slate-200">
-                    Location
+                    Select District
                   </span>
                 </label>
-                <input
-                  type="text"
-                  required
+                <select
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g., Dhanmondi, Dhaka"
-                  className="input input-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white"
-                />
+                  required
+                  className=" select select-bordered w-full bg-base-100 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                >
+                  <option value="" disabled>
+                    -- Choose a district --
+                  </option>
+
+                  <option value="Dhaka">Dhaka</option>
+                  <option value="Chattogram">Chattogram</option>
+                  <option value="Sylhet">Sylhet</option>
+                  <option value="Rajshahi">Rajshahi</option>
+                  <option value="Khulna">Khulna</option>
+                  <option value="Barishal">Barishal</option>
+                  <option value="Rangpur">Rangpur</option>
+                  <option value="Mymensingh">Mymensingh</option>
+                  <option value="Cumilla">Cumilla</option>
+                  <option value="Narayanganj">Narayanganj</option>
+                  <option value="Gazipur">Gazipur</option>
+                  <option value="Bogura">Bogura</option>
+                  <option value="Jessore">Jessore</option>
+                  <option value="Noakhali">Noakhali</option>
+                  <option value="Cox's Bazar">Cox's Bazar</option>
+                  <option value="Pabna">Pabna</option>
+                  <option value="Dinajpur">Dinajpur</option>
+                </select>
               </div>
 
               <button

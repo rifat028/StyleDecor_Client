@@ -1,4 +1,4 @@
-import React, { use } from "react";
+import React, { use, useState } from "react";
 import logo from "../assets/Logo.png";
 import { NavLink, useNavigate } from "react-router";
 import { AuthContext } from "../Authentication/AuthContext";
@@ -9,7 +9,7 @@ import { ScaleLoader } from "react-spinners";
 const NavBar = () => {
   const navigate = useNavigate();
   const { user, logOutUser, loading } = use(AuthContext);
-  //   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
   // console.log(user, user.photoURL);
 
@@ -40,6 +40,22 @@ const NavBar = () => {
       .then(() => toast.success("Sign Out Successful"))
       .catch((error) => toast.error(error.message));
   };
+
+  const HandleTheme = (e) => {
+    // console.log(e.target.checked);
+    const status = e.target.checked;
+    // console.log(html.getAttribute("data-theme"));
+    if (status) {
+      localStorage.setItem("theme", "dark");
+      setTheme("dark");
+    } else {
+      localStorage.setItem("theme", "light");
+      setTheme("light");
+    }
+  };
+
+  const html = document.querySelector("html");
+  html.setAttribute("data-theme", theme);
 
   return (
     <div className="navbar bg-base-100 shadow-sm">
@@ -106,24 +122,86 @@ const NavBar = () => {
           >
             Log Out
           </button>
-          <div
-            className="ring-2 ring-blue-500 rounded-full border-gray-100 border-2"
-            // data-tooltip-id="profile-name-tooltip"
-            // data-tooltip-content={user.displayName}
-            // data-tooltip-place="right"
-          >
-            <img src={user.photoURL} className="rounded-full h-8" />
+          {/* =========================== profile dropdown ========================== */}
+          {/* Profile Dropdown */}
+          <div className="dropdown dropdown-end">
+            <div
+              tabIndex={0}
+              role="button"
+              className="ring-2 ring-blue-500 rounded-full border-gray-200 dark:border-gray-700
+               border-2 cursor-pointer p-0.5 hover:ring-indigo-500 transition"
+            >
+              <img
+                src={user.photoURL}
+                alt="profile"
+                className="rounded-full h-8 w-8 sm:h-9 sm:w-9 object-cover"
+              />
+            </div>
+
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu mt-3 w-48 sm:w-52 rounded-xl shadow-lg z-999 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-700"
+            >
+              {/* User Info */}
+              <li className=" py-1 text-sm font-semibold opacity-80  my-0">
+                <span className="text-xs opacity-60 text-left">
+                  {user?.email}
+                </span>
+              </li>
+              <div className="divider my-1 dark:opacity-30"></div>
+              <li className="px-3 py-1 text-sm font-semibold opacity-80 ">
+                {user?.displayName || "User"}
+                <br />
+              </li>
+              <div className="divider my-1 dark:opacity-30"></div>
+
+              <li className=" py-1 text-sm font-semibold opacity-80 ">
+                <div>
+                  <span>Dark Mode</span>
+                  <input
+                    type="checkbox"
+                    defaultChecked={theme == "dark"}
+                    onChange={HandleTheme}
+                    value="synthwave"
+                    className="toggle"
+                  />
+                </div>
+              </li>
+
+              <div className="divider my-1 dark:opacity-30"></div>
+
+              {/* Links */}
+              <li>
+                <NavLink
+                  to="/dashboard"
+                  className="hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-semibold"
+                >
+                  Dashboard
+                </NavLink>
+              </li>
+              <div className="divider my-1 dark:opacity-30"></div>
+
+              {/* Logout */}
+              <li>
+                <button
+                  onClick={HandleLogOut}
+                  className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-semibold"
+                >
+                  Log Out
+                </button>
+              </li>
+            </ul>
           </div>
         </div>
       ) : (
         <div className="navbar-end flex gap-4">
-          {/* <input
+          <input
             type="checkbox"
             defaultChecked={theme == "dark"}
             onChange={HandleTheme}
             value="synthwave"
             className="toggle"
-          /> */}
+          />
           <button
             onClick={() => navigate("/login")}
             className=" bg-indigo-700 hover:bg-indigo-600 text-white font-bold 

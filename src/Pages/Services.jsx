@@ -48,7 +48,7 @@ const Services = () => {
   }, [axiosSecure, query]);
 
   return (
-    <div className="min-h-screen bg-base-100 dark:bg-slate-950">
+    <div className="min-h-screen bg-base-100 dark:bg-gray-900">
       {/* ================= TOP SECTION ================= */}
       <TopSection></TopSection>
 

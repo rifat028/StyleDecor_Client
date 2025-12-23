@@ -12,7 +12,7 @@ const LatestServices = () => {
       setLatestServices(data.data)
     );
   }, [axiosSecure]);
-  console.log(latestServices);
+  // console.log(latestServices);
   return (
     <div>
       <h1 className="text-3xl md:text-5xl font-bold text-center dark:text-white py-6 md:py-10">

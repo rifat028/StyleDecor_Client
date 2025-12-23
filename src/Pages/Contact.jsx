@@ -18,7 +18,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-base-100 dark:bg-slate-950">
+    <div className="min-h-screen bg-base-100 dark:bg-gray-900">
       <Toaster position="top-center" reverseOrder={false} />
       {/* Header */}
       <div className="bg-base-200 dark:bg-slate-900">
