@@ -10,6 +10,9 @@ const SideNavigation = () => {
       <li>
         <NavLink to="/dashboard/my-bookings">My Bookings</NavLink>
       </li>
+      <li>
+        <NavLink to="/dashboard/manage-services">Manage Services</NavLink>
+      </li>
     </>
   );
 };

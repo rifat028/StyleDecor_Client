@@ -13,6 +13,7 @@ import ServiceBooking from "../Pages/ServiceBooking";
 import DashboardLayout from "../Dashboard Layout/DashboardLayout";
 import MyBookings from "../DashBoard/MyBookings";
 import MyProfile from "../DashBoard/MyProfile";
+import ManageService from "../DashBoard/ManageService";
 
 const router = createBrowserRouter([
   {
@@ -76,6 +77,10 @@ const router = createBrowserRouter([
       {
         path: "my-profile",
         Component: MyProfile,
+      },
+      {
+        path: "manage-services",
+        Component: ManageService,
       },
     ],
   },

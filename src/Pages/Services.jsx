@@ -53,94 +53,99 @@ const Services = () => {
       <TopSection></TopSection>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* ================= SEARCH SECTION ================= */}
-        <div className="bg-base-100 dark:bg-slate-950 border border-base-300 dark:border-slate-800 rounded-2xl p-5 shadow-sm  mb-3 md:mb-6 md:mx-30">
-          {/* Search */}
-          <div className="md:col-span-3">
-            <label className="label">
-              <span className="label-text dark:text-slate-200">Search</span>
-            </label>
-            <div className="flex">
-              <input
-                type="text"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                placeholder="Search service..."
-                className="input input-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white rounded-r-none"
-              />
-              <button
-                className="btn btn-primary rounded-l-none w-[30%]"
-                onClick={() => setQuery(queryFilter)}
-              >
-                Search
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ================= FILTER SECTION ================= */}
-        <div className="bg-base-100 dark:bg-slate-950 border border-base-300 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-9 gap-4">
-            {/* Category */}
+        {/* ============= search and filter section =============== */}
+        <div className=" bg-gray-50 p-10 rounded-2xl dark:bg-gray-900 md:grid md:grid-cols-3 md:gap-3">
+          {/* SEARCH SECTION */}
+          <div className="bg-base-100 dark:bg-slate-950 border border-base-300 dark:border-slate-800 rounded-2xl p-4 shadow-sm  mb-3 md:mb-0 ">
+            {/* Search */}
             <div className="md:col-span-3">
               <label className="label">
-                <span className="label-text dark:text-slate-200">Category</span>
+                <span className="label-text dark:text-slate-200">Search</span>
               </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="select select-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white"
-              >
-                <option value="all">All</option>
-                <option value="home">Home</option>
-                <option value="wedding">Wedding</option>
-                <option value="office">Office</option>
-                <option value="seminar">Seminar</option>
-                <option value="meeting">Meeting</option>
-              </select>
+              <div className="flex">
+                <input
+                  type="text"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  placeholder="Search service..."
+                  className="input input-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white rounded-r-none"
+                />
+                <button
+                  className="btn btn-primary rounded-l-none w-[30%]"
+                  onClick={() => setQuery(queryFilter)}
+                >
+                  Search
+                </button>
+              </div>
             </div>
+          </div>
 
-            {/* Min */}
-            <div className="md:col-span-2">
-              <label className="label">
-                <span className="label-text dark:text-slate-200">
-                  Min (BDT)
-                </span>
-              </label>
-              <input
-                type="number"
-                value={minCost}
-                onChange={(e) => setMinCost(e.target.value)}
-                className="input input-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white"
-              />
-            </div>
+          {/*FILTER SECTION */}
+          <div className="bg-base-100 dark:bg-slate-950 border border-base-300 dark:border-slate-800 rounded-2xl p-4 shadow-sm md:col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-9 gap-4">
+              {/* Category */}
+              <div className="md:col-span-3">
+                <label className="label">
+                  <span className="label-text dark:text-slate-200">
+                    Category
+                  </span>
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="select select-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                >
+                  <option value="all">All</option>
+                  <option value="home">Home</option>
+                  <option value="wedding">Wedding</option>
+                  <option value="office">Office</option>
+                  <option value="seminar">Seminar</option>
+                  <option value="meeting">Meeting</option>
+                </select>
+              </div>
 
-            {/* Max */}
-            <div className="md:col-span-2">
-              <label className="label">
-                <span className="label-text dark:text-slate-200">
-                  Max (BDT)
-                </span>
-              </label>
-              <input
-                type="number"
-                value={maxCost}
-                onChange={(e) => setMaxCost(e.target.value)}
-                className="input input-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white"
-              />
-            </div>
-            <div className="md:col-span-2 flex items-center flex-col">
-              <label className="label">
-                <span className="label-text dark:text-slate-200">
+              {/* Min */}
+              <div className="md:col-span-2">
+                <label className="label">
+                  <span className="label-text dark:text-slate-200">
+                    Min (BDT)
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  value={minCost}
+                  onChange={(e) => setMinCost(e.target.value)}
+                  className="input input-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                />
+              </div>
+
+              {/* Max */}
+              <div className="md:col-span-2">
+                <label className="label">
+                  <span className="label-text dark:text-slate-200">
+                    Max (BDT)
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  value={maxCost}
+                  onChange={(e) => setMaxCost(e.target.value)}
+                  className="input input-bordered w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                />
+              </div>
+              <div className="md:col-span-2 flex items-center flex-col">
+                <label className="label">
+                  <span className="label-text dark:text-slate-200">
+                    Apply Filters
+                  </span>
+                </label>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setQuery(queryFilter)}
+                >
                   Apply Filters
-                </span>
-              </label>
-              <button
-                className="btn btn-primary"
-                onClick={() => setQuery(queryFilter)}
-              >
-                Apply Filters
-              </button>
+                </button>
+              </div>
             </div>
           </div>
         </div>

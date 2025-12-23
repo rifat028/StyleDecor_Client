@@ -52,6 +52,7 @@ const ServiceBooking = () => {
       serviceName: service?.serviceName,
       serviceCategory: service?.serviceCategory,
       serviceProviderEmail: service?.createdByEmail, // from service doc
+      unitCost: service?.cost,
       unit,
       totalCost,
       bookingDate,
