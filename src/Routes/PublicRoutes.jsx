@@ -12,6 +12,7 @@ import PrivateRoutes from "./PrivateRoutes";
 import ServiceBooking from "../Pages/ServiceBooking";
 import DashboardLayout from "../Dashboard Layout/DashboardLayout";
 import MyBookings from "../DashBoard/MyBookings";
+import MyProfile from "../DashBoard/MyProfile";
 
 const router = createBrowserRouter([
   {
@@ -71,6 +72,10 @@ const router = createBrowserRouter([
       {
         path: "my-bookings",
         Component: MyBookings,
+      },
+      {
+        path: "my-profile",
+        Component: MyProfile,
       },
     ],
   },

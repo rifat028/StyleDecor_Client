@@ -1,6 +1,7 @@
 import React from "react";
 import NavBar from "../Layout/NavBar";
 import { Outlet } from "react-router";
+import SideNavigation from "./SideNavigation";
 
 const DashboardLayout = () => {
   return (
@@ -26,12 +27,7 @@ const DashboardLayout = () => {
           ></label>
           <ul className="menu bg-base-200 min-h-full w-80 p-4 pt-10 md:pt-2">
             {/* Sidebar content here */}
-            <li>
-              <a>Sidebar Item 1</a>
-            </li>
-            <li>
-              <a>Sidebar Item 2</a>
-            </li>
+            <SideNavigation></SideNavigation>
           </ul>
         </div>
       </div>
