@@ -11,6 +11,9 @@ const SideNavigation = () => {
         <NavLink to="/dashboard/my-bookings">My Bookings</NavLink>
       </li>
       <li>
+        <NavLink to="/dashboard/manage-decorators">Manage Decorators</NavLink>
+      </li>
+      <li>
         <NavLink to="/dashboard/manage-services">Manage Services</NavLink>
       </li>
     </>

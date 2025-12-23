@@ -14,6 +14,8 @@ import DashboardLayout from "../Dashboard Layout/DashboardLayout";
 import MyBookings from "../DashBoard/MyBookings";
 import MyProfile from "../DashBoard/MyProfile";
 import ManageService from "../DashBoard/ManageService";
+import JoinAsDecorator from "../Pages/JoinAsDecorator";
+import ManageDecorator from "../DashBoard/ManageDecorator";
 
 const router = createBrowserRouter([
   {
@@ -52,6 +54,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/join-as-decorator",
+        element: (
+          <PrivateRoutes>
+            <JoinAsDecorator></JoinAsDecorator>
+          </PrivateRoutes>
+        ),
+      },
+      {
         path: "/about",
         Component: About,
         loader: () => fetch("/AboutData.json").then((res) => res.json()),
@@ -81,6 +91,10 @@ const router = createBrowserRouter([
       {
         path: "manage-services",
         Component: ManageService,
+      },
+      {
+        path: "manage-decorators",
+        Component: ManageDecorator,
       },
     ],
   },
