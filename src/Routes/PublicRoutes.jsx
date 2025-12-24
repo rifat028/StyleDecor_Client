@@ -20,6 +20,9 @@ import ManageBooking from "../DashBoard/ManageBookings";
 import MyProjects from "../DashBoard/MyProjects";
 import MyEarnings from "../DashBoard/MyEarnings";
 import Analytics from "../DashBoard/Analytics";
+import AdminRoutes from "./AdminRoutes";
+import DecoratorRoutes from "./DecoratorRoutes";
+import NotFound from "../Components/ErrorPages/NotFound";
 
 const router = createBrowserRouter([
   {
@@ -85,6 +88,10 @@ const router = createBrowserRouter([
     ),
     children: [
       {
+        index: true,
+        Component: MyProfile,
+      },
+      {
         path: "my-profile",
         Component: MyProfile,
       },
@@ -94,29 +101,57 @@ const router = createBrowserRouter([
       },
       {
         path: "manage-services",
-        Component: ManageService,
+        element: (
+          <AdminRoutes>
+            <ManageService></ManageService>
+          </AdminRoutes>
+        ),
       },
       {
         path: "manage-decorators",
-        Component: ManageDecorator,
+        element: (
+          <AdminRoutes>
+            <ManageDecorator></ManageDecorator>
+          </AdminRoutes>
+        ),
       },
       {
         path: "manage-bookings",
-        Component: ManageBooking,
+        element: (
+          <AdminRoutes>
+            <ManageBooking></ManageBooking>
+          </AdminRoutes>
+        ),
       },
       {
         path: "analytics",
-        Component: Analytics,
+        element: (
+          <AdminRoutes>
+            <Analytics></Analytics>
+          </AdminRoutes>
+        ),
       },
       {
         path: "my-projects",
-        Component: MyProjects,
+        element: (
+          <DecoratorRoutes>
+            <MyProjects></MyProjects>
+          </DecoratorRoutes>
+        ),
       },
       {
         path: "my-earnings",
-        Component: MyEarnings,
+        element: (
+          <DecoratorRoutes>
+            <MyEarnings></MyEarnings>
+          </DecoratorRoutes>
+        ),
       },
     ],
+  },
+  {
+    path: "/*",
+    Component: NotFound,
   },
 ]);
 

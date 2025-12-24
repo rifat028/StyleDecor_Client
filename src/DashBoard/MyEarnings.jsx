@@ -16,11 +16,13 @@ const MyEarnings = () => {
   // ---------- 1) Load decorator id by email ----------
   useEffect(() => {
     const loadDecoratorId = async () => {
+      // console.log(user?.email);
       if (!user?.email) return;
 
       try {
-        // ✅ Expected: GET /decorators?email=someone@gmail.com -> [decorator] OR decorator
-        const res = await axiosSecure.get(`/decorators?email=${user.email}`);
+        // ✅ Expected: GET /decorators/someone@gmail.com -> [decorator] OR decorator
+        const res = await axiosSecure.get(`/decorators/${user.email}`);
+        console.log(res);
         const dec = Array.isArray(res.data) ? res.data[0] : res.data;
         setDecoratorId(dec?._id || null);
       } catch (err) {
@@ -40,6 +42,7 @@ const MyEarnings = () => {
       try {
         setLoading(true);
         const res = await axiosSecure.get(`/bookings/decorator/${decoratorId}`);
+        console.log(res);
         setBookings(res.data || []);
       } catch (err) {
         console.error("Failed to load bookings:", err);

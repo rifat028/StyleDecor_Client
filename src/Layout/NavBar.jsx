@@ -5,6 +5,7 @@ import { AuthContext } from "../Authentication/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
 // import { Tooltip } from "react-tooltip";
 import { ScaleLoader } from "react-spinners";
+import useRole from "../Hooks/useRole";
 
 const NavBar = () => {
   const navigate = useNavigate();
@@ -12,6 +13,12 @@ const NavBar = () => {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
   // console.log(user, user.photoURL);
+
+  const { role, roleLoading } = useRole();
+
+  if (roleLoading && user) {
+    return <span className="loading loading-spinner" />;
+  }
 
   const links = (
     <>
@@ -32,7 +39,7 @@ const NavBar = () => {
       <li className="font-bold">
         <NavLink to="/contact">Contact</NavLink>
       </li>
-      {user && (
+      {user && role !== "decorator" && (
         <li className="font-semibold bg-purple-100 rounded-4xl">
           <NavLink to="/join-as-decorator">Join As Decorator</NavLink>
         </li>
