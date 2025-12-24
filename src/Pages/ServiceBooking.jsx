@@ -59,6 +59,7 @@ const ServiceBooking = () => {
       location,
       // optional extra fields (helpful later)
       status: "pending",
+      assigned: false,
       paid: false,
       createdAt: new Date().toISOString().split("T")[0],
     };

@@ -145,7 +145,7 @@ const JoinAsDecorator = () => {
                 <span className="label-text dark:text-gray-200">Photo URL</span>
               </label>
               <input
-                value={userInfo.photoURL || ""}
+                value={userInfo.photoUrl || ""}
                 disabled
                 className="input input-bordered w-full dark:bg-gray-900 dark:text-white disabled:opacity-70"
               />

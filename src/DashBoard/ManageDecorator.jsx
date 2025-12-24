@@ -4,22 +4,6 @@ import Swal from "sweetalert2";
 import { FaCheckCircle, FaTrashAlt, FaUserMinus } from "react-icons/fa";
 import Spinner from "../Components/Spinner";
 
-/**
- * ✅ ManageDecorator.jsx
- * - Default: Pending decorators
- * - Radio filter: Pending / Accepted
- * - Pending actions: Accept, Delete
- * - Accepted actions: Remove
- *
- * ✅ Expected server endpoints (recommended):
- * 1) GET    /decorators?status=pending|accepted
- * 2) PATCH  /decorators/:id        (accept => set status + taskCompleted/taskPending)
- * 3) DELETE /decorators/:id
- * 4) PATCH  /users/role           (body: { email, role })
- *
- * If your server uses different routes, just change the axios URLs.
- */
-
 const ManageDecorator = () => {
   const axiosSecure = useAxiosSecure();
 
