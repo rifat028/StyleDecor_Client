@@ -261,6 +261,7 @@ const MyBookings = () => {
                             className="btn btn-sm btn-outline dark:border-gray-600"
                             data-tooltip-id={tooltipId}
                             data-tooltip-content="Edit"
+                            disabled={booking.paid}
                             onClick={() => openEditModal(booking)}
                           >
                             <FaEdit />
@@ -272,6 +273,7 @@ const MyBookings = () => {
                             className="btn btn-sm btn-outline dark:border-gray-600"
                             data-tooltip-id={tooltipId}
                             data-tooltip-content="Cancel"
+                            disabled={booking.paid}
                             onClick={() => handleCancelBooking(booking._id)}
                           >
                             <FaTrashAlt />
@@ -283,6 +285,7 @@ const MyBookings = () => {
                             className="btn btn-sm btn-outline dark:border-gray-600"
                             data-tooltip-id={tooltipId}
                             data-tooltip-content="Pay"
+                            disabled={booking.paid}
                             onClick={handlePay}
                           >
                             <FaCreditCard />

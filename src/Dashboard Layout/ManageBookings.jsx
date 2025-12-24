@@ -53,10 +53,10 @@ const ManageBooking = () => {
   const statusOrder = useMemo(
     () => ({
       Assigned: 1,
-      "Planning Phase": 2,
-      "Materials Prepared": 3,
-      "On the Way to Venue": 4,
-      "Setup in Progress": 5,
+      Planning: 2,
+      Equipping: 3,
+      "On Way": 4,
+      "Setting up": 5,
       Completed: 6,
     }),
     []
@@ -369,6 +369,7 @@ const ManageBooking = () => {
                           <div className="flex justify-center">
                             <button
                               className="btn btn-sm btn-primary"
+                              disabled={!b.paid}
                               onClick={() => openAssignModal(b)}
                             >
                               Assign Decorator

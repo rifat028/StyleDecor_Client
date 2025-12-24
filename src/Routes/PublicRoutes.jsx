@@ -17,6 +17,8 @@ import ManageService from "../DashBoard/ManageService";
 import JoinAsDecorator from "../Pages/JoinAsDecorator";
 import ManageDecorator from "../DashBoard/ManageDecorator";
 import ManageBookings from "../Dashboard Layout/ManageBookings";
+import MyProjects from "../DashBoard/MyProjects";
+import MyEarnings from "../DashBoard/MyEarnings";
 
 const router = createBrowserRouter([
   {
@@ -82,12 +84,12 @@ const router = createBrowserRouter([
     ),
     children: [
       {
-        path: "my-bookings",
-        Component: MyBookings,
-      },
-      {
         path: "my-profile",
         Component: MyProfile,
+      },
+      {
+        path: "my-bookings",
+        Component: MyBookings,
       },
       {
         path: "manage-services",
@@ -100,6 +102,14 @@ const router = createBrowserRouter([
       {
         path: "manage-bookings",
         Component: ManageBookings,
+      },
+      {
+        path: "my-projects",
+        Component: MyProjects,
+      },
+      {
+        path: "my-earnings",
+        Component: MyEarnings,
       },
     ],
   },
