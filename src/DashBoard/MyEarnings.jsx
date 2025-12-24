@@ -2,14 +2,6 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import useAxiosSecure from "../Hooks/useAxiosSecure";
 import { AuthContext } from "../Authentication/AuthContext";
 
-/**
- * MyEarnings.jsx (Decorator)
- * - Uses: GET /bookings/decorator/:decoratorId
- * - Filters completed bookings on client side
- * - Shows total earnings (20% of totalCost)
- * - Click Booking ID => modal with full details
- */
-
 const MyEarnings = () => {
   const axiosSecure = useAxiosSecure();
   const { user } = useContext(AuthContext);

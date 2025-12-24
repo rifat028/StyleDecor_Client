@@ -3,24 +3,6 @@ import useAxiosSecure from "../Hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import Spinner from "../Components/Spinner";
 
-/**
- * ✅ ManageBooking.jsx (Admin) - Updated
- * Changes:
- * 1) Pagination: 10 per page
- * 2) Sorting by bookingDate for BOTH assigned/unassigned
- * 3) Sorting by status for assigned bookings (custom order)
- *
- * ✅ Server-side sorting is easy for bookingDate -> we do it server side.
- * ✅ Status custom order is harder in Mongo (unless you store statusIndex).
- *    So we do status sorting client-side only for assigned bookings.
- *
- * APIs used (same as before + one updated GET param):
- * - GET /bookings?assigned=true|false&paid=true|false&page=1&limit=10&sortDate=asc|desc
- * - GET /decorators?status=accepted&location=Dhaka
- * - PATCH /bookings/:id/assign
- * - PATCH /decorators/:id/task
- */
-
 const PAGE_SIZE = 5;
 
 const ManageBooking = () => {
@@ -222,7 +204,9 @@ const ManageBooking = () => {
                 name="assignFilter"
                 className="radio radio-primary"
                 checked={assignFilter === "unassigned"}
-                onChange={() => setAssignFilter("unassigned")}
+                onChange={() => {
+                  setAssignFilter("unassigned");
+                }}
               />
               <span className="text-base-content dark:text-white">
                 Unassigned
@@ -235,7 +219,10 @@ const ManageBooking = () => {
                 name="assignFilter"
                 className="radio radio-primary"
                 checked={assignFilter === "assigned"}
-                onChange={() => setAssignFilter("assigned")}
+                onChange={() => {
+                  setAssignFilter("assigned");
+                  setPaidFilter("all");
+                }}
               />
               <span className="text-base-content dark:text-white">
                 Assigned
@@ -246,20 +233,22 @@ const ManageBooking = () => {
           {/* Right: Filters + Sorting */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:justify-end">
             {/* Paid filter */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-base-content/70 dark:text-gray-200">
-                Payment:
-              </span>
-              <select
-                className="select select-bordered select-sm dark:bg-gray-900 dark:text-white dark:border-gray-600"
-                value={paidFilter}
-                onChange={(e) => setPaidFilter(e.target.value)}
-              >
-                <option value="all">All</option>
-                <option value="paid">Paid</option>
-                <option value="unpaid">Unpaid</option>
-              </select>
-            </div>
+            {assignFilter == "unassigned" && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-base-content/70 dark:text-gray-200">
+                  Payment:
+                </span>
+                <select
+                  className="select select-bordered select-sm dark:bg-gray-900 dark:text-white dark:border-gray-600"
+                  value={paidFilter}
+                  onChange={(e) => setPaidFilter(e.target.value)}
+                >
+                  <option value="all">All</option>
+                  <option value="paid">Paid</option>
+                  <option value="unpaid">Unpaid</option>
+                </select>
+              </div>
+            )}
 
             {/* Date sort */}
             <div className="flex items-center gap-2">

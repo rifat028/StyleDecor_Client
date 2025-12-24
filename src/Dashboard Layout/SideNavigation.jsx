@@ -20,6 +20,9 @@ const SideNavigation = () => {
         <NavLink to="/dashboard/manage-bookings">Manage Bookings</NavLink>
       </li>
       <li>
+        <NavLink to="/dashboard/analytics">Analytics</NavLink>
+      </li>
+      <li>
         <NavLink to="/dashboard/my-projects">My Projects</NavLink>
       </li>
       <li>

@@ -3,30 +3,6 @@ import useAxiosSecure from "../Hooks/useAxiosSecure";
 import { AuthContext } from "../Authentication/AuthContext";
 import Swal from "sweetalert2";
 
-/**
- * MyProjects.jsx (Decorator)
- *
- * ✅ Shows:
- * 1) Today's projects (assignTo = this decorator, status != Completed, bookingDate = today)
- * 2) All active projects (assignTo = this decorator, status != Completed)
- *
- * ✅ Update status:
- * Steps: (Assigned, Planning, Equipping, On Way, Setting up, Completed)
- * Dropdown shows ONLY remaining steps.
- *
- * ---------------------------
- * IMPORTANT (About assignTo)
- * In your admin assign flow you used assignTo = decorator._id
- * So here we try to find the decorator _id first by email.
- *
- * Expected APIs:
- * - GET /decorators?email=decorator@email.com  -> returns array (or single)
- * - GET /bookings/decorator/:decoratorId       -> returns all bookings for this decorator
- * - PATCH /bookings/:id/status                -> update booking status
- *
- * If your backend returns bookings differently, just adjust the endpoints.
- */
-
 const MyProjects = () => {
   const axiosSecure = useAxiosSecure();
   const { user } = useContext(AuthContext);
