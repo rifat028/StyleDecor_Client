@@ -39,7 +39,7 @@ const NavBar = () => {
       <li className="font-bold">
         <NavLink to="/contact">Contact</NavLink>
       </li>
-      {user && role !== "decorator" && (
+      {user && role === "client" && (
         <li className="font-semibold bg-purple-100 rounded-4xl">
           <NavLink to="/join-as-decorator">Join As Decorator</NavLink>
         </li>
