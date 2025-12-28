@@ -19,6 +19,9 @@ const SideNavigation = () => {
           <li>
             <NavLink to="/dashboard/my-bookings">My Bookings</NavLink>
           </li>
+          <li>
+            <NavLink to="/dashboard/transactions">Transactions</NavLink>
+          </li>
         </>
       )}
       {role === "admin" && (

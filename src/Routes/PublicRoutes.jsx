@@ -23,6 +23,8 @@ import Analytics from "../DashBoard/Analytics";
 import AdminRoutes from "./AdminRoutes";
 import DecoratorRoutes from "./DecoratorRoutes";
 import NotFound from "../Components/ErrorPages/NotFound";
+import Transactions from "../DashBoard/Transactions";
+import PaymentSuccess from "../Pages/PaymentSuccess";
 
 const router = createBrowserRouter([
   {
@@ -98,6 +100,15 @@ const router = createBrowserRouter([
       {
         path: "my-bookings",
         Component: MyBookings,
+      },
+      {
+        path: "transactions",
+        Component: Transactions,
+      },
+
+      {
+        path: "payment-success",
+        element: <PaymentSuccess></PaymentSuccess>,
       },
       {
         path: "manage-services",

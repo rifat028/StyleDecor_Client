@@ -156,13 +156,22 @@ const MyBookings = () => {
     }
   };
 
-  const handlePay = async () => {
-    // 🔥 You said you will implement later
-    Swal.fire({
-      title: "Coming soon",
-      text: "Payment will be implemented later.",
-      icon: "info",
-    });
+  const handlePay = async (booking) => {
+    const paymentInfo = {
+      clientEmail: booking.clientEmail,
+      serviceName: booking.serviceName,
+      unitCost: booking.unitCost,
+      unit: Number(booking.unit),
+      id: booking._id,
+    };
+    const res = await axiosSecure.post("/create-checkout-session", paymentInfo);
+    // console.log(res.data);
+    window.location.href = res.data.url;
+    // Swal.fire({
+    //   title: "Coming soon",
+    //   text: "Payment will be implemented later.",
+    //   icon: "info",
+    // });
   };
 
   if (loading) {
@@ -199,8 +208,9 @@ const MyBookings = () => {
                     <th>Category</th>
                     <th>Date</th>
                     <th>Location</th>
-                    <th>Total Cost</th>
+                    <th>Unit Cost</th>
                     <th>Unit</th>
+                    <th>Total Cost</th>
                     <th>Status</th>
                     <th>Paid</th>
                     <th className="text-center">Actions</th>
@@ -223,10 +233,11 @@ const MyBookings = () => {
                       </td>
 
                       <td className="capitalize">{booking.serviceCategory}</td>
-                      <td className="min-w-30">{booking.bookingDate}</td>
-                      <td className="min-w-35">{booking.location}</td>
-                      <td className="min-w-30">৳{booking.totalCost}</td>
-                      <td className="min-w-20">{booking.unit}</td>
+                      <td className="min-w-26">{booking.bookingDate}</td>
+                      <td className="min-w-22">{booking.location}</td>
+                      <td className="min-w-17">৳{booking.unitCost}</td>
+                      <td className="min-w-5">{booking.unit}</td>
+                      <td className="min-w-17">৳{booking.totalCost}</td>
 
                       <td className="min-w-30">
                         <span
@@ -286,7 +297,7 @@ const MyBookings = () => {
                             data-tooltip-id={tooltipId}
                             data-tooltip-content="Pay"
                             disabled={booking.paid}
-                            onClick={handlePay}
+                            onClick={() => handlePay(booking)}
                           >
                             <FaCreditCard />
                           </button>

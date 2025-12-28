@@ -155,15 +155,19 @@ const ManageService = () => {
   return (
     <div className="min-h-screen bg-base-100 dark:bg-gray-900 px-4 py-6">
       {/* ===== Top Section ===== */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <h1 className="text-3xl font-bold dark:text-white">
-          Manage <span className="text-purple-500">Services</span>
+      <div className="flex flex-col justify-between items-center mb-6 gap-4 md:px-30 border border-gray-500 p-3 rounded-2xl">
+        <h1 className="text-3xl md:text-5xl font-bold dark:text-white">
+          Add New <span className="text-purple-500">Service...?</span>
         </h1>
 
         <button onClick={openAddModal} className="btn btn-primary gap-2">
           <FaPlus /> Add Service
         </button>
       </div>
+
+      <h1 className="text-3xl font-bold dark:text-white text-center my-6">
+        Manage Existing <span className="text-purple-500">Service</span>
+      </h1>
 
       {/* ============= search and filter section =============== */}
       <div className=" bg-gray-50 p-10 rounded-2xl dark:bg-gray-900 md:grid md:grid-cols-3 md:gap-3">
