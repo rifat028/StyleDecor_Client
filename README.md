@@ -8,9 +8,9 @@ This platform solves common problems in local decoration businesses such as manu
 
 ---
 
-## 📸 Screenshot
+<!-- ## 📸 Screenshot
 
-![StyleDecor Screenshot](your-screenshot-url.png)
+![StyleDecor Screenshot](your-screenshot-url.png) -->
 
 ---
 
