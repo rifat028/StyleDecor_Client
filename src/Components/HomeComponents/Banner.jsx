@@ -4,62 +4,61 @@ import Hero from "../../assets/Hero.png";
 
 const Banner = () => {
   return (
-    <section className="px-2 md:px-20">
-      <div className="relative overflow-hidden rounded-2xl">
-        {/* Background Image */}
-        <img
-          src={Hero}
-          className="w-full h-55 sm:h-70 md:h-95 lg:h-115 object-cover"
-        />
-
-        {/* Left Text Content */}
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-10">
-            <motion.h1
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="mt-2 text-xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight max-w-[50vw] bg-linear-to-r from-gray-50 to-blue-50 bg-clip-text text-transparent"
-            >
-              Bringing Your Vision to
-              <span className="text-purple-500">Life </span>with
-              <span className="text-purple-500">Expert </span>
+    <section className="bg-white dark:bg-gray-900 py-12 md:py-20 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          
+          {/* Left Text Content */}
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="flex flex-col items-start"
+          >
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white leading-[1.15] tracking-tight mb-6 transition-colors">
+              Bringing Your Vision to <br className="hidden sm:block" />
+              <span className="text-purple-600 dark:text-purple-400">Life </span>
+              with <span className="text-purple-600 dark:text-purple-400">Expert </span>
               Decor
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
-              className="mt-3 md:mt-4 text-xs sm:text-sm md:text-lg max-w-[50vw] bg-linear-to-r from-blue-200 to-gray-50 bg-clip-text text-transparent"
-            >
-              Book trusted decorators, choose a time slot, pay securely, and
-              track your project status—everything in one place.
-            </motion.p>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-lg mb-8 leading-relaxed font-medium transition-colors">
+              Book trusted decorators, choose a time slot, pay securely, and track your project status—everything in one place.
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="mt-5 md:mt-7 flex flex-wrap gap-3"
-            >
-              <Link to="/services">
-                <button
-                  className="
-                      bg-yellow-400 hover:bg-yellow-500
-                      text-black font-semibold
-                      px-4 py-2 md:px-6 md:py-3
-                      rounded-2xl shadow-lg
-                      transform transition duration-300
-                      hover:scale-101
-                      text-xs sm:text-sm md:text-base
-                    "
-                >
-                  Book Decoration Service →
-                </button>
-              </Link>
-            </motion.div>
-          </div>
+            <Link to="/services">
+              <button
+                className="
+                  bg-yellow-400 hover:bg-yellow-500
+                  text-gray-900 font-bold
+                  px-8 py-3.5
+                  rounded-xl shadow-lg shadow-yellow-400/30 hover:shadow-yellow-400/50
+                  transform transition-all duration-300
+                  hover:-translate-y-1 active:translate-y-0
+                "
+              >
+                Book Decoration Service →
+              </button>
+            </Link>
+          </motion.div>
+
+          {/* Right Image */}
+          <motion.div 
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+            className="relative"
+          >
+            {/* Subtle decorative glow behind the image */}
+            <div className="absolute -inset-4 bg-purple-500/10 dark:bg-purple-500/20 rounded-3xl blur-2xl transform rotate-3 transition-colors pointer-events-none"></div>
+            
+            <img
+              src={Hero}
+              alt="Decoration Setup"
+              className="relative w-full h-[350px] sm:h-[450px] lg:h-[550px] object-cover rounded-[2rem] shadow-2xl border-4 border-white dark:border-gray-800 transition-colors"
+            />
+          </motion.div>
+
         </div>
       </div>
     </section>
