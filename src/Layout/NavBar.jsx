@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import useRole from "../Hooks/useRole";
 
+// Animated label component with hover underline effect
 const AnimatedLabel = ({ children }) => (
   <span className="relative inline-flex items-center gap-1">
     {children}
@@ -27,6 +28,7 @@ const AnimatedLabel = ({ children }) => (
   </span>
 );
 
+// Navigation routes configuration array
 const navLinks = [
   { to: "/", label: "Home", icon: HomeIcon },
   { to: "/services", label: "Services", icon: Sparkles },
@@ -36,6 +38,7 @@ const navLinks = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, authOnly: true },
 ];
 
+// Main navigation bar component
 const NavBar = () => {
   const navigate = useNavigate();
   const { user, logOutUser, loading } = use(AuthContext);
@@ -47,6 +50,7 @@ const NavBar = () => {
     return <span className="loading loading-spinner" />;
   }
 
+  // Dynamic styling function for active/inactive nav links
   const linkClasses = ({ isActive }) =>
     isActive
       ? "group flex items-center font-semibold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-lg px-4 py-2"
@@ -54,6 +58,7 @@ const NavBar = () => {
 
   const iconClasses = "h-4 w-4 shrink-0 transition-transform duration-300 ease-out group-hover:scale-110 group-hover:-translate-y-0.5";
 
+  // Filtered navigation list items component
   const links = (
     <>
       {navLinks
@@ -71,18 +76,21 @@ const NavBar = () => {
     </>
   );
 
+  // Event handler for user logout
   const HandleLogOut = () => {
     logOutUser()
       .then(() => toast.success("Sign Out Successful"))
       .catch((error) => toast.error(error.message));
   };
 
+  // Event handler for dark/light theme toggle
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
     localStorage.setItem("theme", nextTheme);
     setTheme(nextTheme);
   };
 
+  // Dark/light mode theme toggle button element
   const themeToggleButton = (
     <button
       onClick={toggleTheme}
@@ -107,8 +115,8 @@ const NavBar = () => {
   html.setAttribute("data-theme", theme);
 
   return (
-    <div className="sticky top-0 z-50 w-full bg-base-100/60 backdrop-blur-xl lg:py-4 transition-all duration-300">
-      <div className="navbar w-full lg:max-w-7xl mx-auto h-15 backdrop-blur-xl bg-base-100/80 ring-2 ring-black/10 dark:ring-white/10 shadow-sm lg:rounded-4xl lg:shadow-lg px-4 sm:px-6 lg:px-8">
+    <div className="sticky top-0 z-50 w-full bg-blue-50/40 dark:bg-base-100/60 backdrop-blur-xl lg:py-4 transition-all duration-300">
+      <div className="navbar w-full lg:max-w-7xl mx-auto h-15 backdrop-blur-xl bg-blue-50/80 dark:bg-base-100/80 ring-2 ring-blue-900/10 dark:ring-white/10 shadow-sm lg:rounded-4xl lg:shadow-lg px-4 sm:px-6 lg:px-8">
         <Toaster position="top-center" reverseOrder={false} />
 
         {/* --- Navbar Start --- */}
