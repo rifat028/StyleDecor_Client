@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
+// CoverageMap function component displaying interactive location coverage map
 const CoverageMap = ({ coverage }) => {
   const mapRef = useRef(null);
 

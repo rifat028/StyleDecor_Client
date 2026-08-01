@@ -3,6 +3,7 @@ import Marquee from "react-fast-marquee";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import pic from "../../assets/Avatar.jpg";
 
+// TopRatedDecorators function component displaying top decorators in an animated marquee
 const TopRatedDecorators = () => {
   const axiosSecure = useAxiosSecure();
   const [decorators, setDecorators] = useState([]);
@@ -53,7 +54,7 @@ const TopRatedDecorators = () => {
         </p>
       </div>
 
-      {/* Marquee */}
+      {/* Marquee sub-component for continuous decorator card scrolling */}
       <Marquee
         pauseOnHover
         speed={40}

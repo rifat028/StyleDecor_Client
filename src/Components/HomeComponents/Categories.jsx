@@ -97,6 +97,7 @@ const cardVariants = {
   },
 };
 
+// Categories function component rendering event decoration service category cards
 const Categories = () => {
   return (
     <div className="py-16 bg-base-100">

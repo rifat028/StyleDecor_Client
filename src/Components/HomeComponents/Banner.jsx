@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router";
 import Hero from "../../assets/Hero.png";
 
+// Banner function component displaying hero section with call-to-action
 const Banner = () => {
   return (
     <section className="bg-white dark:bg-gray-900 py-12 md:py-20 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
@@ -26,6 +27,7 @@ const Banner = () => {
               Book trusted decorators, choose a time slot, pay securely, and track your project status—everything in one place.
             </p>
 
+            {/* Link sub-component navigating to services page */}
             <Link to="/services">
               <button
                 className="
