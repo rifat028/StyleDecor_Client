@@ -1,5 +1,6 @@
 import React, { use, useState } from "react";
-import logo from "../assets/Logo.png";
+import darkLogo from "../assets/Dark Logo.png";
+import lightLogo from "../assets/Light Logo.png";
 import { NavLink, useNavigate } from "react-router";
 import { AuthContext } from "../Authentication/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
@@ -7,7 +8,6 @@ import toast, { Toaster } from "react-hot-toast";
 import { ScaleLoader } from "react-spinners";
 import {
   Sun,
-  Moon,
   LogIn,
   UserPlus,
   Palette,
@@ -18,13 +18,16 @@ import {
   Phone,
   LayoutDashboard,
 } from "lucide-react";
+import { PiMoonStarsFill } from "react-icons/pi";
 import useRole from "../Hooks/useRole";
 
 // Animated label component with hover underline effect
-const AnimatedLabel = ({ children }) => (
+const AnimatedLabel = ({ children, disableHover = false }) => (
   <span className="relative inline-flex items-center gap-1">
     {children}
-    <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-0.5 origin-center scale-x-0 bg-current transition-transform duration-300 ease-out group-hover:scale-x-100" />
+    {!disableHover && (
+      <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-0.5 origin-center scale-x-0 bg-current transition-transform duration-500 ease-out group-hover:scale-x-100" />
+    )}
   </span>
 );
 
@@ -35,7 +38,12 @@ const navLinks = [
   { to: "/top-decorators", label: "Top Decorators", icon: Award },
   { to: "/about", label: "About Us", icon: Info },
   { to: "/contact", label: "Contact Us", icon: Phone },
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, authOnly: true },
+  {
+    to: "/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    authOnly: true,
+  },
 ];
 
 // Main navigation bar component
@@ -53,10 +61,12 @@ const NavBar = () => {
   // Dynamic styling function for active/inactive nav links
   const linkClasses = ({ isActive }) =>
     isActive
-      ? "group flex items-center font-semibold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-lg px-4 py-2"
-      : "group flex items-center font-medium text-base-content/70 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-transparent hover:translate-x-1 rounded-lg px-4 py-2 transition-all duration-300 ease-out";
+      ? "group relative flex items-center font-semibold text-white bg-indigo-600 dark:bg-indigo-500 shadow-lg shadow-indigo-500/40 dark:shadow-purple-900/50 ring-1 ring-white/30 rounded-full px-4 py-2 transition-all duration-800 ease-out"
+      : "group flex items-center font-medium text-base-content/70 hover:text-indigo-600 dark:hover:text-indigo-400 bg-transparent hover:translate-x-1 rounded-full px-4 py-2 transition-all duration-800 ease-out";
 
-  const iconClasses = "h-4 w-4 shrink-0 transition-transform duration-300 ease-out group-hover:scale-110 group-hover:-translate-y-0.5";
+  const iconClasses =
+    "h-4 w-4 shrink-0 transition-transform duration-300 ease-out group-hover:scale-110 group-hover:-translate-y-0.5";
+  const iconClassesStatic = "h-4 w-4 shrink-0";
 
   // Filtered navigation list items component
   const links = (
@@ -66,10 +76,14 @@ const NavBar = () => {
         .map(({ to, label, icon: Icon }) => (
           <li key={to}>
             <NavLink to={to} className={linkClasses}>
-              <AnimatedLabel>
-                <Icon className={iconClasses} />
-                {label}
-              </AnimatedLabel>
+              {({ isActive }) => (
+                <AnimatedLabel disableHover={isActive}>
+                  <Icon
+                    className={isActive ? iconClassesStatic : iconClasses}
+                  />
+                  {label}
+                </AnimatedLabel>
+              )}
             </NavLink>
           </li>
         ))}
@@ -94,18 +108,24 @@ const NavBar = () => {
   const themeToggleButton = (
     <button
       onClick={toggleTheme}
-      className="btn btn-ghost btn-circle btn-sm text-base-content hover:bg-base-200 overflow-hidden"
+      className="group relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-blue-200/70 bg-gradient-to-br from-white to-blue-50 text-blue-500 shadow-sm ring-1 ring-black/5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-500/20 active:translate-y-0 active:scale-95 dark:border-white/10 dark:from-slate-800 dark:to-slate-900 dark:text-blue-300 dark:ring-white/5"
       title="Toggle Dark Mode"
       aria-label="Toggle Dark Mode"
     >
-      <span className="relative block h-5 w-5">
+      <span className="relative block h-5 w-5 overflow-hidden">
         <Sun
-          className={`absolute inset-0 h-5 w-5 transition-all duration-500 ${theme === "dark" ? "rotate-0 scale-100 opacity-100" : "rotate-90 scale-0 opacity-0"
-            }`}
+          className={`absolute inset-0 h-5 w-5 transition-all duration-500 ease-out ${
+            theme !== "dark"
+              ? "rotate-90 scale-0 opacity-0"
+              : "rotate-0 scale-100 opacity-100"
+          }`}
         />
-        <Moon
-          className={`absolute inset-0 h-5 w-5 transition-all duration-500 ${theme === "dark" ? "-rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
-            }`}
+        <PiMoonStarsFill
+          className={`absolute inset-0 h-5 w-5 transition-all duration-500 ease-out ${
+            theme !== "dark"
+              ? "rotate-0 scale-100 opacity-100"
+              : "-rotate-90 scale-0 opacity-0"
+          }`}
         />
       </span>
     </button>
@@ -115,14 +135,18 @@ const NavBar = () => {
   html.setAttribute("data-theme", theme);
 
   return (
-    <div className="sticky top-0 z-50 w-full bg-blue-50/40 dark:bg-base-100/60 backdrop-blur-xl lg:py-4 transition-all duration-300">
-      <div className="navbar w-full lg:max-w-7xl mx-auto h-15 backdrop-blur-xl bg-blue-50/80 dark:bg-base-100/80 ring-2 ring-blue-900/10 dark:ring-white/10 shadow-sm lg:rounded-4xl lg:shadow-lg px-4 sm:px-6 lg:px-8">
+    <div className="sticky top-0 z-50 w-full bg-blue-100/70 dark:bg-black backdrop-blur-xl lg:py-4 transition-all duration-300">
+      <div className="navbar w-full lg:max-w-7xl mx-auto h-15 backdrop-blur-xl bg-blue-50/80 dark:bg-base-100/90 ring-2 ring-blue-900/10 dark:ring-white/10 shadow-sm lg:rounded-4xl lg:shadow-lg px-4 sm:px-6 lg:px-8">
         <Toaster position="top-center" reverseOrder={false} />
 
         {/* --- Navbar Start --- */}
         <div className="navbar-start">
           <div className="dropdown">
-            <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden -ml-2">
+            <div
+              tabIndex={0}
+              role="button"
+              className="btn btn-ghost lg:hidden -ml-2"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6 text-base-content"
@@ -130,7 +154,12 @@ const NavBar = () => {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h8m-8 6h16"
+                />
               </svg>
             </div>
             <ul
@@ -142,12 +171,15 @@ const NavBar = () => {
           </div>
 
           {/* Logo Section */}
-          <a href="/" className="hidden lg:block hover:opacity-90 transition-opacity lg:ml-0">
+          <a
+            href="/"
+            className="hidden lg:block hover:opacity-90 transition-opacity lg:ml-0"
+          >
             <div className="relative">
               <div className="absolute inset-0 bg-indigo-500 rounded-full blur-md opacity-40"></div>
               <img
-                className="relative rounded-full h-10 w-10 sm:h-12 sm:w-12 object-cover border-[2px] border-white dark:border-gray-800 shadow-md"
-                src={logo}
+                className="relative rounded-full h-10 w-[120px] lg:h-11 lg:w-[132px] object-cover border-[2px] border-white dark:border-gray-800 shadow-md"
+                src={theme === "dark" ? darkLogo : lightLogo}
                 alt="StyleDecor Logo"
               />
             </div>
@@ -156,7 +188,9 @@ const NavBar = () => {
 
         {/* --- Navbar Center --- */}
         <div className="navbar-center hidden lg:flex">
-          <ul className="menu menu-horizontal px-1 gap-1 items-center">{links}</ul>
+          <ul className="menu menu-horizontal px-1 gap-1 items-center">
+            {links}
+          </ul>
         </div>
 
         {/* --- Navbar End --- */}
@@ -245,18 +279,28 @@ const NavBar = () => {
               <div
                 tabIndex={0}
                 role="button"
-                className="flex items-center gap-1 sm:gap-1.5 px-3.5 sm:px-6 py-2 rounded-full font-semibold text-white text-sm sm:text-base whitespace-nowrap bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/30 transition-all duration-300"
+                className="group relative flex items-center gap-1 sm:gap-1.5 overflow-hidden px-3.5 sm:px-6 py-2 rounded-full font-semibold text-white text-sm sm:text-base whitespace-nowrap bg-gradient-to-b from-indigo-500 via-indigo-600 to-purple-700 border border-blue-300/70 ring-2 ring-blue-200/50 shadow-[0_4px_0_rgba(67,56,202,0.7),0_10px_20px_-6px_rgba(99,102,241,0.6)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_6px_0_rgba(67,56,202,0.7),0_14px_24px_-6px_rgba(99,102,241,0.6)] active:translate-y-0.5 active:shadow-[0_1px_0_rgba(67,56,202,0.7),0_4px_10px_-4px_rgba(99,102,241,0.6)]"
               >
-                Get Started
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
+                {/* Glossy top highlight for 3D effect */}
+                <span className="pointer-events-none absolute inset-x-1 top-1 h-1/2 rounded-full bg-white/12 blur-[2px]" />
+
+                <span className="relative z-10 flex items-center gap-1 sm:gap-1.5">
+                  Get Started
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </span>
               </div>
 
               <ul

@@ -21,7 +21,6 @@ const LatestServices = () => {
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mx-2 md:mx-20">
         {latestServices.map((service, index) => (
-          {/* ServiceCard sub-component displaying individual service details */}
           <ServiceCard service={service} key={index}></ServiceCard>
         ))}
       </div>
