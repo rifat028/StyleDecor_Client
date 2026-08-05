@@ -1,7 +1,7 @@
-import React, { use, useState } from "react";
+import React, { use, useState, useRef, useEffect } from "react";
 import darkLogo from "../assets/Dark Logo.png";
 import lightLogo from "../assets/Light Logo.png";
-import { NavLink, useNavigate } from "react-router";
+import { NavLink, useNavigate, useLocation } from "react-router";
 import { AuthContext } from "../Authentication/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
 // import { Tooltip } from "react-tooltip";
@@ -17,6 +17,8 @@ import {
   Info,
   Phone,
   LayoutDashboard,
+  ArrowRight,
+  LogOut,
 } from "lucide-react";
 import { PiMoonStarsFill } from "react-icons/pi";
 import useRole from "../Hooks/useRole";
@@ -54,15 +56,45 @@ const NavBar = () => {
 
   const { role, roleLoading } = useRole();
 
+  const location = useLocation();
+
+  // Refs for the sliding active indicator
+  const navContainerRef = useRef(null);
+  const itemRefs = useRef({});
+  const [indicatorStyle, setIndicatorStyle] = useState({ opacity: 0, width: 0, transform: "translateX(0px)" });
+
+  // Update sliding indicator position whenever route changes
+  useEffect(() => {
+    const visibleLinks = navLinks.filter((link) => !link.authOnly || user);
+    const activeLink = visibleLinks.find(({ to }) =>
+      to === "/" ? location.pathname === "/" : location.pathname.startsWith(to)
+    );
+    if (activeLink && itemRefs.current[activeLink.to] && navContainerRef.current) {
+      const container = navContainerRef.current;
+      const item = itemRefs.current[activeLink.to];
+      const containerRect = container.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      setIndicatorStyle({
+        opacity: 1,
+        width: itemRect.width,
+        transform: `translateX(${itemRect.left - containerRect.left}px)`,
+      });
+    } else {
+      setIndicatorStyle((prev) => ({ ...prev, opacity: 0 }));
+    }
+  }, [location.pathname, user]);
+
   if (roleLoading && user) {
     return <span className="loading loading-spinner" />;
   }
 
-  // Dynamic styling function for active/inactive nav links
+
+
+  // Dynamic styling function for active/inactive nav links — no background, only text color
   const linkClasses = ({ isActive }) =>
     isActive
-      ? "group relative flex items-center font-semibold text-white bg-indigo-600 dark:bg-indigo-500 shadow-lg shadow-indigo-500/40 dark:shadow-purple-900/50 ring-1 ring-white/30 rounded-full px-4 py-2 transition-all duration-800 ease-out"
-      : "group flex items-center font-medium text-base-content/70 hover:text-indigo-600 dark:hover:text-indigo-400 bg-transparent hover:translate-x-1 rounded-full px-4 py-2 transition-all duration-800 ease-out";
+      ? "group relative flex items-center font-semibold text-indigo-600 dark:text-indigo-300 rounded-full px-4 py-2 transition-colors duration-300 ease-out !bg-transparent hover:!bg-transparent focus:!bg-transparent active:!bg-transparent"
+      : "group flex items-center font-medium text-base-content/70 hover:text-indigo-600 dark:hover:text-indigo-400 bg-transparent rounded-full px-4 py-2 transition-colors duration-300 ease-out";
 
   const iconClasses =
     "h-4 w-4 shrink-0 transition-transform duration-300 ease-out group-hover:scale-110 group-hover:-translate-y-0.5";
@@ -74,8 +106,11 @@ const NavBar = () => {
       {navLinks
         .filter((link) => !link.authOnly || user)
         .map(({ to, label, icon: Icon }) => (
-          <li key={to}>
-            <NavLink to={to} className={linkClasses}>
+          <li key={to} ref={(el) => (itemRefs.current[to] = el)}>
+            <NavLink
+              to={to}
+              className={linkClasses}
+            >
               {({ isActive }) => (
                 <AnimatedLabel disableHover={isActive}>
                   <Icon
@@ -173,12 +208,12 @@ const NavBar = () => {
           {/* Logo Section */}
           <a
             href="/"
-            className="hidden lg:block hover:opacity-90 transition-opacity lg:ml-0"
+            className="group hidden lg:block hover:opacity-90 transition-opacity lg:ml-0"
           >
             <div className="relative">
-              <div className="absolute inset-0 bg-indigo-500 rounded-full blur-md opacity-40"></div>
+              <div className="absolute inset-0 bg-indigo-500 rounded-full blur-md opacity-40 transition-transform duration-[800ms] group-hover:scale-[1.05]"></div>
               <img
-                className="relative rounded-full h-10 w-[120px] lg:h-11 lg:w-[132px] object-cover border-[2px] border-white dark:border-gray-800 shadow-md"
+                className="relative rounded-full h-10 w-[120px] lg:h-11 lg:w-[132px] object-cover border-[2px] border-white dark:border-gray-800 shadow-md transition-transform duration-[800ms] group-hover:scale-[1.05]"
                 src={theme === "dark" ? darkLogo : lightLogo}
                 alt="StyleDecor Logo"
               />
@@ -188,9 +223,19 @@ const NavBar = () => {
 
         {/* --- Navbar Center --- */}
         <div className="navbar-center hidden lg:flex">
-          <ul className="menu menu-horizontal px-1 gap-1 items-center">
-            {links}
-          </ul>
+          <div className="relative">
+            {/* Sliding active indicator */}
+            <div
+              className="absolute inset-y-[5px] left-0 pointer-events-none rounded-full backdrop-blur-sm border-2 border-blue-400/70 dark:border-blue-400/60 ring-1 ring-blue-300/40 dark:ring-blue-300/30 shadow-md shadow-blue-400/20 dark:shadow-blue-500/20 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+              style={{
+                ...indicatorStyle,
+                background: "radial-gradient(ellipse at center, transparent 25%, rgba(96,165,250,0.22) 100%)",
+              }}
+            />
+            <ul ref={navContainerRef} className="menu menu-horizontal px-1 gap-1 items-center">
+              {links}
+            </ul>
+          </div>
         </div>
 
         {/* --- Navbar End --- */}
@@ -203,12 +248,7 @@ const NavBar = () => {
             {/* Theme Toggle */}
             {themeToggleButton}
 
-            <button
-              onClick={HandleLogOut}
-              className="group hidden sm:block px-5 py-2 rounded-full font-semibold text-error hover:bg-transparent hover:translate-x-0.5 transition-all duration-300 ease-out"
-            >
-              <AnimatedLabel>Log Out</AnimatedLabel>
-            </button>
+
 
             {/* Profile Dropdown */}
             <div className="dropdown dropdown-end">
@@ -227,43 +267,57 @@ const NavBar = () => {
 
               <ul
                 tabIndex={0}
-                className="dropdown-content menu mt-4 w-60 rounded-2xl shadow-2xl z-[100] bg-base-100 text-base-content border border-base-300 py-3"
+                className="dropdown-content mt-4 w-72 rounded-2xl shadow-2xl z-[100] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5 p-3 space-y-2"
               >
+                {/* Gradient accent bar */}
+                <div className="absolute inset-x-0 top-0 h-0.5 rounded-t-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+
                 {/* User Info */}
                 <li className="px-4 py-2 hover:bg-transparent cursor-default">
                   <div className="flex flex-col gap-1 items-start">
-                    <span className="font-bold text-base truncate w-full">
+                    <span className="font-bold text-base truncate w-full text-gray-800 dark:text-gray-100">
                       {user?.displayName || "User"}
                     </span>
-                    <span className="text-xs opacity-70 truncate w-full">
+                    <span className="text-xs opacity-70 truncate w-full text-gray-500 dark:text-gray-400">
                       {user?.email}
                     </span>
                   </div>
                 </li>
 
-                <div className="divider my-0 px-4"></div>
+                <div className="h-px bg-gray-200 dark:bg-white/10 mx-2 my-2" />
 
                 {role === "client" && (
-                  <li className="px-2 mt-1">
+                  <li>
                     <NavLink
                       to="/join-as-decorator"
-                      className="group flex items-center text-purple-700 dark:text-purple-300 rounded-xl font-semibold py-2.5 hover:bg-transparent hover:translate-x-1 transition-all duration-300 ease-out"
+                      className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-transparent hover:text-white bg-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-600 hover:shadow-md hover:shadow-indigo-500/25 transition-all duration-300 ease-out"
                     >
-                      <AnimatedLabel>
-                        <Palette className={iconClasses} />
-                        Join as Decorator
-                      </AnimatedLabel>
+                      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:bg-white/20 group-hover:text-white transition-colors duration-300">
+                        <Palette className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="text-sm font-bold">Join as Decorator</div>
+                        <div className="text-[11px] text-gray-500 dark:text-gray-400 group-hover:text-white/70 transition-colors duration-300">Showcase your talent</div>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-50 group-hover:text-white group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
                     </NavLink>
                   </li>
                 )}
 
-                {/* Mobile Logout */}
-                <li className="px-2 mt-1 sm:hidden">
+                {/* Logout Button */}
+                <li>
                   <button
                     onClick={HandleLogOut}
-                    className="group text-error rounded-xl font-semibold py-2.5 hover:bg-transparent hover:translate-x-1 transition-all duration-300 ease-out"
+                    className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-transparent hover:text-white bg-transparent hover:bg-gradient-to-r hover:from-red-500 hover:to-rose-600 hover:shadow-md hover:shadow-red-500/25 transition-all duration-300 ease-out"
                   >
-                    <AnimatedLabel>Log Out</AnimatedLabel>
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 group-hover:bg-white/20 group-hover:text-white transition-colors duration-300">
+                      <LogOut className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="text-sm font-bold">Log Out</div>
+                      <div className="text-[11px] text-gray-500 dark:text-gray-400 group-hover:text-white/70 transition-colors duration-300">See you later</div>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-50 group-hover:text-white group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
                   </button>
                 </li>
               </ul>
@@ -279,7 +333,7 @@ const NavBar = () => {
               <div
                 tabIndex={0}
                 role="button"
-                className="group relative flex items-center gap-1 sm:gap-1.5 overflow-hidden px-3.5 sm:px-6 py-2 rounded-full font-semibold text-white text-sm sm:text-base whitespace-nowrap bg-gradient-to-b from-indigo-500 via-indigo-600 to-purple-700 border border-blue-300/70 ring-2 ring-blue-200/50 shadow-[0_4px_0_rgba(67,56,202,0.7),0_10px_20px_-6px_rgba(99,102,241,0.6)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_6px_0_rgba(67,56,202,0.7),0_14px_24px_-6px_rgba(99,102,241,0.6)] active:translate-y-0.5 active:shadow-[0_1px_0_rgba(67,56,202,0.7),0_4px_10px_-4px_rgba(99,102,241,0.6)]"
+                className="group cursor-pointer relative flex items-center gap-1 sm:gap-1.5 overflow-hidden px-3.5 sm:px-6 py-2 rounded-full font-semibold text-white text-sm sm:text-base whitespace-nowrap bg-gradient-to-b from-indigo-500 via-indigo-600 to-purple-700 border border-blue-300/70 ring-2 ring-blue-200/50 shadow-[0_4px_0_rgba(67,56,202,0.7),0_10px_20px_-6px_rgba(99,102,241,0.6)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_6px_0_rgba(67,56,202,0.7),0_14px_24px_-6px_rgba(99,102,241,0.6)] active:translate-y-0.5 active:shadow-[0_1px_0_rgba(67,56,202,0.7),0_4px_10px_-4px_rgba(99,102,241,0.6)]"
               >
                 {/* Glossy top highlight for 3D effect */}
                 <span className="pointer-events-none absolute inset-x-1 top-1 h-1/2 rounded-full bg-white/12 blur-[2px]" />
@@ -305,36 +359,42 @@ const NavBar = () => {
 
               <ul
                 tabIndex={0}
-                className="dropdown-content menu mt-3 w-[187px] sm:w-[202px] rounded-2xl shadow-2xl z-[100] bg-base-100 border border-base-300 p-3 gap-1.5"
+                className="dropdown-content mt-3 w-72 rounded-2xl shadow-2xl z-[100] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5 p-3 space-y-2"
               >
+                {/* Gradient accent bar */}
+                <div className="absolute inset-x-0 top-0 h-0.5 rounded-t-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+
                 <li>
                   <button
                     onClick={() => navigate("/register")}
-                    className="flex items-center gap-2 font-semibold text-white bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-600 hover:to-purple-600 shadow-sm rounded-xl py-2.5 transition-colors duration-300 ease-out"
+                    className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-transparent hover:text-white bg-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-600 hover:shadow-md hover:shadow-indigo-500/25 transition-all duration-300 ease-out"
                   >
-                    <UserPlus className="h-4 w-4 shrink-0" />
-                    Register
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:bg-white/20 group-hover:text-white transition-colors duration-300">
+                      <UserPlus className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="text-sm font-bold">Register</div>
+                      <div className="text-[11px] text-gray-500 dark:text-gray-400 group-hover:text-white/70 transition-colors duration-300">Create a new account</div>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-50 group-hover:text-white group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
                   </button>
                 </li>
                 <li>
                   <button
                     onClick={() => navigate("/login")}
-                    className="flex items-center gap-2 font-semibold text-white bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-600 hover:to-purple-600 shadow-sm rounded-xl py-2.5 transition-colors duration-300 ease-out"
+                    className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-transparent hover:text-white bg-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-600 hover:shadow-md hover:shadow-indigo-500/25 transition-all duration-300 ease-out"
                   >
-                    <LogIn className="h-4 w-4 shrink-0" />
-                    Log In
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:bg-white/20 group-hover:text-white transition-colors duration-300">
+                      <LogIn className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="text-sm font-bold">Log In</div>
+                      <div className="text-[11px] text-gray-500 dark:text-gray-400 group-hover:text-white/70 transition-colors duration-300">Welcome back</div>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-50 group-hover:text-white group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
                   </button>
                 </li>
-                <div className="divider my-0 px-2"></div>
-                <li>
-                  <NavLink
-                    to="/join-as-decorator"
-                    className="flex items-center gap-2 font-semibold text-white bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-600 hover:to-purple-600 shadow-sm rounded-xl py-2.5 transition-colors duration-300 ease-out"
-                  >
-                    <Palette className="h-4 w-4 shrink-0" />
-                    Join as Decorator
-                  </NavLink>
-                </li>
+
               </ul>
             </div>
           </div>
