@@ -1,5 +1,5 @@
 import React from "react";
-import NavBar from "../Layout/NavBar";
+import NavBar from "../DefaultLayout/NavBar";
 import { Outlet } from "react-router";
 import SideNavigation from "./SideNavigation";
 

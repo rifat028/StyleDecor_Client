@@ -1,8 +1,8 @@
 import React, { use, useState, useRef, useEffect } from "react";
-import darkLogo from "../assets/Dark Logo.png";
-import lightLogo from "../assets/Light Logo.png";
+import darkLogo from "../../assets/Dark Logo.png";
+import lightLogo from "../../assets/Light Logo.png";
 import { NavLink, useNavigate, useLocation } from "react-router";
-import { AuthContext } from "../Authentication/AuthContext";
+import { AuthContext } from "../../Authentication/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
 // import { Tooltip } from "react-tooltip";
 import { ScaleLoader } from "react-spinners";
@@ -21,7 +21,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { PiMoonStarsFill } from "react-icons/pi";
-import useRole from "../Hooks/useRole";
+import useRole from "../../Hooks/useRole";
 
 // Animated label component with hover underline effect
 const AnimatedLabel = ({ children, disableHover = false }) => (
@@ -143,7 +143,7 @@ const NavBar = () => {
   const themeToggleButton = (
     <button
       onClick={toggleTheme}
-      className="group relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-blue-200/70 bg-gradient-to-br from-white to-blue-50 text-blue-500 shadow-sm ring-1 ring-black/5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-500/20 active:translate-y-0 active:scale-95 dark:border-white/10 dark:from-slate-800 dark:to-slate-900 dark:text-blue-300 dark:ring-white/5"
+      className="group relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-blue-200/70 bg-linear-to-br from-white to-blue-50 text-blue-500 shadow-sm ring-1 ring-black/5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-500/20 active:translate-y-0 active:scale-95 dark:border-white/10 dark:from-slate-800 dark:to-slate-900 dark:text-blue-300 dark:ring-white/5"
       title="Toggle Dark Mode"
       aria-label="Toggle Dark Mode"
     >
@@ -211,9 +211,9 @@ const NavBar = () => {
             className="group hidden lg:block hover:opacity-90 transition-opacity lg:ml-0"
           >
             <div className="relative">
-              <div className="absolute inset-0 bg-indigo-500 rounded-full blur-md opacity-40 transition-transform duration-[800ms] group-hover:scale-[1.05]"></div>
+              <div className="absolute inset-0 bg-indigo-500 rounded-full blur-md opacity-40 transition-transform duration-800 group-hover:scale-[1.05]"></div>
               <img
-                className="relative rounded-full h-10 w-[120px] lg:h-11 lg:w-[132px] object-cover border-[2px] border-white dark:border-gray-800 shadow-md transition-transform duration-[800ms] group-hover:scale-[1.05]"
+                className="relative rounded-full h-10 w-30 lg:h-11 lg:w-33 object-cover border-2 border-white dark:border-gray-800 shadow-md transition-transform duration-800 group-hover:scale-[1.05]"
                 src={theme === "dark" ? darkLogo : lightLogo}
                 alt="StyleDecor Logo"
               />
@@ -226,7 +226,7 @@ const NavBar = () => {
           <div className="relative">
             {/* Sliding active indicator */}
             <div
-              className="absolute inset-y-[5px] left-0 pointer-events-none rounded-full backdrop-blur-sm border-2 border-blue-400/70 dark:border-blue-400/60 ring-1 ring-blue-300/40 dark:ring-blue-300/30 shadow-md shadow-blue-400/20 dark:shadow-blue-500/20 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+              className="absolute inset-y-1.25 left-0 pointer-events-none rounded-full backdrop-blur-sm border-2 border-blue-400/70 dark:border-blue-400/60 ring-1 ring-blue-300/40 dark:ring-blue-300/30 shadow-md shadow-blue-400/20 dark:shadow-blue-500/20 transition-all duration-500 ease-in-out"
               style={{
                 ...indicatorStyle,
                 background: "radial-gradient(ellipse at center, transparent 25%, rgba(96,165,250,0.22) 100%)",
@@ -267,10 +267,10 @@ const NavBar = () => {
 
               <ul
                 tabIndex={0}
-                className="dropdown-content mt-4 w-72 rounded-2xl shadow-2xl z-[100] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5 p-3 space-y-2"
+                className="dropdown-content mt-4 w-72 rounded-2xl shadow-2xl z-100 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5 p-3 space-y-2"
               >
                 {/* Gradient accent bar */}
-                <div className="absolute inset-x-0 top-0 h-0.5 rounded-t-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+                <div className="absolute inset-x-0 top-0 h-0.5 rounded-t-2xl bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500" />
 
                 {/* User Info */}
                 <li className="px-4 py-2 hover:bg-transparent cursor-default">
@@ -290,7 +290,7 @@ const NavBar = () => {
                   <li>
                     <NavLink
                       to="/join-as-decorator"
-                      className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-transparent hover:text-white bg-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-600 hover:shadow-md hover:shadow-indigo-500/25 transition-all duration-300 ease-out"
+                      className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-transparent hover:text-white bg-transparent hover:bg-linear-to-r hover:from-indigo-500 hover:to-purple-600 hover:shadow-md hover:shadow-indigo-500/25 transition-all duration-300 ease-out"
                     >
                       <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:bg-white/20 group-hover:text-white transition-colors duration-300">
                         <Palette className="h-4 w-4" />
@@ -308,7 +308,7 @@ const NavBar = () => {
                 <li>
                   <button
                     onClick={HandleLogOut}
-                    className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-transparent hover:text-white bg-transparent hover:bg-gradient-to-r hover:from-red-500 hover:to-rose-600 hover:shadow-md hover:shadow-red-500/25 transition-all duration-300 ease-out"
+                    className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-transparent hover:text-white bg-transparent hover:bg-linear-to-r hover:from-red-500 hover:to-rose-600 hover:shadow-md hover:shadow-red-500/25 transition-all duration-300 ease-out"
                   >
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 group-hover:bg-white/20 group-hover:text-white transition-colors duration-300">
                       <LogOut className="h-4 w-4" />
@@ -333,7 +333,7 @@ const NavBar = () => {
               <div
                 tabIndex={0}
                 role="button"
-                className="group cursor-pointer relative flex items-center gap-1 sm:gap-1.5 overflow-hidden px-3.5 sm:px-6 py-2 rounded-full font-semibold text-white text-sm sm:text-base whitespace-nowrap bg-gradient-to-b from-indigo-500 via-indigo-600 to-purple-700 border border-blue-300/70 ring-2 ring-blue-200/50 shadow-[0_4px_0_rgba(67,56,202,0.7),0_10px_20px_-6px_rgba(99,102,241,0.6)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_6px_0_rgba(67,56,202,0.7),0_14px_24px_-6px_rgba(99,102,241,0.6)] active:translate-y-0.5 active:shadow-[0_1px_0_rgba(67,56,202,0.7),0_4px_10px_-4px_rgba(99,102,241,0.6)]"
+                className="group cursor-pointer relative flex items-center gap-1 sm:gap-1.5 overflow-hidden px-3.5 sm:px-6 py-2 rounded-full font-semibold text-white text-sm sm:text-base whitespace-nowrap bg-linear-to-b from-indigo-500 via-indigo-600 to-purple-700 border border-blue-300/70 ring-2 ring-blue-200/50 shadow-[0_4px_0_rgba(67,56,202,0.7),0_10px_20px_-6px_rgba(99,102,241,0.6)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_6px_0_rgba(67,56,202,0.7),0_14px_24px_-6px_rgba(99,102,241,0.6)] active:translate-y-0.5 active:shadow-[0_1px_0_rgba(67,56,202,0.7),0_4px_10px_-4px_rgba(99,102,241,0.6)]"
               >
                 {/* Glossy top highlight for 3D effect */}
                 <span className="pointer-events-none absolute inset-x-1 top-1 h-1/2 rounded-full bg-white/12 blur-[2px]" />
@@ -359,15 +359,15 @@ const NavBar = () => {
 
               <ul
                 tabIndex={0}
-                className="dropdown-content mt-3 w-72 rounded-2xl shadow-2xl z-[100] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5 p-3 space-y-2"
+                className="dropdown-content mt-3 w-72 rounded-2xl shadow-2xl z-100 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5 p-3 space-y-2"
               >
                 {/* Gradient accent bar */}
-                <div className="absolute inset-x-0 top-0 h-0.5 rounded-t-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+                <div className="absolute inset-x-0 top-0 h-0.5 rounded-t-2xl bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500" />
 
                 <li>
                   <button
                     onClick={() => navigate("/register")}
-                    className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-transparent hover:text-white bg-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-600 hover:shadow-md hover:shadow-indigo-500/25 transition-all duration-300 ease-out"
+                    className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-transparent hover:text-white bg-transparent hover:bg-linear-to-r hover:from-indigo-500 hover:to-purple-600 hover:shadow-md hover:shadow-indigo-500/25 transition-all duration-300 ease-out"
                   >
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:bg-white/20 group-hover:text-white transition-colors duration-300">
                       <UserPlus className="h-4 w-4" />
@@ -382,7 +382,7 @@ const NavBar = () => {
                 <li>
                   <button
                     onClick={() => navigate("/login")}
-                    className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-transparent hover:text-white bg-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-600 hover:shadow-md hover:shadow-indigo-500/25 transition-all duration-300 ease-out"
+                    className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-transparent hover:text-white bg-transparent hover:bg-linear-to-r hover:from-indigo-500 hover:to-purple-600 hover:shadow-md hover:shadow-indigo-500/25 transition-all duration-300 ease-out"
                   >
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:bg-white/20 group-hover:text-white transition-colors duration-300">
                       <LogIn className="h-4 w-4" />

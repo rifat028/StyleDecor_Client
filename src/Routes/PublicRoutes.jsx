@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import Home from "../Pages/Home";
 import Spinner from "../Components/Spinner";
-import RootLayout from "../Layout/RootLayout";
+import RootLayout from "../Layout/DefaultLayout/RootLayout";
 import Register from "../Pages/Register";
 import Login from "../Pages/LogIn";
 import Services from "../Pages/Services";
@@ -10,7 +10,7 @@ import Contact from "../Pages/Contact";
 import ServiceDetails from "../Pages/ServiceDetails";
 import PrivateRoutes from "./PrivateRoutes";
 import ServiceBooking from "../Pages/ServiceBooking";
-import DashboardLayout from "../Dashboard Layout/DashboardLayout";
+import DashboardLayout from "../Layout/DashBoardLayout/DashboardLayout";
 import MyBookings from "../DashBoard/MyBookings";
 import MyProfile from "../DashBoard/MyProfile";
 import ManageService from "../DashBoard/ManageService";
