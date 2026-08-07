@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import useAxiosSecure from "../../Hooks/useAxiosSecure";
-import { AuthContext } from "../../Authentication/AuthContext";
+import useAxiosSecure from "../../../Hooks/useAxiosSecure";
+import { AuthContext } from "../../../Authentication/AuthContext";
 import Swal from "sweetalert2";
 import { Tooltip } from "react-tooltip";
 import { FaEdit, FaTrashAlt, FaCreditCard } from "react-icons/fa";
-import Spinner from "../../Components/Spinner";
-import BookingNotFound from "../../Components/MyBookingsComponents/BookingNotFound";
+import Spinner from "../../../Components/Spinner";
+import BookingNotFound from "../../../Components/MyBookingsComponents/BookingNotFound";
 
 const MyBookings = () => {
   const axiosSecure = useAxiosSecure();

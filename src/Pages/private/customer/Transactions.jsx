@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
-import useAxiosSecure from "../../Hooks/useAxiosSecure";
-import { AuthContext } from "../../Authentication/AuthContext";
+import useAxiosSecure from "../../../Hooks/useAxiosSecure";
+import { AuthContext } from "../../../Authentication/AuthContext";
 
 const Transactions = () => {
   const axiosSecure = useAxiosSecure();
