@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { AuthContext } from "../Authentication/AuthContext";
-import useAxiosSecure from "../Hooks/useAxiosSecure";
-import Spinner from "../Components/Spinner";
+import { AuthContext } from "../../Authentication/AuthContext";
+import useAxiosSecure from "../../Hooks/useAxiosSecure";
+import Spinner from "../../Components/Spinner";
 import toast, { Toaster } from "react-hot-toast";
 
 const ServiceBooking = () => {

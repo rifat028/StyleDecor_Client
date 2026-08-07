@@ -1,7 +1,7 @@
 import React, { use, useEffect, useState } from "react";
-import useAxiosSecure from "../Hooks/useAxiosSecure";
-import { AuthContext } from "../Authentication/AuthContext";
-import Spinner from "../Components/Spinner";
+import useAxiosSecure from "../../Hooks/useAxiosSecure";
+import { AuthContext } from "../../Authentication/AuthContext";
+import Spinner from "../../Components/Spinner";
 
 const MyProfile = () => {
   const { user } = use(AuthContext);

@@ -2,10 +2,10 @@ import React, { use, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { IoMdEyeOff } from "react-icons/io";
 import { IoEye } from "react-icons/io5";
-import { AuthContext } from "../Authentication/AuthContext";
+import { AuthContext } from "../../Authentication/AuthContext";
 import { useLocation, useNavigate } from "react-router";
 import toast, { Toaster } from "react-hot-toast";
-import useAxiosSecure from "../Hooks/useAxiosSecure";
+import useAxiosSecure from "../../Hooks/useAxiosSecure";
 
 const Login = () => {
   const location = useLocation();

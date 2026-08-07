@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import useAxiosSecure from "../Hooks/useAxiosSecure";
-import Spinner from "../Components/Spinner";
+import useAxiosSecure from "../../Hooks/useAxiosSecure";
+import Spinner from "../../Components/Spinner";
 
 const ServiceDetails = () => {
   const navigate = useNavigate();

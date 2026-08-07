@@ -2,11 +2,11 @@ import React, { use, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { IoMdEyeOff } from "react-icons/io";
 import { IoEye } from "react-icons/io5";
-import { AuthContext } from "../Authentication/AuthContext";
+import { AuthContext } from "../../Authentication/AuthContext";
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router";
-import useAxiosSecure from "../Hooks/useAxiosSecure";
+import useAxiosSecure from "../../Hooks/useAxiosSecure";
 
 const Register = () => {
   const { CreateUserWithEmail, updateProfileInfo, GoogleSignIN } =

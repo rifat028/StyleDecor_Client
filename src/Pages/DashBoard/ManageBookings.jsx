@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import useAxiosSecure from "../Hooks/useAxiosSecure";
+import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import Swal from "sweetalert2";
-import Spinner from "../Components/Spinner";
+import Spinner from "../../Components/Spinner";
 
 const PAGE_SIZE = 5;
 

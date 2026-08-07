@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import useAxiosSecure from "../Hooks/useAxiosSecure";
+import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import { FaCheckCircle, FaTrashAlt, FaUserMinus } from "react-icons/fa";
-import Spinner from "../Components/Spinner";
+import Spinner from "../../Components/Spinner";
 
 const ManageDecorator = () => {
   const axiosSecure = useAxiosSecure();
