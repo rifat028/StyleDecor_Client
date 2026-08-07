@@ -1,6 +1,6 @@
 import React, { use } from "react";
 import { useNavigate } from "react-router";
-import { AuthContext } from "../../Authentication/AuthContext";
+import { AuthContext } from "../../../../Authentication/AuthContext";
 
 const HowItWorks = ({ steps }) => {
   const navigate = useNavigate();

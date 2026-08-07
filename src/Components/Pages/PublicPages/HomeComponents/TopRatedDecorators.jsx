@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Marquee from "react-fast-marquee";
-import useAxiosSecure from "../../Hooks/useAxiosSecure";
-import pic from "../../assets/Avatar.jpg";
+import useAxiosSecure from "../../../../Hooks/useAxiosSecure";
+import pic from "../../../../assets/Avatar.jpg";
 
 // TopRatedDecorators function component displaying top decorators in an animated marquee
 const TopRatedDecorators = () => {

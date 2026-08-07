@@ -4,8 +4,8 @@ import { AuthContext } from "../../../Authentication/AuthContext";
 import Swal from "sweetalert2";
 import { Tooltip } from "react-tooltip";
 import { FaEdit, FaTrashAlt, FaCreditCard } from "react-icons/fa";
-import Spinner from "../../../Components/Spinner";
-import BookingNotFound from "../../../Components/MyBookingsComponents/BookingNotFound";
+import Spinner from "../../../Components/UxComponents/Loading/Spinner";
+import BookingNotFound from "../../../Components/Pages/PublicPages/MyBookingsComponents/BookingNotFound";
 
 const MyBookings = () => {
   const axiosSecure = useAxiosSecure();

@@ -1,8 +1,8 @@
 import React, { use } from "react";
 import { AuthContext } from "../Authentication/AuthContext";
 import useRole from "../Hooks/useRole";
-import Spinner from "../Components/Spinner";
-import Forbidden from "../Components/ErrorPages/Forbidden";
+import Spinner from "../Components/UxComponents/Loading/Spinner";
+import Forbidden from "../Components/UxComponents/ErrorPages/Forbidden";
 
 const DecoratorRoutes = ({ children }) => {
   const { loading } = use(AuthContext);

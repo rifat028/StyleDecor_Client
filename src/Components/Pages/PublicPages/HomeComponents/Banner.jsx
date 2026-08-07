@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router";
-import Hero from "../../assets/Hero.png";
+import Hero from "../../../../assets/Hero.png";
 
 // Banner function component displaying hero section with call-to-action
 const Banner = () => {

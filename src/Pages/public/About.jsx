@@ -1,11 +1,11 @@
 import React from "react";
 import { useLoaderData } from "react-router";
-import TopSection from "../../Components/AboutComponents/TopSection";
-import Stats from "../../Components/AboutComponents/Stats";
-import Intro from "../../Components/AboutComponents/Intro";
-import Values from "../../Components/AboutComponents/Values";
-import CallToAction from "../../Components/AboutComponents/CallToAction";
-import HowItWorks from "../../Components/AboutComponents/HowItWorks";
+import TopSection from "../../Components/Pages/PublicPages/AboutComponents/TopSection";
+import Stats from "../../Components/Pages/PublicPages/AboutComponents/Stats";
+import Intro from "../../Components/Pages/PublicPages/AboutComponents/Intro";
+import Values from "../../Components/Pages/PublicPages/AboutComponents/Values";
+import CallToAction from "../../Components/Pages/PublicPages/AboutComponents/CallToAction";
+import HowItWorks from "../../Components/Pages/PublicPages/AboutComponents/HowItWorks";
 
 const About = () => {
   const data = useLoaderData();

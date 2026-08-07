@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
-import ServiceCard from "../../Components/ServiceComponents/ServiceCard";
-import TopSection from "../../Components/ServiceComponents/TopSection";
-import Spinner from "../../Components/Spinner";
+import ServiceCard from "../../Components/Pages/PublicPages/ServiceComponents/ServiceCard";
+import TopSection from "../../Components/Pages/PublicPages/ServiceComponents/TopSection";
+import Spinner from "../../Components/UxComponents/Loading/Spinner";
 
 const Services = () => {
   const axiosSecure = useAxiosSecure();

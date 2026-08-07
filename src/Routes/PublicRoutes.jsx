@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import Home from "../Pages/public/Home";
-import Spinner from "../Components/Spinner";
-import RootLayout from "../Layout/DefaultLayout/RootLayout";
+import Spinner from "../Components/UxComponents/Loading/Spinner";
+import RootLayout from "../layouts/DefaultLayout/RootLayout";
 import Register from "../Pages/public/Register";
 import Login from "../Pages/public/LogIn";
 import Services from "../Pages/public/Services";
@@ -10,7 +10,7 @@ import Contact from "../Pages/public/Contact";
 import ServiceDetails from "../Pages/public/ServiceDetails";
 import PrivateRoutes from "./PrivateRoutes";
 import ServiceBooking from "../Pages/private/customer/ServiceBooking";
-import DashboardLayout from "../Layout/DashBoardLayout/DashboardLayout";
+import DashboardLayout from "../layouts/DashBoardLayout/DashboardLayout";
 import MyBookings from "../Pages/private/customer/MyBookings";
 import MyProfile from "../Pages/private/MyProfile";
 import ManageService from "../Pages/private/decorator/ManageService";
@@ -22,7 +22,7 @@ import MyEarnings from "../Pages/private/decorator/MyEarnings";
 import Analytics from "../Pages/private/admin/Analytics";
 import AdminRoutes from "./AdminRoutes";
 import DecoratorRoutes from "./DecoratorRoutes";
-import NotFound from "../Components/ErrorPages/NotFound";
+import NotFound from "../Components/UxComponents/ErrorPages/NotFound";
 import Transactions from "../Pages/private/customer/Transactions";
 import PaymentSuccess from "../Pages/private/customer/PaymentSuccess";
 
