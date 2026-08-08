@@ -8,6 +8,7 @@ import Services from "../Pages/public/Services";
 import About from "../Pages/public/About";
 import Contact from "../Pages/public/Contact";
 import ServiceDetails from "../Pages/public/ServiceDetails";
+import TopDecorators from "../Pages/public/TopDecorators";
 import PrivateRoutes from "./PrivateRoutes";
 import ServiceBooking from "../Pages/private/customer/ServiceBooking";
 import DashboardLayout from "../layouts/DashBoardLayout/DashboardLayout";
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
       {
         path: "/services/:id",
         Component: ServiceDetails,
+      },
+      {
+        path: "/top-decorators",
+        Component: TopDecorators,
       },
       {
         path: "/service-booking/:id",
