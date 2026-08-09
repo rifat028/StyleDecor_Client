@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { use, useEffect } from "react";
-import { AuthContext } from "../Authentication/AuthContext";
+import { AuthContext } from "../features/auth/AuthContext";
 import { useNavigate } from "react-router";
 
 const axiosSecure = axios.create({

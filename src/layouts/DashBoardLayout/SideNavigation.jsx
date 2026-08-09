@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router";
-import useRole from "../../Hooks/useRole";
+import useRole from "../../hooks/useRole";
 
 const SideNavigation = () => {
   const { role, roleLoading } = useRole();

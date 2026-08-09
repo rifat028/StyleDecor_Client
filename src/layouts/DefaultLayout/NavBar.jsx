@@ -1,8 +1,8 @@
 import React, { use, useState, useRef, useEffect } from "react";
-import darkLogo from "../../assets/Dark Logo.png";
-import lightLogo from "../../assets/Light Logo.png";
+import darkLogo from "../../assets/logos/dark-logo.png";
+import lightLogo from "../../assets/logos/light-logo.png";
 import { NavLink, useNavigate, useLocation } from "react-router";
-import { AuthContext } from "../../Authentication/AuthContext";
+import { AuthContext } from "../../features/auth/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
 // import { Tooltip } from "react-tooltip";
 import { ScaleLoader } from "react-spinners";
@@ -21,7 +21,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { PiMoonStarsFill } from "react-icons/pi";
-import useRole from "../../Hooks/useRole";
+import useRole from "../../hooks/useRole";
 
 // Animated label component with hover underline effect
 const AnimatedLabel = ({ children, disableHover = false }) => (

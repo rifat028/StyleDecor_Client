@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../Authentication/AuthContext";
+import { AuthContext } from "../features/auth/AuthContext";
 import useAxiosSecure from "./useAxiosSecure";
 
 const useRole = () => {
