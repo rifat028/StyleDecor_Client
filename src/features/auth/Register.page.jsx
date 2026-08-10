@@ -64,7 +64,7 @@ const Register = () => {
               // console.log(data.data.insertedId);
             });
             setTimeout(() => {
-              navigate("/");
+              navigate("/dashboard");
             }, 1000);
           })
           .catch(() => {
@@ -98,7 +98,7 @@ const Register = () => {
           // console.log(data.data);
         });
         setTimeout(() => {
-          navigate("/");
+          navigate("/dashboard");
         }, 1000);
       })
       .catch((error) => {

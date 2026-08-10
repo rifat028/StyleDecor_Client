@@ -24,7 +24,7 @@ const Login = () => {
         toast.success("Login Success");
         // console.log(result.user);
         setTimeout(() => {
-          navigate(location.state || "/");
+          navigate(location.state || "/dashboard");
         }, 1000);
       })
       .catch((error) => {
@@ -57,7 +57,7 @@ const Login = () => {
           // console.log(data.data);
         });
         setTimeout(() => {
-          navigate(location.state || "/");
+          navigate(location.state || "/dashboard");
         }, 1000);
       })
       .catch((error) => {

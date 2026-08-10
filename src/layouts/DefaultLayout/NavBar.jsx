@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { PiMoonStarsFill } from "react-icons/pi";
 import useRole from "../../hooks/useRole";
+import LogoutModal from "../../components/ui/LogoutModal";
 
 // Animated label component with hover underline effect
 const AnimatedLabel = ({ children, disableHover = false }) => (
@@ -53,6 +54,7 @@ const NavBar = () => {
   const navigate = useNavigate();
   const { user, logOutUser, loading } = use(AuthContext);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const { role, roleLoading } = useRole();
 
@@ -61,15 +63,23 @@ const NavBar = () => {
   // Refs for the sliding active indicator
   const navContainerRef = useRef(null);
   const itemRefs = useRef({});
-  const [indicatorStyle, setIndicatorStyle] = useState({ opacity: 0, width: 0, transform: "translateX(0px)" });
+  const [indicatorStyle, setIndicatorStyle] = useState({
+    opacity: 0,
+    width: 0,
+    transform: "translateX(0px)",
+  });
 
   // Update sliding indicator position whenever route changes
   useEffect(() => {
     const visibleLinks = navLinks.filter((link) => !link.authOnly || user);
     const activeLink = visibleLinks.find(({ to }) =>
-      to === "/" ? location.pathname === "/" : location.pathname.startsWith(to)
+      to === "/" ? location.pathname === "/" : location.pathname.startsWith(to),
     );
-    if (activeLink && itemRefs.current[activeLink.to] && navContainerRef.current) {
+    if (
+      activeLink &&
+      itemRefs.current[activeLink.to] &&
+      navContainerRef.current
+    ) {
       const container = navContainerRef.current;
       const item = itemRefs.current[activeLink.to];
       const containerRect = container.getBoundingClientRect();
@@ -84,20 +94,13 @@ const NavBar = () => {
     }
   }, [location.pathname, user]);
 
-  if (roleLoading && user) {
-    return <span className="loading loading-spinner" />;
-  }
-
-
-
   // Dynamic styling function for active/inactive nav links — no background, only text color
   const linkClasses = ({ isActive }) =>
     isActive
       ? "group relative flex items-center font-semibold text-indigo-600 dark:text-indigo-300 rounded-full px-4 py-2 transition-colors duration-300 ease-out !bg-transparent hover:!bg-transparent focus:!bg-transparent active:!bg-transparent"
       : "group flex items-center font-medium text-base-content/70 hover:text-indigo-600 dark:hover:text-indigo-400 bg-transparent rounded-full px-4 py-2 transition-colors duration-300 ease-out";
 
-  const iconClasses =
-    "h-4 w-4 shrink-0 transition-transform duration-300 ease-out group-hover:scale-110 group-hover:-translate-y-0.5";
+  const iconClasses = "h-4 w-4 shrink-0";
   const iconClassesStatic = "h-4 w-4 shrink-0";
 
   // Filtered navigation list items component
@@ -107,10 +110,7 @@ const NavBar = () => {
         .filter((link) => !link.authOnly || user)
         .map(({ to, label, icon: Icon }) => (
           <li key={to} ref={(el) => (itemRefs.current[to] = el)}>
-            <NavLink
-              to={to}
-              className={linkClasses}
-            >
+            <NavLink to={to} className={linkClasses}>
               {({ isActive }) => (
                 <AnimatedLabel disableHover={isActive}>
                   <Icon
@@ -128,8 +128,14 @@ const NavBar = () => {
   // Event handler for user logout
   const HandleLogOut = () => {
     logOutUser()
-      .then(() => toast.success("Sign Out Successful"))
-      .catch((error) => toast.error(error.message));
+      .then(() => {
+        toast.success("Sign Out Successful");
+        setIsLogoutModalOpen(false);
+      })
+      .catch((error) => {
+        toast.error(error.message);
+        setIsLogoutModalOpen(false);
+      });
   };
 
   // Event handler for dark/light theme toggle
@@ -170,7 +176,7 @@ const NavBar = () => {
   html.setAttribute("data-theme", theme);
 
   return (
-    <div className="sticky top-0 z-50 w-full bg-blue-100/70 dark:bg-black backdrop-blur-xl lg:py-4 transition-all duration-300">
+    <div className="sticky top-0 z-50 w-full bg-blue-100/70 dark:bg-black border-b-2 border-blue-200/70 dark:border-white/20 backdrop-blur-xl lg:py-4 transition-all duration-300">
       <div className="navbar w-full lg:max-w-7xl mx-auto h-15 backdrop-blur-xl bg-blue-50/80 dark:bg-base-100/90 ring-2 ring-blue-900/10 dark:ring-white/10 shadow-sm lg:rounded-4xl lg:shadow-lg px-4 sm:px-6 lg:px-8">
         <Toaster position="top-center" reverseOrder={false} />
 
@@ -229,26 +235,29 @@ const NavBar = () => {
               className="absolute inset-y-1.25 left-0 pointer-events-none rounded-full backdrop-blur-sm border-2 border-blue-400/70 dark:border-blue-400/60 ring-1 ring-blue-300/40 dark:ring-blue-300/30 shadow-md shadow-blue-400/20 dark:shadow-blue-500/20 transition-all duration-500 ease-in-out"
               style={{
                 ...indicatorStyle,
-                background: "radial-gradient(ellipse at center, transparent 25%, rgba(96,165,250,0.22) 100%)",
+                background:
+                  "radial-gradient(ellipse at center, transparent 25%, rgba(96,165,250,0.22) 100%)",
               }}
             />
-            <ul ref={navContainerRef} className="menu menu-horizontal px-1 gap-1 items-center">
+            <ul
+              ref={navContainerRef}
+              className="menu menu-horizontal px-1 gap-1 items-center"
+            >
               {links}
             </ul>
           </div>
         </div>
 
         {/* --- Navbar End --- */}
-        {user && loading ? (
-          <div className="navbar-end flex gap-4">
-            <ScaleLoader color={"#7C3AED"} height={20} />
+        {loading ? (
+          <div className="navbar-end flex gap-3 sm:gap-4 items-center justify-end">
+            {themeToggleButton}
+            <div className="skeleton h-10 w-10 sm:h-11 sm:w-11 rounded-full shrink-0"></div>
           </div>
         ) : user ? (
           <div className="navbar-end flex gap-3 sm:gap-4 items-center">
             {/* Theme Toggle */}
             {themeToggleButton}
-
-
 
             {/* Profile Dropdown */}
             <div className="dropdown dropdown-end">
@@ -267,7 +276,7 @@ const NavBar = () => {
 
               <ul
                 tabIndex={0}
-                className="dropdown-content mt-4 w-72 rounded-2xl shadow-2xl z-100 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5 p-3 space-y-2"
+                className="dropdown-content mt-4 w-72 rounded-2xl shadow-2xl z-100 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5 p-3 space-y-2"
               >
                 {/* Gradient accent bar */}
                 <div className="absolute inset-x-0 top-0 h-0.5 rounded-t-2xl bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500" />
@@ -286,7 +295,7 @@ const NavBar = () => {
 
                 <div className="h-px bg-gray-200 dark:bg-white/10 mx-2 my-2" />
 
-                {role === "client" && (
+                {!roleLoading && role === "client" && (
                   <li>
                     <NavLink
                       to="/join-as-decorator"
@@ -296,8 +305,12 @@ const NavBar = () => {
                         <Palette className="h-4 w-4" />
                       </div>
                       <div className="flex-1 text-left">
-                        <div className="text-sm font-bold">Join as Decorator</div>
-                        <div className="text-[11px] text-gray-500 dark:text-gray-400 group-hover:text-white/70 transition-colors duration-300">Showcase your talent</div>
+                        <div className="text-sm font-bold">
+                          Join as Decorator
+                        </div>
+                        <div className="text-[11px] text-gray-500 dark:text-gray-400 group-hover:text-white/70 transition-colors duration-300">
+                          Showcase your talent
+                        </div>
                       </div>
                       <ArrowRight className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-50 group-hover:text-white group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
                     </NavLink>
@@ -307,7 +320,7 @@ const NavBar = () => {
                 {/* Logout Button */}
                 <li>
                   <button
-                    onClick={HandleLogOut}
+                    onClick={() => setIsLogoutModalOpen(true)}
                     className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-transparent hover:text-white bg-transparent hover:bg-linear-to-r hover:from-red-500 hover:to-rose-600 hover:shadow-md hover:shadow-red-500/25 transition-all duration-300 ease-out"
                   >
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 group-hover:bg-white/20 group-hover:text-white transition-colors duration-300">
@@ -315,7 +328,9 @@ const NavBar = () => {
                     </div>
                     <div className="flex-1 text-left">
                       <div className="text-sm font-bold">Log Out</div>
-                      <div className="text-[11px] text-gray-500 dark:text-gray-400 group-hover:text-white/70 transition-colors duration-300">See you later</div>
+                      <div className="text-[11px] text-gray-500 dark:text-gray-400 group-hover:text-white/70 transition-colors duration-300">
+                        See you later
+                      </div>
                     </div>
                     <ArrowRight className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-50 group-hover:text-white group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
                   </button>
@@ -359,7 +374,7 @@ const NavBar = () => {
 
               <ul
                 tabIndex={0}
-                className="dropdown-content mt-3 w-72 rounded-2xl shadow-2xl z-100 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5 p-3 space-y-2"
+                className="dropdown-content mt-3 w-72 rounded-2xl shadow-2xl z-100 bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5 p-3 space-y-2"
               >
                 {/* Gradient accent bar */}
                 <div className="absolute inset-x-0 top-0 h-0.5 rounded-t-2xl bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500" />
@@ -374,7 +389,9 @@ const NavBar = () => {
                     </div>
                     <div className="flex-1 text-left">
                       <div className="text-sm font-bold">Register</div>
-                      <div className="text-[11px] text-gray-500 dark:text-gray-400 group-hover:text-white/70 transition-colors duration-300">Create a new account</div>
+                      <div className="text-[11px] text-gray-500 dark:text-gray-400 group-hover:text-white/70 transition-colors duration-300">
+                        Create a new account
+                      </div>
                     </div>
                     <ArrowRight className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-50 group-hover:text-white group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
                   </button>
@@ -389,17 +406,24 @@ const NavBar = () => {
                     </div>
                     <div className="flex-1 text-left">
                       <div className="text-sm font-bold">Log In</div>
-                      <div className="text-[11px] text-gray-500 dark:text-gray-400 group-hover:text-white/70 transition-colors duration-300">Welcome back</div>
+                      <div className="text-[11px] text-gray-500 dark:text-gray-400 group-hover:text-white/70 transition-colors duration-300">
+                        Welcome back
+                      </div>
                     </div>
                     <ArrowRight className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-50 group-hover:text-white group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
                   </button>
                 </li>
-
               </ul>
             </div>
           </div>
         )}
       </div>
+      
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={HandleLogOut}
+      />
     </div>
   );
 };

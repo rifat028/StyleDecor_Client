@@ -8,7 +8,7 @@ const Banner = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative w-full bg-[#FAF9F6] dark:bg-slate-950 overflow-hidden font-sans min-h-[85vh] flex flex-col justify-center items-center py-20 lg:py-32">
+    <section className="relative w-full bg-[#FAF9F6] dark:bg-slate-950 overflow-hidden font-sans min-h-[85vh] flex flex-col justify-center items-center py-20">
       
       {/* Background Animation & Glow */}
       <div className="absolute inset-0 bg-linear-to-b from-purple-100/60 via-pink-50/30 to-transparent dark:from-purple-900/20 dark:via-pink-900/10 pointer-events-none"></div>
