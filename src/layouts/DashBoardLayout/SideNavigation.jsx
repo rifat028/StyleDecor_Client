@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import LogoutModal from "../../components/ui/LogoutModal";
 
+// eslint-disable-next-line no-unused-vars
 const NavItem = ({ to, icon: Icon, label, isCollapsed }) => {
   const linkClass = ({ isActive }) =>
     isActive
@@ -31,12 +32,8 @@ const NavItem = ({ to, icon: Icon, label, isCollapsed }) => {
   return (
     <li>
       <NavLink to={to} className={linkClass}>
-        {({ isActive }) => (
-          <>
-            <Icon className="w-5 h-5 shrink-0" />
-            {!isCollapsed && <span className="whitespace-nowrap transition-all duration-300">{label}</span>}
-          </>
-        )}
+        <Icon className="w-5 h-5 shrink-0" />
+        {!isCollapsed && <span className="whitespace-nowrap transition-all duration-300">{label}</span>}
       </NavLink>
     </li>
   );
