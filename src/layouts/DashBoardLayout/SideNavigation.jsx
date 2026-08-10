@@ -22,6 +22,26 @@ import {
 } from "lucide-react";
 import LogoutModal from "../../components/ui/LogoutModal";
 
+const NavItem = ({ to, icon: Icon, label, isCollapsed }) => {
+  const linkClass = ({ isActive }) =>
+    isActive
+      ? `flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 mb-1.5 rounded-lg text-indigo-600 dark:text-blue-300 font-semibold transition-colors duration-300 ease-out relative group backdrop-blur-sm border-2 border-blue-400/70 dark:border-blue-400/60 ring-1 ring-blue-300/40 dark:ring-blue-300/30 shadow-md shadow-blue-400/20 dark:shadow-blue-500/20 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(96,165,250,0.22)_100%)]`
+      : `flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 mb-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-blue-400 font-medium transition-colors duration-300 ease-out relative group border-2 border-transparent ring-1 ring-transparent shadow-none bg-transparent`;
+
+  return (
+    <li>
+      <NavLink to={to} className={linkClass}>
+        {({ isActive }) => (
+          <>
+            <Icon className="w-5 h-5 shrink-0" />
+            {!isCollapsed && <span className="whitespace-nowrap transition-all duration-300">{label}</span>}
+          </>
+        )}
+      </NavLink>
+    </li>
+  );
+};
+
 const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
   const { role, roleLoading } = useRole();
   const { logOutUser } = use(AuthContext);
@@ -77,24 +97,6 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
     );
   }
 
-  const linkClass = ({ isActive }) =>
-    isActive
-      ? `flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 mb-1.5 rounded-lg text-indigo-600 dark:text-blue-300 font-semibold transition-colors duration-300 ease-out relative group backdrop-blur-sm border-2 border-blue-400/70 dark:border-blue-400/60 ring-1 ring-blue-300/40 dark:ring-blue-300/30 shadow-md shadow-blue-400/20 dark:shadow-blue-500/20 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(96,165,250,0.22)_100%)]`
-      : `flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 mb-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-blue-400 font-medium transition-colors duration-300 ease-out relative group border-2 border-transparent ring-1 ring-transparent shadow-none bg-transparent`;
-
-  const NavItem = ({ to, icon: Icon, label }) => (
-    <li>
-      <NavLink to={to} className={linkClass}>
-        {({ isActive }) => (
-          <>
-            <Icon className="w-5 h-5 shrink-0" />
-            {!isCollapsed && <span className="whitespace-nowrap transition-all duration-300">{label}</span>}
-          </>
-        )}
-      </NavLink>
-    </li>
-  );
-
   return (
     <>
       <div className="flex flex-col flex-1 w-full h-full min-h-0">
@@ -122,28 +124,28 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
         </div>
 
         <ul className={`flex flex-col w-full flex-1 p-4 overflow-y-auto ${isCollapsed ? 'px-3' : ''}`}>
-          <NavItem to="/dashboard/my-profile" icon={UserCircle} label="My Profile" />
+          <NavItem to="/dashboard/my-profile" icon={UserCircle} label="My Profile" isCollapsed={isCollapsed} />
 
           {role === "client" && (
             <>
-              <NavItem to="/dashboard/my-bookings" icon={Calendar} label="My Bookings" />
-              <NavItem to="/dashboard/transactions" icon={CreditCard} label="Transactions" />
+              <NavItem to="/dashboard/my-bookings" icon={Calendar} label="My Bookings" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/transactions" icon={CreditCard} label="Transactions" isCollapsed={isCollapsed} />
             </>
           )}
 
           {role === "admin" && (
             <>
-              <NavItem to="/dashboard/manage-decorators" icon={Users} label="Manage Decorators" />
-              <NavItem to="/dashboard/manage-services" icon={Briefcase} label="Manage Services" />
-              <NavItem to="/dashboard/manage-bookings" icon={Calendar} label="Manage Bookings" />
-              <NavItem to="/dashboard/analytics" icon={BarChart3} label="Analytics" />
+              <NavItem to="/dashboard/manage-decorators" icon={Users} label="Manage Decorators" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-services" icon={Briefcase} label="Manage Services" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-bookings" icon={Calendar} label="Manage Bookings" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/analytics" icon={BarChart3} label="Analytics" isCollapsed={isCollapsed} />
             </>
           )}
 
           {role === "decorator" && (
             <>
-              <NavItem to="/dashboard/my-projects" icon={Palette} label="My Projects" />
-              <NavItem to="/dashboard/my-earnings" icon={Wallet} label="My Earnings" />
+              <NavItem to="/dashboard/my-projects" icon={Palette} label="My Projects" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/my-earnings" icon={Wallet} label="My Earnings" isCollapsed={isCollapsed} />
             </>
           )}
         </ul>
