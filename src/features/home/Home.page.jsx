@@ -5,6 +5,7 @@ import CoverageMap from "./components/CoverageMap";
 import { useLoaderData } from "react-router";
 import LatestServices from "./components/LatestServices";
 import TopRatedDecorators from "./components/TopRatedDecorators";
+import HowItWorks from "./components/HowItWorks";
 
 const Home = () => {
   const coverage = useLoaderData();
@@ -14,6 +15,7 @@ const Home = () => {
       <Banner></Banner>
       <Categories></Categories>
       <LatestServices></LatestServices>
+      <HowItWorks></HowItWorks>
       <TopRatedDecorators></TopRatedDecorators>
       <CoverageMap coverage={coverage}></CoverageMap>
     </div>
