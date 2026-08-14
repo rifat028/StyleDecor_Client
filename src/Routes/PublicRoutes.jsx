@@ -58,6 +58,10 @@ const router = createBrowserRouter([
         Component: ServiceDetails,
       },
       {
+        path: "/decorators",
+        Component: TopDecorators,
+      },
+      {
         path: "/top-decorators",
         Component: TopDecorators,
       },

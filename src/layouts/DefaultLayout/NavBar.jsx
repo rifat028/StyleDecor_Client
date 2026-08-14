@@ -39,7 +39,7 @@ const AnimatedLabel = ({ children, disableHover = false }) => (
 const navLinks = [
   { to: "/", label: "Home", icon: HomeIcon },
   { to: "/services", label: "Services", icon: Sparkles },
-  { to: "/top-decorators", label: "Top Decorators", icon: Award },
+  { to: "/decorators", label: "Decorators", icon: Palette },
   { to: "/about", label: "About Us", icon: Info },
   { to: "/contact", label: "Contact Us", icon: Phone },
   {
