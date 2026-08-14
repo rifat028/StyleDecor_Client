@@ -19,6 +19,7 @@ import {
   LayoutDashboard,
   ArrowRight,
   LogOut,
+  Briefcase,
 } from "lucide-react";
 import { PiMoonStarsFill } from "react-icons/pi";
 import useRole from "../../hooks/useRole";
@@ -411,6 +412,26 @@ const NavBar = () => {
                       </div>
                     </div>
                     <ArrowRight className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-50 group-hover:text-white group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
+                  </button>
+                </li>
+
+                <div className="h-px bg-gray-200 dark:bg-white/10 mx-2 my-1" />
+
+                <li>
+                  <button
+                    onClick={() => navigate("/join-as-decorator")}
+                    className="group cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40 hover:border-transparent hover:text-white bg-purple-50/50 dark:bg-purple-950/20 hover:bg-linear-to-r hover:from-purple-600 hover:to-indigo-600 hover:shadow-md hover:shadow-purple-500/25 transition-all duration-300 ease-out"
+                  >
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 group-hover:bg-white/20 group-hover:text-white transition-colors duration-300">
+                      <Palette className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="text-sm font-bold">Become a Decorator</div>
+                      <div className="text-[11px] text-purple-600/70 dark:text-purple-400/70 group-hover:text-white/70 transition-colors duration-300">
+                        Grow your agency business
+                      </div>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-purple-400 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-300" />
                   </button>
                 </li>
               </ul>

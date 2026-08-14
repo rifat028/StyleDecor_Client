@@ -71,11 +71,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/join-as-decorator",
-        element: (
-          <PrivateRoutes>
-            <JoinAsDecorator></JoinAsDecorator>
-          </PrivateRoutes>
-        ),
+        Component: JoinAsDecorator,
+      },
+      {
+        path: "/become-a-decorator",
+        Component: JoinAsDecorator,
       },
       {
         path: "/about",
