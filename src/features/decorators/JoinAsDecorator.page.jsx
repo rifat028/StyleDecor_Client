@@ -24,7 +24,7 @@ const JoinAsDecorator = () => {
     const loadUser = async () => {
       try {
         setLoading(true);
-        const res = await axiosSecure.get(`/users/${user.email}`);
+        const res = await axiosSecure.get("/users/me");
         setUserInfo(res.data);
         const res2 = await axiosSecure.get(`/decorators/${user.email}`);
         setStatus(res2?.data?.status);

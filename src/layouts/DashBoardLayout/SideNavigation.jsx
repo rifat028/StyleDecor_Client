@@ -12,6 +12,7 @@ import {
   Calendar,
   CreditCard,
   Users,
+  UserCog,
   Briefcase,
   BarChart3,
   Palette,
@@ -138,6 +139,7 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
 
           {role === "admin" && (
             <>
+              <NavItem to="/dashboard/manage-users" icon={UserCog} label="Manage Users" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/manage-decorators" icon={Users} label="Manage Decorators" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/manage-services" icon={Briefcase} label="Manage Services" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/manage-bookings" icon={Calendar} label="Manage Bookings" isCollapsed={isCollapsed} />

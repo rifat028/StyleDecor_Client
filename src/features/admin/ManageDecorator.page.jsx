@@ -106,10 +106,10 @@ const ManageDecorator = () => {
       // 1) remove from decorators collection
       await axiosSecure.delete(`/decorators/${decorator._id}`);
 
-      // 2) update user role back to client
+      // 2) update user role back to customer
       await axiosSecure.patch(`/users/role`, {
         email: decorator.email,
-        role: "client",
+        role: "customer",
       });
 
       // remove from UI (accepted list)

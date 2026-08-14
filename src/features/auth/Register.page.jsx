@@ -54,15 +54,21 @@ const Register = () => {
     }
 
     CreateUserWithEmail(email, password)
-      .then(() => {
+      .then((res) => {
         toast.success("Account Created...!");
+        const firebaseUser = res.user;
+        const newUserWithUid = {
+          firebaseUid: firebaseUser?.uid || null,
+          name,
+          email,
+          photoUrl:
+            photoUrl ||
+            `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400`,
+        };
         updateProfileInfo(name, photoUrl)
           .then(() => {
             toast.success("User info updated...!");
-            //============ send user to DB ===============
-            axiosSecure.post("/users", newUser).then((data) => {
-              // console.log(data.data.insertedId);
-            });
+            axiosSecure.post("/users", newUserWithUid).catch((err) => console.error("User sync error:", err));
             setTimeout(() => {
               navigate("/dashboard");
             }, 1000);
@@ -82,21 +88,17 @@ const Register = () => {
   const HandleGoogleLogIn = () => {
     GoogleSignIN()
       .then((result) => {
-        // console.log(result.user);
-        //============ send user to DB ===============
         const user = result.user;
         const newUser = {
-          name: user.displayName,
+          firebaseUid: user.uid,
+          name: user.displayName || "Google User",
           email: user.email,
+          phone: user.phoneNumber || "",
           photoUrl:
             user.photoURL ||
-            `https://placehold.co/150x150/4F46E5/FFFFFF?text=${user.displayName
-              .slice(0, 2)
-              .toUpperCase()}`,
+            `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400`,
         };
-        axiosSecure.post("/users", newUser).then((data) => {
-          // console.log(data.data);
-        });
+        axiosSecure.post("/users", newUser).catch((err) => console.error("User sync error:", err));
         setTimeout(() => {
           navigate("/dashboard");
         }, 1000);

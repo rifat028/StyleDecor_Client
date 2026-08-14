@@ -18,6 +18,7 @@ import ManageService from "../features/decorator-dashboard/ManageService.page";
 import JoinAsDecorator from "../features/decorators/JoinAsDecorator.page";
 import ManageDecorator from "../features/admin/ManageDecorator.page";
 import ManageBooking from "../features/admin/ManageBookings.page";
+import ManageUser from "../features/admin/ManageUser.page";
 import MyProjects from "../features/decorator-dashboard/MyProjects.page";
 import MyEarnings from "../features/decorator-dashboard/MyEarnings.page";
 import Analytics from "../features/admin/Analytics.page";
@@ -120,6 +121,14 @@ const router = createBrowserRouter([
         element: (
           <AdminRoutes>
             <ManageService></ManageService>
+          </AdminRoutes>
+        ),
+      },
+      {
+        path: "manage-users",
+        element: (
+          <AdminRoutes>
+            <ManageUser></ManageUser>
           </AdminRoutes>
         ),
       },
