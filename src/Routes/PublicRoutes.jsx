@@ -15,6 +15,7 @@ import ServiceBooking from "../features/customer/ServiceBooking.page";
 import DashboardLayout from "../layouts/DashboardLayout/DashboardLayout";
 import MyBookings from "../features/customer/MyBookings.page";
 import MyProfile from "../features/profile/MyProfile.page";
+import ManageServices from "../features/admin/ManageServices.page";
 import ManageService from "../features/decorator-dashboard/ManageService.page";
 import JoinAsDecorator from "../features/decorators/JoinAsDecorator.page";
 import ManageDecorator from "../features/admin/ManageDecorator.page";
@@ -130,7 +131,7 @@ const router = createBrowserRouter([
         path: "manage-services",
         element: (
           <AdminRoutes>
-            <ManageService></ManageService>
+            <ManageServices></ManageServices>
           </AdminRoutes>
         ),
       },
@@ -172,6 +173,14 @@ const router = createBrowserRouter([
           <AdminRoutes>
             <Analytics></Analytics>
           </AdminRoutes>
+        ),
+      },
+      {
+        path: "my-services",
+        element: (
+          <DecoratorRoutes>
+            <ManageService></ManageService>
+          </DecoratorRoutes>
         ),
       },
       {
