@@ -45,15 +45,15 @@ const useRole = () => {
     // Start a new fetch and store the promise in the cache
     if (!cachedRole) setLoading(true);
     
-    const fetchPromise = axiosSecure.get(`/users/${email}`)
+    const fetchPromise = axiosSecure.get("/users/me")
       .then((res) => {
-        const fetchedRole = res.data?.role || "client";
+        const fetchedRole = res.data?.role || "customer";
         localStorage.setItem(`styledecor_user_role_${email}`, fetchedRole);
         return fetchedRole;
       })
       .catch((error) => {
         console.error("Failed to load user role:", error);
-        return cachedRole || "client"; // fallback to cache or client
+        return cachedRole || "customer"; // fallback to cache or customer
       });
 
     rolePromiseCache[email] = fetchPromise;

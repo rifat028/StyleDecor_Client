@@ -4,8 +4,8 @@ import { AuthContext } from "../features/auth/AuthContext";
 import { useNavigate } from "react-router";
 
 const axiosSecure = axios.create({
-  baseURL: "https://style-decor-server-woad.vercel.app",
-  // baseURL: "http://localhost:3000",
+  // baseURL: "https://style-decor-server-woad.vercel.app",
+  baseURL: "http://localhost:3000",
 });
 
 const useAxiosSecure = () => {
@@ -13,12 +13,12 @@ const useAxiosSecure = () => {
   const { user, logOutUser } = use(AuthContext);
   useEffect(() => {
     // request interceptor
-    const reqInterceptor = axiosSecure.interceptors.request.use(function (
-      config
-    ) {
-      config.headers.Authorization = `Bearer ${user?.accessToken}`;
-      return config;
-    });
+    const reqInterceptor = axiosSecure.interceptors.request.use(
+      function (config) {
+        config.headers.Authorization = `Bearer ${user?.accessToken}`;
+        return config;
+      },
+    );
 
     // response interceptor
     const resInterceptor = axiosSecure.interceptors.response.use(
@@ -35,7 +35,7 @@ const useAxiosSecure = () => {
         }
 
         return Promise.reject(error);
-      }
+      },
     );
 
     return () => {

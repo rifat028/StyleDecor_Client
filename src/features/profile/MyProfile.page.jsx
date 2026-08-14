@@ -2,6 +2,33 @@ import React, { use, useEffect, useState } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import { AuthContext } from "../auth/AuthContext";
 import Spinner from "../home/components/Spinner";
+import toast from "react-hot-toast";
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  ShieldCheck,
+  Calendar,
+  Edit3,
+  CheckCircle2,
+  XCircle,
+  Building,
+  Navigation
+} from "lucide-react";
+
+const topCitiesInBD = [
+  "Dhaka",
+  "Chattogram",
+  "Sylhet",
+  "Rajshahi",
+  "Khulna",
+  "Barishal",
+  "Rangpur",
+  "Mymensingh",
+  "Cumilla",
+  "Gazipur"
+];
 
 const MyProfile = () => {
   const { user } = use(AuthContext);
@@ -9,94 +36,442 @@ const MyProfile = () => {
 
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    photoUrl: "",
+    street: "",
+    area: "",
+    city: "Dhaka",
+    postalCode: ""
+  });
+
+  const loadUser = async () => {
+    try {
+      const res = await axiosSecure.get("/users/me");
+      setUserData(res.data);
+      if (res.data) {
+        setFormData({
+          name: res.data.name || "",
+          phone: res.data.phone || "",
+          photoUrl: res.data.photoUrl || "",
+          street: res.data.address?.street || "",
+          area: res.data.address?.area || "",
+          city: res.data.address?.city || "Dhaka",
+          postalCode: res.data.address?.postalCode || ""
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load user profile", error);
+      setUserData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const res = await axiosSecure.get(`/users/${user?.email}`);
-        // console.log(res.data);
-        setUserData(res.data);
-      } catch (error) {
-        console.error("Failed to load user profile", error);
-        setUserData(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadUser();
   }, [axiosSecure, user]);
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const payload = {
+        name: formData.name,
+        phone: formData.phone,
+        photoUrl: formData.photoUrl,
+        address: {
+          street: formData.street,
+          area: formData.area,
+          city: formData.city,
+          postalCode: formData.postalCode
+        }
+      };
+
+      const res = await axiosSecure.patch("/users/profile", payload);
+      if (res.data?.user) {
+        setUserData(res.data.user);
+      }
+      toast.success("Profile updated successfully!");
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to update profile", error);
+      toast.error(error.response?.data?.message || "Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
-    return <Spinner></Spinner>;
+    return <Spinner />;
   }
 
   if (!userData) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-gray-700 dark:text-gray-300 font-bold">
-          User profile not found.
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6">
+        <XCircle className="w-12 h-12 text-rose-500 mb-3" />
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
+          User Profile Not Found
+        </h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          We couldn't retrieve your profile data. Please try signing in again.
         </p>
       </div>
     );
   }
 
-  const { name, email, photoUrl, role } = userData;
+  const { name, email, photoUrl, role, address, createdAt } = userData;
+
+  const roleBadgeStyles = {
+    admin: "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800/60",
+    decorator: "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/60",
+    agent: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60",
+    customer: "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/60"
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        {/* Page Title */}
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-8">
-          My Profile
-        </h1>
-
-        {/* Profile Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 md:p-8">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            {/* Profile Image */}
-            <div className="shrink-0">
+    <div className="space-y-8 animate-fade-in">
+      {/* Top Banner Header */}
+      <div className="relative rounded-3xl overflow-hidden bg-linear-to-r from-indigo-900 via-indigo-800 to-purple-900 text-white p-6 sm:p-10 shadow-xl">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-5">
+            <div className="relative group">
               <img
-                src={photoUrl}
-                alt="Profile"
-                className="w-32 h-32 rounded-full object-cover border-4 border-purple-500"
+                src={photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400"}
+                alt={name}
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover ring-4 ring-white/20 shadow-2xl shadow-black/40"
               />
+              <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-1.5 rounded-full ring-2 ring-indigo-900 shadow">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
             </div>
+            <div className="text-center sm:text-left space-y-1">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                  {name}
+                </h1>
+                <span className={`px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${roleBadgeStyles[role] || roleBadgeStyles.customer}`}>
+                  {role || "customer"}
+                </span>
+              </div>
+              <p className="text-indigo-200 text-sm flex items-center justify-center sm:justify-start gap-1.5">
+                <Mail className="w-3.5 h-3.5" />
+                {email}
+              </p>
+              {createdAt && (
+                <p className="text-xs text-indigo-300/80 flex items-center justify-center sm:justify-start gap-1.5 pt-1">
+                  <Calendar className="w-3.5 h-3.5" />
+                  Member since {new Date(createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                </p>
+              )}
+            </div>
+          </div>
 
-            {/* Profile Info */}
-            <div className="w-full space-y-4">
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-md transition-all duration-300 shadow-sm self-stretch sm:self-auto justify-center"
+          >
+            <Edit3 className="w-4 h-4" />
+            {isEditing ? "Close Editor" : "Edit Profile"}
+          </button>
+        </div>
+      </div>
+
+      {/* Main Grid View */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left / Contact & Personal Info */}
+        <div className="lg:col-span-1 space-y-6">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <User className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              Contact Information
+            </h3>
+
+            <div className="space-y-4 text-sm">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Full Name
                 </p>
-                <p className="text-lg font-semibold text-gray-800 dark:text-white">
-                  {name}
+                <p className="font-medium text-slate-800 dark:text-slate-200 mt-0.5">
+                  {name || "Not specified"}
                 </p>
               </div>
 
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Email Address
                 </p>
-                <p className="text-lg text-gray-800 dark:text-white">{email}</p>
+                <p className="font-medium text-slate-800 dark:text-slate-200 mt-0.5 flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-slate-400" />
+                  {email}
+                </p>
               </div>
 
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  User Type
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Phone Number
                 </p>
-                <span className="inline-block mt-1 px-4 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200">
-                  {role}
-                </span>
+                <p className="font-medium text-slate-800 dark:text-slate-200 mt-0.5 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-slate-400" />
+                  {userData.phone || "Not provided"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Account Type
+                </p>
+                <p className="font-medium capitalize text-slate-800 dark:text-slate-200 mt-0.5">
+                  {role || "Customer"} Account
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Verification Status Card */}
+          <div className="bg-linear-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 rounded-3xl p-6 border border-emerald-200/70 dark:border-emerald-800/40">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-emerald-500 text-white rounded-xl shadow-md shadow-emerald-500/20">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-emerald-950 dark:text-emerald-300">
+                  Account Status
+                </h4>
+                <p className="text-xs text-emerald-700 dark:text-emerald-400/90 mt-0.5">
+                  Verified & Active Member
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Extra note */}
-        <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-          Profile information is managed by the system administrator.
-        </p>
+        {/* Right / Address Details & Editor */}
+        <div className="lg:col-span-2 space-y-6">
+          {isEditing ? (
+            /* Profile Edit Form */
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-indigo-200 dark:border-indigo-900/60 shadow-lg ring-4 ring-indigo-500/5 space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                    Edit Profile Details
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Update your personal and primary delivery/event address.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              <form onSubmit={handleUpdateProfile} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="e.g. Tanvir Ahmed"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                      Phone Number
+                    </label>
+                    <input
+                      type="text"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="e.g. +88017XXXXXXXX"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    Profile Photo URL
+                  </label>
+                  <input
+                    type="url"
+                    name="photoUrl"
+                    value={formData.photoUrl}
+                    onChange={handleInputChange}
+                    placeholder="https://images.unsplash.com/..."
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <h4 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5" />
+                    Residential & Event Location
+                  </h4>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                        Street Address / Holding
+                      </label>
+                      <input
+                        type="text"
+                        name="street"
+                        value={formData.street}
+                        onChange={handleInputChange}
+                        placeholder="House 24, Road 8/A"
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                          Area / Neighborhood
+                        </label>
+                        <input
+                          type="text"
+                          name="area"
+                          value={formData.area}
+                          onChange={handleInputChange}
+                          placeholder="Dhanmondi"
+                          className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                          City
+                        </label>
+                        <select
+                          name="city"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          {topCitiesInBD.map((c) => (
+                            <option key={c} value={c}>
+                              {c}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                          Postal Code
+                        </label>
+                        <input
+                          type="text"
+                          name="postalCode"
+                          value={formData.postalCode}
+                          onChange={handleInputChange}
+                          placeholder="1209"
+                          className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-md shadow-indigo-500/20 transition-all flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {saving ? "Saving Changes..." : "Save Profile"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : (
+            /* Address Card */
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  Primary Event & Residential Address
+                </h3>
+                <span className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium">
+                  {address?.city || "Dhaka"} Division
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <Building className="w-3.5 h-3.5" />
+                    Street & Holding
+                  </div>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    {address?.street || "No street address configured"}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <Navigation className="w-3.5 h-3.5" />
+                    Area & Neighborhood
+                  </div>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    {address?.area || "Not specified"}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <MapPin className="w-3.5 h-3.5" />
+                    City
+                  </div>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    {address?.city || "Dhaka"}, Bangladesh
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <Calendar className="w-3.5 h-3.5" />
+                    Postal Code
+                  </div>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    {address?.postalCode || "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

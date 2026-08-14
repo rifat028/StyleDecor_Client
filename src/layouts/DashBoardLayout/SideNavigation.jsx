@@ -123,10 +123,16 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
         <ul className={`flex flex-col w-full flex-1 p-4 overflow-y-auto ${isCollapsed ? 'px-3' : ''}`}>
           <NavItem to="/dashboard/my-profile" icon={UserCircle} label="My Profile" isCollapsed={isCollapsed} />
 
-          {role === "client" && (
+          {(role === "customer" || role === "client") && (
             <>
               <NavItem to="/dashboard/my-bookings" icon={Calendar} label="My Bookings" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/transactions" icon={CreditCard} label="Transactions" isCollapsed={isCollapsed} />
+            </>
+          )}
+
+          {role === "agent" && (
+            <>
+              <NavItem to="/dashboard/my-projects" icon={Briefcase} label="Assigned Events" isCollapsed={isCollapsed} />
             </>
           )}
 
