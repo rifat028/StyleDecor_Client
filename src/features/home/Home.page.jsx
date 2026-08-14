@@ -6,6 +6,8 @@ import { useLoaderData } from "react-router";
 import LatestServices from "./components/LatestServices";
 import TopRatedDecorators from "./components/TopRatedDecorators";
 import HowItWorks from "./components/HowItWorks";
+import TrustAssurances from "./components/TrustAssurances";
+import JoinAsDecoratorCTA from "./components/JoinAsDecoratorCTA";
 
 const Home = () => {
   const coverage = useLoaderData();
@@ -16,8 +18,10 @@ const Home = () => {
       <Categories></Categories>
       <LatestServices></LatestServices>
       <HowItWorks></HowItWorks>
+      <TrustAssurances></TrustAssurances>
       <TopRatedDecorators></TopRatedDecorators>
       <CoverageMap coverage={coverage}></CoverageMap>
+      <JoinAsDecoratorCTA></JoinAsDecoratorCTA>
     </div>
   );
 };
