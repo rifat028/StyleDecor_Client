@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import Spinner from "../home/components/Spinner";
 import toast from "react-hot-toast";
@@ -16,13 +16,13 @@ import {
   UserCheck,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Phone,
   Mail,
   MapPin,
-  Calendar,
   X,
   RefreshCw,
-  Sparkles,
 } from "lucide-react";
 
 const allowedRoles = ["all", "admin", "decorator", "agent", "customer"];
@@ -41,6 +41,19 @@ const citiesList = [
   "Gazipur",
 ];
 
+// Helper to generate consistent placeholder avatar with role-specific colors
+const getPlaceholderAvatar = (name = "User", role = "customer") => {
+  const bgColors = {
+    admin: "E11D48", // rose-600
+    decorator: "9333EA", // purple-600
+    agent: "D97706", // amber-600
+    customer: "4F46E5", // indigo-600
+  };
+  const color = bgColors[role] || "4F46E5";
+  const initials = encodeURIComponent(name || "User");
+  return `https://ui-avatars.com/api/?name=${initials}&background=${color}&color=ffffff&bold=true&size=150`;
+};
+
 const ManageUser = () => {
   const axiosSecure = useAxiosSecure();
 
@@ -53,6 +66,7 @@ const ManageUser = () => {
   const [roleFilter, setRoleFilter] = useState("all");
   const [cityFilter, setCityFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -76,7 +90,7 @@ const ManageUser = () => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
-    }, 400);
+    }, 350);
     return () => clearTimeout(handler);
   }, [search]);
 
@@ -96,23 +110,32 @@ const ManageUser = () => {
       setLoading(true);
       const queryParams = new URLSearchParams({
         page,
-        limit: 10,
+        limit,
         role: roleFilter,
         city: cityFilter,
         search: debouncedSearch,
       });
 
       const res = await axiosSecure.get(`/users?${queryParams.toString()}`);
-      setUsers(res.data?.users || []);
-      setTotalPages(res.data?.totalPages || 1);
-      setTotalCount(res.data?.totalCount || 0);
+      const fetchedUsers = res.data?.users || [];
+      const fetchedTotalPages = res.data?.totalPages || 1;
+      const fetchedTotalCount = res.data?.totalCount || 0;
+
+      setUsers(fetchedUsers);
+      setTotalPages(fetchedTotalPages);
+      setTotalCount(fetchedTotalCount);
+
+      // Auto-correct if current page exceeds total pages
+      if (page > fetchedTotalPages && fetchedTotalPages > 0) {
+        setPage(fetchedTotalPages);
+      }
     } catch (err) {
       console.error("Failed to load users:", err);
       toast.error("Failed to load users");
     } finally {
       setLoading(false);
     }
-  }, [axiosSecure, page, roleFilter, cityFilter, debouncedSearch]);
+  }, [axiosSecure, page, limit, roleFilter, cityFilter, debouncedSearch]);
 
   useEffect(() => {
     loadStats();
@@ -263,6 +286,39 @@ const ManageUser = () => {
     }
   };
 
+  // Generate Page Numbers Array for Pagination
+  const pageNumbers = useMemo(() => {
+    const pages = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible + 2) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      let start = Math.max(2, page - 1);
+      let end = Math.min(totalPages - 1, page + 1);
+
+      if (page <= 3) {
+        start = 2;
+        end = 4;
+      } else if (page >= totalPages - 2) {
+        start = totalPages - 3;
+        end = totalPages - 1;
+      }
+
+      if (start > 2) pages.push("...");
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (end < totalPages - 1) pages.push("...");
+
+      pages.push(totalPages);
+    }
+    return pages;
+  }, [page, totalPages]);
+
+  // Calculate range string
+  const startItem = totalCount === 0 ? 0 : (page - 1) * limit + 1;
+  const endItem = Math.min(page * limit, totalCount);
+
   return (
     <div className="space-y-6 animate-fade-in pb-10">
       {/* Top Banner */}
@@ -289,7 +345,7 @@ const ManageUser = () => {
               loadUsers();
               loadStats();
             }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-sm font-semibold transition-all self-start md:self-auto"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-sm font-semibold transition-all self-start md:self-auto cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" /> Refresh Data
           </button>
@@ -386,12 +442,16 @@ const ManageUser = () => {
             placeholder="Search by name, email, phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-xl text-sm border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-10 pr-10 py-2 rounded-xl text-sm border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           {search && (
             <button
-              onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              onClick={() => {
+                setSearch("");
+                setDebouncedSearch("");
+                setPage(1);
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -409,7 +469,7 @@ const ManageUser = () => {
                 setRoleFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 rounded-xl text-sm border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 capitalize"
+              className="px-3 py-2 rounded-xl text-sm border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 capitalize cursor-pointer"
             >
               {allowedRoles.map((r) => (
                 <option key={r} value={r}>
@@ -426,7 +486,7 @@ const ManageUser = () => {
               setCityFilter(e.target.value);
               setPage(1);
             }}
-            className="px-3 py-2 rounded-xl text-sm border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2 rounded-xl text-sm border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
           >
             {citiesList.map((c) => (
               <option key={c} value={c}>
@@ -477,10 +537,14 @@ const ManageUser = () => {
                         <img
                           src={
                             user.photoUrl ||
-                            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400"
+                            getPlaceholderAvatar(user.name, user.role)
                           }
                           alt={user.name}
-                          className="w-11 h-11 rounded-full object-cover ring-2 ring-indigo-500/20"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = getPlaceholderAvatar(user.name, user.role);
+                          }}
+                          className="w-11 h-11 rounded-full object-cover ring-2 ring-indigo-500/20 shrink-0"
                         />
                         <div>
                           <p className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -540,7 +604,7 @@ const ManageUser = () => {
                         <button
                           onClick={() => setViewingUser(user)}
                           title="View Full Profile"
-                          className="p-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors"
+                          className="p-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -549,7 +613,7 @@ const ManageUser = () => {
                         <button
                           onClick={() => handleOpenEdit(user)}
                           title="Edit User Details"
-                          className="p-2 rounded-xl text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/50 transition-colors"
+                          className="p-2 rounded-xl text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/50 transition-colors cursor-pointer"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -559,7 +623,7 @@ const ManageUser = () => {
                           <button
                             onClick={() => handleDeleteUser(user)}
                             title="Delete User"
-                            className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors"
+                            className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -573,33 +637,101 @@ const ManageUser = () => {
           </div>
         )}
 
-        {/* Pagination Footer */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-800/30">
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Showing <span className="font-bold text-slate-700 dark:text-slate-200">{users.length}</span> of{" "}
-            <span className="font-bold text-slate-700 dark:text-slate-200">{totalCount}</span> users (Page{" "}
-            {page} of {totalPages})
-          </p>
+        {/* Robust Pagination Footer */}
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-50/70 dark:bg-slate-800/40">
+          {/* Info and Page Size Selector */}
+          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+            <p>
+              Showing <span className="font-bold text-slate-700 dark:text-slate-200">{startItem}</span> to{" "}
+              <span className="font-bold text-slate-700 dark:text-slate-200">{endItem}</span> of{" "}
+              <span className="font-bold text-slate-700 dark:text-slate-200">{totalCount}</span> users
+            </p>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
-              className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="text-xs font-bold px-3 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
-              {page}
-            </span>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
-              className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              <span>Per page:</span>
+              <select
+                value={limit}
+                onChange={(e) => {
+                  setLimit(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
           </div>
+
+          {/* Numbered Page Buttons & Navigation */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1.5 flex-wrap justify-center">
+              {/* First Page */}
+              <button
+                onClick={() => setPage(1)}
+                disabled={page <= 1}
+                title="First Page"
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </button>
+
+              {/* Prev Page */}
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                title="Previous Page"
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              {/* Numbered Page Pills */}
+              {pageNumbers.map((p, idx) =>
+                p === "..." ? (
+                  <span
+                    key={`ellipsis-${idx}`}
+                    className="px-2 py-1 text-slate-400 font-bold select-none text-xs"
+                  >
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={`page-${p}`}
+                    onClick={() => setPage(p)}
+                    className={`min-w-[34px] h-[34px] flex items-center justify-center rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      page === p
+                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25 ring-2 ring-indigo-400/40"
+                        : "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+
+              {/* Next Page */}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                title="Next Page"
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              {/* Last Page */}
+              <button
+                onClick={() => setPage(totalPages)}
+                disabled={page >= totalPages}
+                title="Last Page"
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -612,10 +744,14 @@ const ManageUser = () => {
                 <img
                   src={
                     viewingUser.photoUrl ||
-                    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400"
+                    getPlaceholderAvatar(viewingUser.name, viewingUser.role)
                   }
                   alt={viewingUser.name}
-                  className="w-14 h-14 rounded-2xl object-cover ring-2 ring-indigo-500"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = getPlaceholderAvatar(viewingUser.name, viewingUser.role);
+                  }}
+                  className="w-14 h-14 rounded-2xl object-cover ring-2 ring-indigo-500 shrink-0"
                 />
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
@@ -626,7 +762,7 @@ const ManageUser = () => {
               </div>
               <button
                 onClick={() => setViewingUser(null)}
-                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -697,7 +833,7 @@ const ManageUser = () => {
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setViewingUser(null)}
-                className="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                className="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -721,7 +857,7 @@ const ManageUser = () => {
               </div>
               <button
                 onClick={() => setEditingUser(null)}
-                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -770,7 +906,7 @@ const ManageUser = () => {
                     onChange={(e) =>
                       setEditFormData({ ...editFormData, role: e.target.value })
                     }
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                   >
                     <option value="customer">Customer</option>
                     <option value="decorator">Decorator</option>
@@ -788,7 +924,7 @@ const ManageUser = () => {
                     onChange={(e) =>
                       setEditFormData({ ...editFormData, city: e.target.value })
                     }
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                   >
                     {citiesList
                       .filter((c) => c !== "all")
@@ -869,14 +1005,14 @@ const ManageUser = () => {
                 <button
                   type="button"
                   onClick={() => setEditingUser(null)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingEdit}
-                  className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-md shadow-indigo-500/20 transition-all disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-md shadow-indigo-500/20 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {submittingEdit ? "Saving..." : "Save Changes"}
                 </button>
