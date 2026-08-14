@@ -34,17 +34,21 @@ const MyProjects = () => {
     return new Date().toISOString().split("T")[0];
   }, []);
 
-  // ---------- Load decorator id by email (because assignTo is decorator._id) ----------
+  // ---------- Load decorator id by profile or email ----------
   useEffect(() => {
     const loadDecorator = async () => {
       if (!user?.email) return;
 
       try {
-        // ✅ expects: GET /decorators?email=user.email -> [decorator]
-        const res = await axiosSecure.get(`/decorators/${user.email}`);
-        const dec = Array.isArray(res.data) ? res.data[0] : res.data;
+        let dec = null;
+        try {
+          const res = await axiosSecure.get("/decorators/me");
+          dec = res.data?.data || res.data;
+        } catch (meErr) {
+          const res = await axiosSecure.get(`/decorators/${user.email}`);
+          dec = Array.isArray(res.data) ? res.data[0] : (res.data?.data || res.data);
+        }
 
-        // If your API returns {data:[...]} then use: res.data.data[0]
         const id = dec?._id || null;
         setDecoratorId(id);
       } catch (err) {

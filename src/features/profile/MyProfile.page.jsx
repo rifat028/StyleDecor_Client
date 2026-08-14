@@ -35,6 +35,7 @@ const MyProfile = () => {
   const axiosSecure = useAxiosSecure();
 
   const [userData, setUserData] = useState(null);
+  const [decoratorData, setDecoratorData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -53,17 +54,28 @@ const MyProfile = () => {
   const loadUser = async () => {
     try {
       const res = await axiosSecure.get("/users/me");
-      setUserData(res.data);
-      if (res.data) {
+      const u = res.data;
+      setUserData(u);
+      if (u) {
         setFormData({
-          name: res.data.name || "",
-          phone: res.data.phone || "",
-          photoUrl: res.data.photoUrl || "",
-          street: res.data.address?.street || "",
-          area: res.data.address?.area || "",
-          city: res.data.address?.city || "Dhaka",
-          postalCode: res.data.address?.postalCode || ""
+          name: u.name || "",
+          phone: u.phone || "",
+          photoUrl: u.photoUrl || "",
+          street: u.address?.street || "",
+          area: u.address?.area || "",
+          city: u.address?.city || "Dhaka",
+          postalCode: u.address?.postalCode || ""
         });
+
+        // If user is a decorator, load agency info
+        if (u.role === "decorator") {
+          try {
+            const decRes = await axiosSecure.get("/decorators/me");
+            setDecoratorData(decRes.data?.data || decRes.data);
+          } catch (decErr) {
+            console.warn("No linked decorator profile found:", decErr.message);
+          }
+        }
       }
     } catch (error) {
       console.error("Failed to load user profile", error);
@@ -468,6 +480,85 @@ const MyProfile = () => {
                     {address?.postalCode || "N/A"}
                   </p>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Decorator Agency Profile Details (if account is a decorator) */}
+          {userData.role === "decorator" && decoratorData && (
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-purple-200/80 dark:border-purple-900/40 shadow-sm space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 rounded-2xl border border-purple-100 dark:border-purple-900/50">
+                    <Building className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                      {decoratorData.businessName}
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      {decoratorData.tagline || "Registered Decoration Agency"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full text-xs font-black bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                    ★ {decoratorData.metrics?.rating || "5.0"} Rating
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    {decoratorData.metrics?.completedEvents || 0} Events Done
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-3 text-sm">
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    About Agency
+                  </p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {decoratorData.about || "No description provided."}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase">
+                      Official Contact Phone
+                    </p>
+                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
+                      {decoratorData.contactInfo?.phone || "N/A"}
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase">
+                      Agency Email
+                    </p>
+                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
+                      {decoratorData.contactInfo?.email || "N/A"}
+                    </p>
+                  </div>
+                </div>
+
+                {decoratorData.serviceAreas?.length > 0 && (
+                  <div className="pt-2">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                      Operational Coverage Areas
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {decoratorData.serviceAreas.map((area, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium"
+                        >
+                          {area}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
