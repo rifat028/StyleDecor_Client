@@ -7,6 +7,7 @@ import {
   Tag,
   PackageOpen,
   CheckCircle2,
+  MapPin,
 } from "lucide-react";
 import useAxiosSecure from "../../../hooks/useAxiosSecure";
 
@@ -17,88 +18,73 @@ import img4 from "../../../assets/images/categories/img-04.png";
 import img5 from "../../../assets/images/categories/img-05.png";
 import img6 from "../../../assets/images/categories/img-06.png";
 
-// ==========================================
 // Fallback Mock Data Configuration
-// Used if API endpoint is loading or returns empty
-// ==========================================
 const fallbackServices = [
   {
     _id: "srv-1",
-    serviceName: "Royal Floral Wedding Stage",
-    serviceCategory: "Wedding",
-    cost: 25000,
-    unit: "per event",
-    rating: 4.9,
-    totalReviews: 48,
-    description:
+    title: "Royal Floral Wedding Stage",
+    category: "Wedding & Pre-Wedding",
+    pricing: { discountedPrice: 25000, basePrice: 28000 },
+    metrics: { rating: 4.9, reviewCount: 48 },
+    shortDescription:
       "Exquisite royal stage decoration featuring fresh roses, crystal chandeliers, and warm ambient spotlighting.",
-    vendor: "DreamCraft Decorators",
-    image: img1,
+    decorator: { businessName: "DreamCraft Events & Decors", contactInfo: { city: "Dhaka" } },
+    coverImage: img1,
   },
   {
     _id: "srv-2",
-    serviceName: "Vibrant Haldi & Mehendi Setup", // cspell:disable-line
-    serviceCategory: "Haldi & Mehendi", // cspell:disable-line
-    cost: 15000,
-    unit: "per event",
-    rating: 4.8,
-    totalReviews: 32,
-    description:
+    title: "Vibrant Haldi & Mehendi Canopy",
+    category: "Wedding & Pre-Wedding",
+    pricing: { discountedPrice: 15000, basePrice: 18000 },
+    metrics: { rating: 4.8, reviewCount: 32 },
+    shortDescription:
       "Traditional marigold floral drapes, colorful seating cushions, and festive photo backdrop for Haldi ceremony.",
-    vendor: "Vibrant Festives",
-    image: img2,
+    decorator: { businessName: "Royal Touch Wedding & Events", contactInfo: { city: "Dhaka" } },
+    coverImage: img2,
   },
   {
     _id: "srv-3",
-    serviceName: "Minimalist Pastel Birthday Theme",
-    serviceCategory: "Birthday",
-    cost: 12000,
-    unit: "per package",
-    rating: 4.9,
-    totalReviews: 29,
-    description:
+    title: "Minimalist Pastel Birthday Theme",
+    category: "Birthday & Milestone",
+    pricing: { discountedPrice: 12000, basePrice: 15000 },
+    metrics: { rating: 4.9, reviewCount: 29 },
+    shortDescription:
       "Modern 3D arch cutouts, pastel balloon garlands, LED neon sign, and custom cake table arrangement.",
-    vendor: "Blissful Moments",
-    image: img3,
+    decorator: { businessName: "Kiddos & Confetti Birthday Planners", contactInfo: { city: "Dhaka" } },
+    coverImage: img3,
   },
   {
     _id: "srv-4",
-    serviceName: "Corporate Gala & Award Night Stage",
-    serviceCategory: "Corporate",
-    cost: 45000,
-    unit: "per event",
-    rating: 4.9,
-    totalReviews: 54,
-    description:
+    title: "Corporate Gala & Award Night Stage",
+    category: "Corporate & Commercial",
+    pricing: { discountedPrice: 45000, basePrice: 50000 },
+    metrics: { rating: 4.9, reviewCount: 54 },
+    shortDescription:
       "Sleek professional seminar stage backdrop, brand podiums, executive lounge, and intelligent truss lighting.",
-    vendor: "Starlight Corporate Galas",
-    image: img4,
+    decorator: { businessName: "Elite Corporate Stages & Expos", contactInfo: { city: "Dhaka" } },
+    coverImage: img4,
   },
   {
     _id: "srv-5",
-    serviceName: "Grand Reception Entrance Walkway",
-    serviceCategory: "Wedding",
-    cost: 30000,
-    unit: "per event",
-    rating: 4.8,
-    totalReviews: 41,
-    description:
+    title: "Grand Reception Entrance Walkway",
+    category: "Wedding & Pre-Wedding",
+    pricing: { discountedPrice: 30000, basePrice: 35000 },
+    metrics: { rating: 4.8, reviewCount: 41 },
+    shortDescription:
       "Fairy light tunnel walkway with plush velvet carpet and grand floral archway entrance for wedding guests.",
-    vendor: "Royal Touch Decorators",
-    image: img5,
+    decorator: { businessName: "Royal Touch Wedding & Events", contactInfo: { city: "Dhaka" } },
+    coverImage: img5,
   },
   {
     _id: "srv-6",
-    serviceName: "Pastel Baby Shower Setup",
-    serviceCategory: "Birthday",
-    cost: 18000,
-    unit: "per package",
-    rating: 4.7,
-    totalReviews: 22,
-    description:
+    title: "Pastel Baby Shower Setup",
+    category: "Birthday & Milestone",
+    pricing: { discountedPrice: 18000, basePrice: 20000 },
+    metrics: { rating: 4.7, reviewCount: 22 },
+    shortDescription:
       "Cute baby block cutouts, organic balloon arches, pastel floral arrangements, and photo booth decor.",
-    vendor: "Elegance Decor & Lights",
-    image: img6,
+    decorator: { businessName: "Bloom & Blossom Floral Decors", contactInfo: { city: "Chattogram" } },
+    coverImage: img6,
   },
 ];
 
@@ -106,16 +92,11 @@ const fallbackServices = [
 const filterCategories = [
   "All",
   "Wedding",
-  "Haldi & Mehendi", // cspell:disable-line
   "Birthday",
   "Corporate",
+  "Home & Rooftop",
 ];
 
-// =========================================================================
-// Main Component: LatestServices
-// Enterprise-grade trending decoration package showcase with category quick-tabs,
-// skeletal loading, responsive card grid, and empty states.
-// =========================================================================
 const LatestServices = () => {
   const navigate = useNavigate();
   const axiosSecure = useAxiosSecure();
@@ -129,17 +110,15 @@ const LatestServices = () => {
     const fetchLatest = async () => {
       try {
         setLoading(true);
-        const res = await axiosSecure("/services/latest");
-        if (res.data && res.data.length > 0) {
-          setServices(res.data);
+        const res = await axiosSecure.get("/services/latest");
+        const list = res.data?.data || res.data || [];
+        if (Array.isArray(list) && list.length > 0) {
+          setServices(list);
         } else {
           setServices(fallbackServices);
         }
       } catch (error) {
-        console.error(
-          "Failed to load latest services, using fallback data:",
-          error,
-        );
+        console.warn("Failed to load latest services, using fallback:", error);
         setServices(fallbackServices);
       } finally {
         setLoading(false);
@@ -149,181 +128,157 @@ const LatestServices = () => {
     fetchLatest();
   }, [axiosSecure]);
 
-  // Filter services array according to the active category tab
+  // Filter services according to category tab
   const filteredServices = services.filter((item) => {
     if (activeTab === "All") return true;
-    const itemCat = (item.serviceCategory || "").toLowerCase();
-    const targetCat = activeTab.toLowerCase();
-    if (targetCat.includes("haldi") || targetCat.includes("mehendi")) {
-      return itemCat.includes("haldi") || itemCat.includes("mehendi");
-    }
-    return itemCat.includes(targetCat);
+    const cat = (typeof item.category === "string" ? item.category : item.category?.name || item.serviceCategory || "").toLowerCase();
+    const target = activeTab.toLowerCase();
+    return cat.includes(target);
   });
 
-  // Limit display to 6 primary cards on homepage
   const displayedServices = filteredServices.slice(0, 6);
 
   return (
     <section className="py-16 md:py-24 bg-base-100 relative">
       <div className="container mx-auto px-4 max-w-7xl">
-        {/* ------------------------------------------------------------- */}
-        {/* Section Header                                                */}
-        {/* ------------------------------------------------------------- */}
+        {/* Section Header */}
         <div className="text-center mb-12 relative z-10">
           <h2 className="text-3xl md:text-5xl font-bold mb-4 flex items-center justify-center gap-3 text-base-content dark:text-white">
             <Sparkles className="w-8 h-8 text-amber-500" />
             Explore Our{" "}
-            <span className="bg-clip-text text-transparent bg-linear-to-r from-amber-500 via-purple-600 to-pink-500">
-              Trending Decoration Packages
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-amber-500 to-purple-600">
+              Trending Packages
             </span>
-            <Sparkles className="w-8 h-8 text-amber-500" />
           </h2>
-          <p className="text-base md:text-lg text-base-content/70 dark:text-gray-300 max-w-2xl mx-auto">
-            Discover handpicked, top-rated decoration setups tailored for your
-            special occasions.
+          <p className="text-sm md:text-base text-base-content/70 max-w-2xl mx-auto">
+            Browse handpicked decoration packages designed for memorable weddings, milestones, and corporate celebrations.
           </p>
 
-          {/* ----------------------------------------------------------- */}
-          {/* Dynamic Filter Quick-Tabs                                   */}
-          {/* ----------------------------------------------------------- */}
-          <div className="flex items-center justify-center gap-2 md:gap-3 mt-8 flex-wrap">
-            {filterCategories.map((cat) => {
-              const isActive = activeTab === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setActiveTab(cat)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 cursor-pointer flex items-center gap-2 ${
-                    isActive
-                      ? "bg-amber-600 text-white shadow-lg shadow-amber-600/30 scale-105"
-                      : "bg-white dark:bg-base-200 text-gray-700 dark:text-gray-300 hover:bg-amber-500/10 hover:text-amber-600 border border-gray-200 dark:border-gray-800"
-                  }`}
-                >
-                  <Tag
-                    className={`w-3.5 h-3.5 ${
-                      isActive ? "text-white" : "text-amber-500"
-                    }`}
-                  />
-                  {cat}
-                </button>
-              );
-            })}
+          {/* Category Filter Tabs */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
+            {filterCategories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveTab(cat)}
+                className={`px-5 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 cursor-pointer ${
+                  activeTab === cat
+                    ? "bg-purple-600 text-white shadow-lg shadow-purple-600/30 scale-105"
+                    : "bg-base-200 text-base-content/70 hover:bg-base-300 hover:text-base-content"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* ------------------------------------------------------------- */}
-        {/* Skeletal Loading State (6 Pulse Loader Cards)                 */}
-        {/* ------------------------------------------------------------- */}
+        {/* Content Body */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+            {[1, 2, 3, 4, 5, 6].map((idx) => (
               <div
-                key={i}
-                className="bg-white dark:bg-base-200 rounded-2xl p-4 shadow-md border border-gray-100 dark:border-gray-800 animate-pulse flex flex-col gap-4"
+                key={idx}
+                className="bg-white dark:bg-base-200 rounded-3xl p-4 border border-base-300 animate-pulse space-y-4"
               >
-                <div className="w-full h-48 bg-gray-200 dark:bg-base-300 rounded-xl" />
-                <div className="h-6 bg-gray-200 dark:bg-base-300 rounded-md w-3/4" />
-                <div className="h-4 bg-gray-200 dark:bg-base-300 rounded-md w-full" />
-                <div className="h-4 bg-gray-200 dark:bg-base-300 rounded-md w-1/2" />
-                <div className="h-10 bg-gray-200 dark:bg-base-300 rounded-xl w-full mt-auto" />
+                <div className="h-48 bg-base-300 rounded-2xl w-full" />
+                <div className="h-5 bg-base-300 rounded-lg w-3/4" />
+                <div className="h-4 bg-base-300 rounded-lg w-1/2" />
+                <div className="h-10 bg-base-300 rounded-xl w-full" />
               </div>
             ))}
           </div>
         ) : displayedServices.length === 0 ? (
-          /* ----------------------------------------------------------- */
-          /* Empty State Component                                        */
-          /* ----------------------------------------------------------- */
-          <div className="py-16 text-center flex flex-col items-center justify-center bg-white/50 dark:bg-base-200/50 backdrop-blur-md rounded-3xl border border-gray-200 dark:border-gray-800 max-w-md mx-auto">
-            <PackageOpen className="w-16 h-16 text-amber-500 mb-4 animate-bounce" />
-            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
-              No Decoration Packages Found
+          <div className="bg-white dark:bg-base-200 rounded-3xl p-16 text-center border border-base-300 space-y-4">
+            <PackageOpen className="w-12 h-12 text-base-content/30 mx-auto" />
+            <h3 className="text-xl font-bold text-base-content">
+              No Packages Found
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              We couldn't find any packages under "{activeTab}". Try switching
-              to another category tab.
+            <p className="text-sm text-base-content/70">
+              We couldn't find any packages under "{activeTab}".
             </p>
             <button
               onClick={() => setActiveTab("All")}
-              className="px-6 py-2.5 rounded-xl bg-amber-600 text-white font-medium hover:bg-amber-700 transition-colors shadow-md cursor-pointer"
+              className="px-6 py-2.5 rounded-xl bg-purple-600 text-white font-medium hover:bg-purple-700 transition-colors shadow-md cursor-pointer"
             >
               Show All Packages
             </button>
           </div>
         ) : (
-          /* ----------------------------------------------------------- */
-          /* Responsive Card Grid (6 Cards Limit)                        */
-          /* ----------------------------------------------------------- */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {displayedServices.map((service, index) => {
-              // Select image from service object or assign fallback banner
               const serviceImg =
+                service.coverImage ||
+                service.images?.[0] ||
                 service.image ||
-                service.photo ||
-                fallbackServices[index % fallbackServices.length].image;
+                fallbackServices[index % fallbackServices.length].coverImage;
 
-              const vendorName =
-                service.vendor ||
-                service.decoratorName ||
-                "DreamCraft Decorators";
+              const title = service.title || service.serviceName || "Celebration Decor Package";
+              const catName = typeof service.category === "string" ? service.category : (service.category?.name || service.serviceCategory || "Decor Package");
+              const price = service.pricing?.discountedPrice || service.pricing?.basePrice || service.cost || 20000;
+              const vendorName = service.decorator?.businessName || service.vendor || "StyleDecor Verified Agency";
+              const rating = service.metrics?.rating || service.rating || 4.9;
+              const reviewsCount = service.metrics?.reviewCount || service.totalReviews || 28;
+              const desc = service.shortDescription || service.description || "Bespoke event decoration setup with premium structural framing and ambient illumination.";
 
               return (
                 <div
                   key={service._id || index}
-                  className="group bg-white dark:bg-base-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl border border-purple-100 dark:border-purple-900/30 flex flex-col transition-all duration-300 hover:-translate-y-2 cursor-pointer"
+                  className="group bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 cursor-pointer"
                 >
                   {/* Banner Image & Floating Badges */}
-                  <div className="relative h-52 overflow-hidden">
+                  <div className="relative h-52 overflow-hidden bg-slate-100 dark:bg-slate-800">
                     <img
                       src={serviceImg}
-                      alt={service.serviceName}
+                      alt={title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    {/* Top-Left Category Badge */}
+                    {/* Category Badge */}
                     <div className="absolute top-3 left-3 bg-purple-600/90 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-md shadow-md flex items-center gap-1">
                       <Tag className="w-3 h-3" />
-                      {service.serviceCategory || "Special"}
+                      {catName}
                     </div>
 
-                    {/* Top-Right Price Tag Badge */}
-                    <div className="absolute top-3 right-3 bg-white/90 dark:bg-base-300/90 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full backdrop-blur-md shadow-md">
-                      ৳{service.cost || "15,000"}
+                    {/* Price Tag Badge */}
+                    <div className="absolute top-3 right-3 bg-white/95 dark:bg-slate-900/95 text-purple-700 dark:text-purple-300 text-xs font-black px-3.5 py-1 rounded-full backdrop-blur-md shadow-md border border-purple-200 dark:border-purple-800">
+                      ৳{Number(price).toLocaleString()}
                     </div>
                   </div>
 
                   {/* Service Card Content */}
-                  <div className="p-6 flex flex-col flex-1">
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 group-hover:text-amber-600 transition-colors line-clamp-1 mb-2">
-                      {service.serviceName}
-                    </h3>
+                  <div className="p-6 flex flex-col flex-1 justify-between space-y-4">
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-purple-600 transition-colors line-clamp-1">
+                        {title}
+                      </h3>
 
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4 leading-relaxed">
-                      {service.description ||
-                        "Tailored decoration setup with elegant floral work, lighting arrangements, and custom photo backdrops."}
-                    </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                        {desc}
+                      </p>
+                    </div>
 
                     {/* Vendor Attribution & Rating */}
-                    <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                      <span className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-purple-600" />
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1 truncate max-w-[160px]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-purple-600 shrink-0" />
                         {vendorName}
                       </span>
 
                       <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                        <span className="font-bold text-gray-800 dark:text-gray-200">
-                          {service.rating || 4.9}
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
+                        <span className="font-bold text-slate-800 dark:text-slate-200">
+                          {Number(rating).toFixed(1)}
                         </span>
-                        <span>({service.totalReviews || 35})</span>
+                        <span className="text-[11px]">({reviewsCount})</span>
                       </div>
                     </div>
 
                     {/* Action CTA Button */}
                     <button
                       onClick={() => navigate(`/services/${service._id}`)}
-                      className="mt-5 w-full py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-md group-hover:shadow-amber-600/30 transition-all duration-300 cursor-pointer"
+                      className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-purple-600/25 transition-all duration-300 cursor-pointer"
                     >
                       Book Package
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
                 </div>
@@ -332,16 +287,14 @@ const LatestServices = () => {
           </div>
         )}
 
-        {/* ------------------------------------------------------------- */}
-        {/* Bottom CTA: Explore All Services                             */}
-        {/* ------------------------------------------------------------- */}
-        <div className="flex justify-center mt-12">
+        {/* View All Services CTA Button */}
+        <div className="text-center mt-12">
           <button
             onClick={() => navigate("/services")}
-            className="px-8 py-3.5 rounded-full bg-linear-to-r from-amber-600 to-purple-600 text-white font-bold text-base shadow-xl hover:shadow-amber-600/30 hover:scale-105 transition-all duration-300 flex items-center gap-2 cursor-pointer"
+            className="px-8 py-3.5 rounded-2xl bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-600 text-purple-700 dark:text-purple-300 hover:text-white border border-purple-200 dark:border-purple-800 font-bold text-sm transition-all duration-300 shadow-md inline-flex items-center gap-2 cursor-pointer"
           >
-            Explore All Services
-            <ArrowRight className="w-5 h-5" />
+            Browse Complete Catalog ({services.length}+ Services)
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </div>
