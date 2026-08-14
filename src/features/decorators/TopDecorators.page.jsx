@@ -357,12 +357,12 @@ const TopDecorators = () => {
 
                   {/* Card Bottom CTA */}
                   <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                    <button
-                      onClick={() => handleOpenDetails(dec)}
+                    <Link
+                      to={`/decorators/${dec._id}`}
                       className="flex-1 py-2.5 px-4 rounded-xl bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-600 text-purple-700 dark:text-purple-300 hover:text-white border border-purple-200 dark:border-purple-900/60 hover:border-transparent text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       View Agency Profile <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+                    </Link>
                   </div>
                 </div>
               );

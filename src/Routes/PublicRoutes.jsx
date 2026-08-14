@@ -9,6 +9,7 @@ import About from "../features/about/About.page";
 import Contact from "../features/contact/Contact.page";
 import ServiceDetails from "../features/services/ServiceDetails.page";
 import TopDecorators from "../features/decorators/TopDecorators.page";
+import DecoratorProfile from "../features/decorators/DecoratorProfile.page";
 import PrivateRoutes from "./PrivateRoutes";
 import ServiceBooking from "../features/customer/ServiceBooking.page";
 import DashboardLayout from "../layouts/DashboardLayout/DashboardLayout";
@@ -60,6 +61,10 @@ const router = createBrowserRouter([
       {
         path: "/decorators",
         Component: TopDecorators,
+      },
+      {
+        path: "/decorators/:id",
+        Component: DecoratorProfile,
       },
       {
         path: "/top-decorators",
