@@ -14,7 +14,11 @@ import {
   CheckCircle2,
   XCircle,
   Building,
-  Navigation
+  Navigation,
+  Globe,
+  Check,
+  X,
+  Sparkles,
 } from "lucide-react";
 
 const topCitiesInBD = [
@@ -27,7 +31,7 @@ const topCitiesInBD = [
   "Rangpur",
   "Mymensingh",
   "Cumilla",
-  "Gazipur"
+  "Gazipur",
 ];
 
 const MyProfile = () => {
@@ -38,9 +42,11 @@ const MyProfile = () => {
   const [decoratorData, setDecoratorData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingDecorator, setIsEditingDecorator] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingDecorator, setSavingDecorator] = useState(false);
 
-  // Form State
+  // User Profile Form State
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -48,7 +54,20 @@ const MyProfile = () => {
     street: "",
     area: "",
     city: "Dhaka",
-    postalCode: ""
+    postalCode: "",
+  });
+
+  // Decorator Agency Form State
+  const [decoratorForm, setDecoratorForm] = useState({
+    businessName: "",
+    tagline: "",
+    about: "",
+    phone: "",
+    email: "",
+    website: "",
+    address: "",
+    city: "Dhaka",
+    serviceAreas: ["Dhaka"],
   });
 
   const loadUser = async () => {
@@ -64,14 +83,30 @@ const MyProfile = () => {
           street: u.address?.street || "",
           area: u.address?.area || "",
           city: u.address?.city || "Dhaka",
-          postalCode: u.address?.postalCode || ""
+          postalCode: u.address?.postalCode || "",
         });
 
         // If user is a decorator, load agency info
         if (u.role === "decorator") {
           try {
             const decRes = await axiosSecure.get("/decorators/me");
-            setDecoratorData(decRes.data?.data || decRes.data);
+            const dec = decRes.data?.data || decRes.data;
+            setDecoratorData(dec);
+            if (dec) {
+              setDecoratorForm({
+                businessName: dec.businessName || "",
+                tagline: dec.tagline || "",
+                about: dec.about || "",
+                phone: dec.contactInfo?.phone || "",
+                email: dec.contactInfo?.email || u.email || "",
+                website: dec.contactInfo?.website || "",
+                address: dec.contactInfo?.address || "",
+                city: dec.contactInfo?.city || "Dhaka",
+                serviceAreas: Array.isArray(dec.serviceAreas)
+                  ? dec.serviceAreas
+                  : ["Dhaka"],
+              });
+            }
           } catch (decErr) {
             console.warn("No linked decorator profile found:", decErr.message);
           }
@@ -94,6 +129,27 @@ const MyProfile = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleDecoratorInputChange = (e) => {
+    const { name, value } = e.target;
+    setDecoratorForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleToggleServiceArea = (city) => {
+    setDecoratorForm((prev) => {
+      const exists = prev.serviceAreas.includes(city);
+      if (exists) {
+        if (prev.serviceAreas.length === 1) return prev; // keep at least 1
+        return {
+          ...prev,
+          serviceAreas: prev.serviceAreas.filter((c) => c !== city),
+        };
+      } else {
+        return { ...prev, serviceAreas: [...prev.serviceAreas, city] };
+      }
+    });
+  };
+
+  // Update User Profile (PATCH /users/profile)
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -106,8 +162,8 @@ const MyProfile = () => {
           street: formData.street,
           area: formData.area,
           city: formData.city,
-          postalCode: formData.postalCode
-        }
+          postalCode: formData.postalCode,
+        },
       };
 
       const res = await axiosSecure.patch("/users/profile", payload);
@@ -121,6 +177,47 @@ const MyProfile = () => {
       toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Update Decorator Agency Profile (PATCH /decorators/:id)
+  const handleUpdateDecoratorProfile = async (e) => {
+    e.preventDefault();
+    if (!decoratorData?._id) return;
+    setSavingDecorator(true);
+
+    try {
+      const payload = {
+        businessName: decoratorForm.businessName.trim(),
+        tagline: decoratorForm.tagline.trim(),
+        about: decoratorForm.about.trim(),
+        contactInfo: {
+          phone: decoratorForm.phone.trim(),
+          email: decoratorForm.email.trim(),
+          website: decoratorForm.website.trim(),
+          address: decoratorForm.address.trim(),
+          city: decoratorForm.city,
+        },
+        serviceAreas: decoratorForm.serviceAreas,
+      };
+
+      const res = await axiosSecure.patch(
+        `/decorators/${decoratorData._id}`,
+        payload
+      );
+      const updated = res.data?.data || res.data;
+      if (updated) {
+        setDecoratorData(updated);
+      }
+      toast.success("Agency profile updated successfully!");
+      setIsEditingDecorator(false);
+    } catch (error) {
+      console.error("Failed to update decorator profile", error);
+      toast.error(
+        error.response?.data?.message || "Failed to update agency profile"
+      );
+    } finally {
+      setSavingDecorator(false);
     }
   };
 
@@ -145,10 +242,14 @@ const MyProfile = () => {
   const { name, email, photoUrl, role, address, createdAt } = userData;
 
   const roleBadgeStyles = {
-    admin: "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800/60",
-    decorator: "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/60",
-    agent: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60",
-    customer: "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/60"
+    admin:
+      "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800/60",
+    decorator:
+      "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/60",
+    agent:
+      "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60",
+    customer:
+      "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/60",
   };
 
   return (
@@ -160,7 +261,10 @@ const MyProfile = () => {
           <div className="flex flex-col sm:flex-row items-center gap-5">
             <div className="relative group">
               <img
-                src={photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400"}
+                src={
+                  photoUrl ||
+                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400"
+                }
                 alt={name}
                 className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover ring-4 ring-white/20 shadow-2xl shadow-black/40"
               />
@@ -171,43 +275,45 @@ const MyProfile = () => {
             <div className="text-center sm:text-left space-y-1">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                  {name}
+                  {name || "User Profile"}
                 </h1>
-                <span className={`px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${roleBadgeStyles[role] || roleBadgeStyles.customer}`}>
-                  {role || "customer"}
+                <span
+                  className={`px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${
+                    roleBadgeStyles[role] || roleBadgeStyles.customer
+                  }`}
+                >
+                  {role || "Customer"}
                 </span>
               </div>
-              <p className="text-indigo-200 text-sm flex items-center justify-center sm:justify-start gap-1.5">
+              <p className="text-indigo-200/90 text-sm flex items-center justify-center sm:justify-start gap-1.5">
                 <Mail className="w-3.5 h-3.5" />
                 {email}
               </p>
-              {createdAt && (
-                <p className="text-xs text-indigo-300/80 flex items-center justify-center sm:justify-start gap-1.5 pt-1">
-                  <Calendar className="w-3.5 h-3.5" />
-                  Member since {new Date(createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-                </p>
-              )}
+              <p className="text-indigo-300/70 text-xs flex items-center justify-center sm:justify-start gap-1.5 pt-1">
+                <Calendar className="w-3.5 h-3.5" />
+                Member since {new Date(createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+              </p>
             </div>
           </div>
 
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-md transition-all duration-300 shadow-sm self-stretch sm:self-auto justify-center"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-sm font-semibold transition-all duration-200 shadow-lg cursor-pointer self-stretch sm:self-auto justify-center"
           >
             <Edit3 className="w-4 h-4" />
-            {isEditing ? "Close Editor" : "Edit Profile"}
+            {isEditing ? "Cancel Editing" : "Edit Personal Info"}
           </button>
         </div>
       </div>
 
-      {/* Main Grid View */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left / Contact & Personal Info */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
+      {/* Main Details Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+        {/* Left Column / Basic Info Card */}
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
             <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
               <User className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              Contact Information
+              Account Details
             </h3>
 
             <div className="space-y-4 text-sm">
@@ -286,7 +392,7 @@ const MyProfile = () => {
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -318,7 +424,7 @@ const MyProfile = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      placeholder="e.g. +88017XXXXXXXX"
+                      placeholder="e.g. +880 1700-000000"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
@@ -326,40 +432,39 @@ const MyProfile = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                    Profile Photo URL
+                    Avatar Image URL
                   </label>
                   <input
-                    type="url"
+                    type="text"
                     name="photoUrl"
                     value={formData.photoUrl}
                     onChange={handleInputChange}
-                    placeholder="https://images.unsplash.com/..."
+                    placeholder="https://..."
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                  <h4 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5" />
-                    Residential & Event Location
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
+                  <h4 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-3">
+                    Address Settings
                   </h4>
 
                   <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                        Street Address / Holding
-                      </label>
-                      <input
-                        type="text"
-                        name="street"
-                        value={formData.street}
-                        onChange={handleInputChange}
-                        placeholder="House 24, Road 8/A"
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      />
-                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                          Street / Holding
+                        </label>
+                        <input
+                          type="text"
+                          name="street"
+                          value={formData.street}
+                          onChange={handleInputChange}
+                          placeholder="House 12, Road 5"
+                          className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
                           Area / Neighborhood
@@ -373,7 +478,9 @@ const MyProfile = () => {
                           className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
+                    </div>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
                           City
@@ -382,7 +489,7 @@ const MyProfile = () => {
                           name="city"
                           value={formData.city}
                           onChange={handleInputChange}
-                          className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                         >
                           {topCitiesInBD.map((c) => (
                             <option key={c} value={c}>
@@ -413,14 +520,14 @@ const MyProfile = () => {
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-md shadow-indigo-500/20 transition-all flex items-center gap-2 disabled:opacity-50"
+                    className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-md shadow-indigo-500/20 transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                   >
                     {saving ? "Saving Changes..." : "Save Profile"}
                   </button>
@@ -484,9 +591,9 @@ const MyProfile = () => {
             </div>
           )}
 
-          {/* Decorator Agency Profile Details (if account is a decorator) */}
+          {/* Decorator Agency Profile Card & Inline Editor */}
           {userData.role === "decorator" && decoratorData && (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-purple-200/80 dark:border-purple-900/40 shadow-sm space-y-5">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-purple-200/80 dark:border-purple-900/40 shadow-sm space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 rounded-2xl border border-purple-100 dark:border-purple-900/50">
@@ -502,64 +609,220 @@ const MyProfile = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-start sm:self-auto">
                   <span className="px-3 py-1 rounded-full text-xs font-black bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
                     ★ {decoratorData.metrics?.rating || "5.0"} Rating
                   </span>
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                    {decoratorData.metrics?.completedEvents || 0} Events Done
+                    {decoratorData.metrics?.completedEvents || 0} Events
                   </span>
+
+                  {/* Toggle Agency Edit Button */}
+                  <button
+                    onClick={() => setIsEditingDecorator(!isEditingDecorator)}
+                    className="p-2 rounded-xl text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/50 transition-colors cursor-pointer"
+                    title="Edit Agency Profile"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              <div className="space-y-3 text-sm">
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    About Agency
-                  </p>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    {decoratorData.about || "No description provided."}
-                  </p>
-                </div>
+              {isEditingDecorator ? (
+                /* Agency Edit Form (PATCH /decorators/:id) */
+                <form
+                  onSubmit={handleUpdateDecoratorProfile}
+                  className="space-y-4 pt-2 animate-fade-in"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">
+                        Agency Business Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="businessName"
+                        required
+                        value={decoratorForm.businessName}
+                        onChange={handleDecoratorInputChange}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase">
-                      Official Contact Phone
-                    </p>
-                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
-                      {decoratorData.contactInfo?.phone || "N/A"}
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase">
-                      Agency Email
-                    </p>
-                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
-                      {decoratorData.contactInfo?.email || "N/A"}
-                    </p>
-                  </div>
-                </div>
-
-                {decoratorData.serviceAreas?.length > 0 && (
-                  <div className="pt-2">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                      Operational Coverage Areas
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {decoratorData.serviceAreas.map((area, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium"
-                        >
-                          {area}
-                        </span>
-                      ))}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">
+                        Tagline / Motto
+                      </label>
+                      <input
+                        type="text"
+                        name="tagline"
+                        value={decoratorForm.tagline}
+                        onChange={handleDecoratorInputChange}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
                     </div>
                   </div>
-                )}
-              </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">
+                      About Your Agency
+                    </label>
+                    <textarea
+                      name="about"
+                      rows={3}
+                      value={decoratorForm.about}
+                      onChange={handleDecoratorInputChange}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                        Contact Phone
+                      </label>
+                      <input
+                        type="text"
+                        name="phone"
+                        value={decoratorForm.phone}
+                        onChange={handleDecoratorInputChange}
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                        Agency Email
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={decoratorForm.email}
+                        onChange={handleDecoratorInputChange}
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                        Website
+                      </label>
+                      <input
+                        type="text"
+                        name="website"
+                        value={decoratorForm.website}
+                        onChange={handleDecoratorInputChange}
+                        placeholder="https://..."
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                      Operational Service Areas
+                    </label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {topCitiesInBD.map((c) => {
+                        const isSelected = decoratorForm.serviceAreas.includes(c);
+                        return (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => handleToggleServiceArea(c)}
+                            className={`flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-semibold transition-all border cursor-pointer ${
+                              isSelected
+                                ? "bg-purple-600 text-white border-purple-600 shadow-sm"
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200"
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3" />}
+                            {c}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingDecorator(false)}
+                      className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingDecorator}
+                      className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold shadow-md shadow-purple-500/25 disabled:opacity-50 cursor-pointer"
+                    >
+                      {savingDecorator
+                        ? "Saving..."
+                        : "Save Agency Profile"}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* Agency View Mode */
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      About Agency
+                    </p>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {decoratorData.about || "No description provided."}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <p className="text-[11px] font-bold text-slate-400 uppercase">
+                        Phone
+                      </p>
+                      <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
+                        {decoratorData.contactInfo?.phone || "N/A"}
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <p className="text-[11px] font-bold text-slate-400 uppercase">
+                        Email
+                      </p>
+                      <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
+                        {decoratorData.contactInfo?.email || "N/A"}
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <p className="text-[11px] font-bold text-slate-400 uppercase">
+                        Website
+                      </p>
+                      <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-0.5 truncate">
+                        {decoratorData.contactInfo?.website || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {decoratorData.serviceAreas?.length > 0 && (
+                    <div className="pt-2">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                        Operational Coverage Areas
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {decoratorData.serviceAreas.map((area, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium"
+                          >
+                            {area}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
