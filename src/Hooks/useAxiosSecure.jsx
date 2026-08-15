@@ -4,8 +4,8 @@ import { AuthContext } from "../features/auth/AuthContext";
 import { useNavigate } from "react-router";
 
 const axiosSecure = axios.create({
-  // baseURL: "https://style-decor-server-woad.vercel.app",
-  baseURL: "http://localhost:3000",
+  baseURL: "https://style-decor-server-woad.vercel.app",
+  // baseURL: "http://localhost:3000",
 });
 
 const useAxiosSecure = () => {
@@ -29,7 +29,7 @@ const useAxiosSecure = () => {
       },
       function (error) {
         return Promise.reject(error);
-      }
+      },
     );
 
     // response interceptor
