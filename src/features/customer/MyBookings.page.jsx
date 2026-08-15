@@ -57,12 +57,31 @@ const MyBookings = () => {
     specialInstructions: "",
   });
 
-  // Load Bookings
+  const [customerId, setCustomerId] = useState(null);
+
+  // 1. Load Customer Profile to resolve MongoDB ObjectId
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user?.email) return;
+      try {
+        const res = await axiosSecure.get("/users/me");
+        const profile = res.data?.data || res.data;
+        if (profile?._id) {
+          setCustomerId(profile._id);
+        }
+      } catch (err) {
+        console.error("Failed to load customer profile:", err);
+      }
+    };
+    loadProfile();
+  }, [axiosSecure, user?.email]);
+
+  // 2. Load Bookings by Customer ID
   const loadBookings = useCallback(async () => {
-    if (!user?.email) return;
+    if (!customerId) return;
     try {
       setLoading(true);
-      const res = await axiosSecure.get(`/bookings/user/${user.email}`);
+      const res = await axiosSecure.get(`/bookings/customer/${customerId}`);
       const list = res.data?.data || res.data || [];
       setBookings(Array.isArray(list) ? list : []);
     } catch (err) {
@@ -71,11 +90,13 @@ const MyBookings = () => {
     } finally {
       setLoading(false);
     }
-  }, [axiosSecure, user?.email]);
+  }, [axiosSecure, customerId]);
 
   useEffect(() => {
-    loadBookings();
-  }, [loadBookings]);
+    if (customerId) {
+      loadBookings();
+    }
+  }, [customerId, loadBookings]);
 
   // Statistics
   const stats = useMemo(() => {
