@@ -11,7 +11,7 @@ import ServiceDetails from "../features/services/ServiceDetails.page";
 import TopDecorators from "../features/decorators/TopDecorators.page";
 import DecoratorProfile from "../features/decorators/DecoratorProfile.page";
 import PrivateRoutes from "./PrivateRoutes";
-import ServiceBooking from "../features/customer/ServiceBooking.page";
+import ServiceBooking from "../features/services/ServiceBooking.page";
 import DashboardLayout from "../layouts/DashboardLayout/DashboardLayout";
 import MyBookings from "../features/customer/MyBookings.page";
 import MyProfile from "../features/profile/MyProfile.page";
@@ -73,6 +73,14 @@ const router = createBrowserRouter([
       },
       {
         path: "/service-booking/:id",
+        element: (
+          <PrivateRoutes>
+            <ServiceBooking></ServiceBooking>
+          </PrivateRoutes>
+        ),
+      },
+      {
+        path: "/services/:id/book",
         element: (
           <PrivateRoutes>
             <ServiceBooking></ServiceBooking>
