@@ -18,6 +18,8 @@ import {
   BarChart3,
   Palette,
   Wallet,
+  Activity,
+  Award,
   ChevronLeft,
   ChevronRight,
   LogOut
@@ -134,7 +136,10 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
 
           {role === "agent" && (
             <>
-              <NavItem to="/dashboard/my-projects" icon={Briefcase} label="Assigned Events" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/my-schedule" icon={Calendar} label="My Schedule" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/active-execution" icon={Activity} label="Active Execution" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/my-performance" icon={Award} label="My Performance" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/agent-profile" icon={UserCircle} label="Agent Profile" isCollapsed={isCollapsed} />
             </>
           )}
 
@@ -143,6 +148,7 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
               <NavItem to="/dashboard/manage-users" icon={UserCog} label="Manage Users" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/manage-categories" icon={Layers} label="Manage Categories" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/manage-decorators" icon={Users} label="Manage Decorators" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-agents" icon={Users} label="Manage Agents" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/manage-services" icon={Briefcase} label="Manage Services" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/manage-bookings" icon={Calendar} label="Manage Bookings" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/manage-transactions" icon={CreditCard} label="Manage Payments" isCollapsed={isCollapsed} />
@@ -155,6 +161,7 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
               <NavItem to="/dashboard/my-services" icon={Layers} label="My Services" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/my-projects" icon={Palette} label="My Projects" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/my-earnings" icon={Wallet} label="My Earnings" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/my-agents" icon={Users} label="My Agents" isCollapsed={isCollapsed} />
             </>
           )}
         </ul>

@@ -26,8 +26,15 @@ import MyProjects from "../features/decorator-dashboard/MyProjects.page";
 import MyEarnings from "../features/decorator-dashboard/MyEarnings.page";
 import Analytics from "../features/admin/Analytics.page";
 import ManageTransactions from "../features/admin/ManageTransactions.page";
+import ManageAgents from "../features/admin/ManageAgents.page";
+import MyAgents from "../features/decorator-dashboard/MyAgents.page";
+import MySchedule from "../features/agent-dashboard/MySchedule.page";
+import ActiveExecution from "../features/agent-dashboard/ActiveExecution.page";
+import AgentProfile from "../features/agent-dashboard/AgentProfile.page";
+import PerformanceAppraisals from "../features/agent-dashboard/PerformanceAppraisals.page";
 import AdminRoutes from "./AdminRoutes";
 import DecoratorRoutes from "./DecoratorRoutes";
+import AgentRoutes from "./AgentRoutes";
 import NotFound from "../components/errors/NotFound";
 import Transactions from "../features/customer/Transactions.page";
 import PaymentSuccess from "../features/customer/PaymentSuccess.page";
@@ -193,6 +200,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "manage-agents",
+        element: (
+          <AdminRoutes>
+            <ManageAgents></ManageAgents>
+          </AdminRoutes>
+        ),
+      },
+      {
         path: "analytics",
         element: (
           <AdminRoutes>
@@ -222,6 +237,46 @@ const router = createBrowserRouter([
           <DecoratorRoutes>
             <MyEarnings></MyEarnings>
           </DecoratorRoutes>
+        ),
+      },
+      {
+        path: "my-agents",
+        element: (
+          <DecoratorRoutes>
+            <MyAgents></MyAgents>
+          </DecoratorRoutes>
+        ),
+      },
+      {
+        path: "my-schedule",
+        element: (
+          <AgentRoutes>
+            <MySchedule></MySchedule>
+          </AgentRoutes>
+        ),
+      },
+      {
+        path: "active-execution",
+        element: (
+          <AgentRoutes>
+            <ActiveExecution></ActiveExecution>
+          </AgentRoutes>
+        ),
+      },
+      {
+        path: "agent-profile",
+        element: (
+          <AgentRoutes>
+            <AgentProfile></AgentProfile>
+          </AgentRoutes>
+        ),
+      },
+      {
+        path: "my-performance",
+        element: (
+          <AgentRoutes>
+            <PerformanceAppraisals></PerformanceAppraisals>
+          </AgentRoutes>
         ),
       },
     ],
