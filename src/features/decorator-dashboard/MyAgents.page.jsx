@@ -66,8 +66,15 @@ const MyAgents = () => {
     const resolveDecorator = async () => {
       if (!user?.email) return;
       try {
-        const res = await axiosSecure.get(`/decorators/${encodeURIComponent(user.email)}`);
-        const dec = res.data?.data || res.data;
+        let dec = null;
+        try {
+          const res = await axiosSecure.get("/decorators/me");
+          dec = res.data?.data || res.data;
+        } catch (e) {
+          const res = await axiosSecure.get(`/decorators/${encodeURIComponent(user.email)}`);
+          dec = res.data?.data || res.data;
+        }
+
         if (dec?._id) {
           setDecoratorId(dec._id);
         }
@@ -80,11 +87,22 @@ const MyAgents = () => {
 
   // 2. Integration: GET /agents/decorator/:decoratorId
   const loadAgents = useCallback(async () => {
-    if (!decoratorId) return;
+    if (!decoratorId && !user?.email) return;
     try {
       setLoading(true);
-      const res = await axiosSecure.get(`/agents/decorator/${decoratorId}`);
-      const list = res.data?.data || [];
+      let list = [];
+      if (decoratorId) {
+        const res = await axiosSecure.get(`/agents/decorator/${decoratorId}`);
+        list = res.data?.data || [];
+      } else {
+        const decRes = await axiosSecure.get(`/decorators/${encodeURIComponent(user.email)}`);
+        const dec = decRes.data?.data || decRes.data;
+        if (dec?._id) {
+          setDecoratorId(dec._id);
+          const res = await axiosSecure.get(`/agents/decorator/${dec._id}`);
+          list = res.data?.data || [];
+        }
+      }
       setAgents(Array.isArray(list) ? list : []);
     } catch (err) {
       console.error("Failed to load agency agents:", err);
@@ -92,13 +110,11 @@ const MyAgents = () => {
     } finally {
       setLoading(false);
     }
-  }, [axiosSecure, decoratorId]);
+  }, [axiosSecure, decoratorId, user?.email]);
 
   useEffect(() => {
-    if (decoratorId) {
-      loadAgents();
-    }
-  }, [decoratorId, loadAgents]);
+    loadAgents();
+  }, [loadAgents]);
 
   // Filtered Agents
   const filteredAgents = useMemo(() => {
