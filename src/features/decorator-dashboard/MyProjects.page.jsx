@@ -24,6 +24,8 @@ import {
   UserCheck,
   DollarSign,
   FileText,
+  Users,
+  UserPlus,
 } from "lucide-react";
 
 const STATUS_STEPS = [
@@ -48,6 +50,9 @@ const MyProjects = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Agency Field Specialists
+  const [agencyAgents, setAgencyAgents] = useState([]);
+
   // Filters
   const [statusTab, setStatusTab] = useState("all");
   const [searchText, setSearchText] = useState("");
@@ -55,7 +60,9 @@ const MyProjects = () => {
   // Modals
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [selectedAgentId, setSelectedAgentId] = useState("");
   const [bookingPayments, setBookingPayments] = useState([]);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
   const [nextStatus, setNextStatus] = useState("");
@@ -101,9 +108,57 @@ const MyProjects = () => {
     }
   }, [axiosSecure, decoratorId]);
 
+  // 3. Load Agency Field Specialists (GET /agents/decorator/:decoratorId)
+  const loadAgencyAgents = useCallback(async () => {
+    if (!decoratorId) return;
+    try {
+      const res = await axiosSecure.get(`/agents/decorator/${decoratorId}`);
+      const list = res.data?.data || [];
+      setAgencyAgents(Array.isArray(list) ? list : []);
+    } catch (err) {
+      console.warn("Failed to load agency agents for assignment:", err);
+    }
+  }, [axiosSecure, decoratorId]);
+
   useEffect(() => {
     loadProjects();
-  }, [loadProjects]);
+    loadAgencyAgents();
+  }, [loadProjects, loadAgencyAgents]);
+
+  // Open Assign Specialist Modal
+  const handleOpenAssignModal = (b) => {
+    setSelectedBooking(b);
+    setSelectedAgentId(b.assignedAgentId || b.assignedAgent?._id || "");
+    setIsAssignModalOpen(true);
+  };
+
+  // Submit Assign Specialist (PATCH /bookings/:id/assign)
+  const handleAssignAgent = async (e) => {
+    e.preventDefault();
+    if (!selectedBooking?._id || !selectedAgentId) return;
+
+    try {
+      const res = await axiosSecure.patch(`/bookings/${selectedBooking._id}/assign`, {
+        assignedAgentId: selectedAgentId,
+      });
+
+      if (res.data?.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Specialist Assigned 🎉",
+          text: "The field specialist has been assigned to this event project.",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        setIsAssignModalOpen(false);
+        loadProjects();
+      }
+    } catch (err) {
+      console.error("Failed to assign agent:", err);
+      Swal.fire("Error", err.response?.data?.message || "Failed to assign field specialist.", "error");
+    }
+  };
 
   // Summary Metrics
   const stats = useMemo(() => {
@@ -495,6 +550,13 @@ const MyProjects = () => {
                       <td className="py-3.5 px-5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
+                            onClick={() => handleOpenAssignModal(b)}
+                            className="p-2 rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 text-indigo-600 dark:text-indigo-300 cursor-pointer"
+                            title="Assign Field Specialist"
+                          >
+                            <Users className="w-3.5 h-3.5" />
+                          </button>
+                          <button
                             onClick={() => handleOpenView(b)}
                             className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-purple-600 cursor-pointer"
                             title="View Project Dossier & Payments"
@@ -702,6 +764,103 @@ const MyProjects = () => {
                 Save Progress
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= Assign Specialist Modal (PATCH /bookings/:id/assign) ================= */}
+      {isAssignModalOpen && selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-purple-400" />
+                <h3 className="text-base font-bold text-white">
+                  Assign Field Specialist
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsAssignModalOpen(false)}
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAssignAgent} className="p-6 space-y-4 text-xs text-slate-700 dark:text-slate-200">
+              <div className="p-3.5 rounded-xl bg-purple-50 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/50 space-y-1">
+                <span className="text-[10px] font-bold text-purple-600 uppercase">Project Order</span>
+                <p className="font-bold text-purple-900 dark:text-purple-200">
+                  {selectedBooking.serviceSnapshot?.title || selectedBooking.serviceName}
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  Code: {selectedBooking.bookingCode} • Venue: {selectedBooking.eventDetails?.venueName || "Venue"}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="font-bold text-slate-800 dark:text-slate-100">
+                  Select Specialist from Agency Roster:
+                </label>
+
+                {agencyAgents.length === 0 ? (
+                  <p className="text-slate-400 italic p-3 text-center">
+                    No specialists registered yet. Visit "My Agents" to hire specialists.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {agencyAgents.map((ag) => {
+                      const isChosen = selectedAgentId === ag._id;
+                      return (
+                        <div
+                          key={ag._id}
+                          onClick={() => setSelectedAgentId(ag._id)}
+                          className={`p-3 rounded-2xl border flex items-center justify-between gap-3 cursor-pointer transition-all ${
+                            isChosen
+                              ? "border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200 shadow-xs"
+                              : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <img
+                              src={ag.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"}
+                              alt={ag.name}
+                              className="w-9 h-9 rounded-xl object-cover ring-1 ring-purple-500/20"
+                            />
+                            <div>
+                              <p className="font-bold text-xs">{ag.name}</p>
+                              <p className="text-[10px] text-slate-400">{ag.designation}</p>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <span className="text-amber-500 font-bold text-[11px]">★ {ag.metrics?.rating || 4.8}</span>
+                            <p className="text-[10px] text-slate-400">{ag.metrics?.activeAssignedBookings || 0} active</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAssignModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!selectedAgentId}
+                  className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold cursor-pointer disabled:opacity-50"
+                >
+                  Confirm Assignment
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
