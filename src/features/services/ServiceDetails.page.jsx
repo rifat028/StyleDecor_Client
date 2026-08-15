@@ -18,6 +18,8 @@ import {
   Building,
   Check,
   Info,
+  MessageSquare,
+  Award,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -31,8 +33,14 @@ const ServiceDetails = () => {
   const [selectedPackageIndex, setSelectedPackageIndex] = useState(0);
   const [selectedImage, setSelectedImage] = useState("");
 
+  // Service Reviews State (GET /reviews/service/:serviceId)
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsAggregate, setReviewsAggregate] = useState(5.0);
+  const [ratingDistribution, setRatingDistribution] = useState({ 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 });
+
   useEffect(() => {
-    const loadService = async () => {
+    const loadServiceAndReviews = async () => {
       try {
         setLoading(true);
         const res = await axiosSecure.get(`/services/${id}`);
@@ -50,9 +58,24 @@ const ServiceDetails = () => {
       } finally {
         setLoading(false);
       }
+
+      // Load Service Reviews
+      try {
+        setReviewsLoading(true);
+        const revRes = await axiosSecure.get(`/reviews/service/${id}`);
+        if (revRes.data?.success) {
+          setReviews(revRes.data.data || []);
+          setReviewsAggregate(revRes.data.aggregateRating || 5.0);
+          setRatingDistribution(revRes.data.ratingDistribution || { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 });
+        }
+      } catch (revErr) {
+        console.warn("Failed to load service reviews:", revErr.message);
+      } finally {
+        setReviewsLoading(false);
+      }
     };
 
-    loadService();
+    loadServiceAndReviews();
   }, [axiosSecure, id]);
 
   const handleShare = () => {
@@ -352,6 +375,126 @@ const ServiceDetails = () => {
                 </Link>
               </div>
             )}
+
+            {/* ================= Verified Service Reviews Section (GET /reviews/service/:serviceId) ================= */}
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-[10px] font-bold uppercase tracking-wider mb-1.5">
+                    <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                    Verified Customer Feedback
+                  </div>
+                  <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                    Package Reviews & Ratings
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-3 bg-purple-50 dark:bg-purple-950/40 p-3 rounded-2xl border border-purple-100 dark:border-purple-900/50">
+                  <div className="text-right">
+                    <p className="text-2xl font-black text-purple-700 dark:text-purple-300 leading-none">
+                      {reviewsAggregate}
+                    </p>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+                      {reviews.length} verified {reviews.length === 1 ? "review" : "reviews"}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-amber-400">
+                    <Star className="w-5 h-5 fill-current" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Reviews List */}
+              {reviewsLoading ? (
+                <div className="py-8 flex justify-center">
+                  <Spinner />
+                </div>
+              ) : reviews.length === 0 ? (
+                <div className="py-10 text-center space-y-2 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <MessageSquare className="w-8 h-8 text-slate-300 dark:text-slate-700 mx-auto" />
+                  <p className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                    No Customer Reviews for this Package Yet
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    Be the first to book and share your celebration experience!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((rev) => (
+                    <div
+                      key={rev._id}
+                      className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={rev.customerPhotoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"}
+                            alt={rev.customerName}
+                            className="w-10 h-10 rounded-full object-cover ring-2 ring-purple-500/20"
+                          />
+                          <div>
+                            <h5 className="font-bold text-xs text-slate-900 dark:text-slate-100">
+                              {rev.customerName || "Valued Client"}
+                            </h5>
+                            <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3 text-purple-500" />
+                              {new Date(rev.createdAt || Date.now()).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-0.5 text-amber-500 text-xs font-black bg-white dark:bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-200/60 dark:border-slate-700">
+                          <Star className="w-3.5 h-3.5 fill-current" />
+                          <span>{rev.rating}.0</span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-700 dark:text-slate-300 italic">
+                        "{rev.comment}"
+                      </p>
+
+                      {/* Setup Photos if available */}
+                      {rev.images && rev.images.length > 0 && (
+                        <div className="flex items-center gap-2 pt-1">
+                          {rev.images.map((img, idx) => (
+                            <img
+                              key={idx}
+                              src={img}
+                              alt="Setup thumbnail"
+                              className="w-14 h-14 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700"
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Lead Specialist Attribution */}
+                      {rev.agentName && (
+                        <div className="pt-2 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between text-[10px] text-slate-400">
+                          <span className="inline-flex items-center gap-1 font-semibold text-purple-600 dark:text-purple-400">
+                            <Award className="w-3 h-3" /> Lead Specialist: {rev.agentName}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Official Vendor Reply if any */}
+                      {rev.vendorReply && rev.vendorReply.reply && (
+                        <div className="p-3.5 rounded-xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/50 text-[11px] text-slate-700 dark:text-slate-300 space-y-1">
+                          <span className="font-bold text-purple-800 dark:text-purple-300 flex items-center gap-1">
+                            <Building className="w-3 h-3" /> Agency Official Response:
+                          </span>
+                          <p className="italic">"{rev.vendorReply.reply}"</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* ================= Right Column: Sticky Booking / Package Selector (4 Cols) ================= */}

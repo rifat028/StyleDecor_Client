@@ -132,6 +132,7 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
             <>
               <NavItem to="/dashboard/my-bookings" icon={Calendar} label="My Bookings" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/transactions" icon={CreditCard} label="Transactions" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/my-reviews" icon={MessageSquare} label="My Reviews" isCollapsed={isCollapsed} />
             </>
           )}
 
@@ -163,7 +164,7 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
               <NavItem to="/dashboard/my-projects" icon={Palette} label="My Projects" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/my-earnings" icon={Wallet} label="My Earnings" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/my-agents" icon={Users} label="My Agents" isCollapsed={isCollapsed} />
-              <NavItem to="/dashboard/my-reviews" icon={MessageSquare} label="Agency Reviews" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/agency-reviews" icon={MessageSquare} label="Agency Reviews" isCollapsed={isCollapsed} />
             </>
           )}
         </ul>

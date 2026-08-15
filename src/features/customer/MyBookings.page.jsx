@@ -26,6 +26,8 @@ import {
   Tag,
   ShieldCheck,
   Users,
+  Star,
+  MessageSquare,
 } from "lucide-react";
 
 const MyBookings = () => {
@@ -44,6 +46,14 @@ const MyBookings = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+
+  // Review Modal State
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewBooking, setReviewBooking] = useState(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Pay Modal State
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
@@ -330,6 +340,51 @@ const MyBookings = () => {
       Swal.fire("Payment Error", err.response?.data?.message || "Failed to process payment. Please try again.", "error");
     } finally {
       setIsProcessingPay(false);
+    }
+  };
+
+  // Open Review Submission Modal
+  const handleOpenReviewModal = (b) => {
+    setReviewBooking(b);
+    setReviewRating(5);
+    setHoverRating(0);
+    setReviewComment("");
+    setIsReviewModalOpen(true);
+  };
+
+  // Submit Review (POST /reviews)
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!reviewBooking?._id || !reviewComment.trim()) return;
+
+    try {
+      setIsSubmittingReview(true);
+      const res = await axiosSecure.post("/reviews", {
+        bookingId: reviewBooking._id,
+        decoratorId: reviewBooking.decoratorId || reviewBooking.decorator?._id,
+        serviceId: reviewBooking.serviceId,
+        agentId: reviewBooking.assignedAgentId || reviewBooking.assignedAgent?._id,
+        rating: Number(reviewRating),
+        comment: reviewComment.trim(),
+      });
+
+      if (res.data?.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Review Submitted 🎉",
+          text: "Thank you for sharing your experience! Your review is now published.",
+          timer: 1800,
+          showConfirmButton: false,
+        });
+
+        setIsReviewModalOpen(false);
+        loadBookings();
+      }
+    } catch (err) {
+      console.error("Failed to submit review:", err);
+      Swal.fire("Review Error", err.response?.data?.message || "Failed to submit review. Please try again.", "error");
+    } finally {
+      setIsSubmittingReview(false);
     }
   };
 
@@ -711,6 +766,15 @@ const MyBookings = () => {
                             title="Edit Event Details"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* Rate & Review Button (if confirmed, advance paid, or completed) */}
+                          <button
+                            onClick={() => handleOpenReviewModal(b)}
+                            className="p-2 rounded-xl border border-amber-200 dark:border-amber-900/60 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-500 cursor-pointer"
+                            title="Rate & Review Celebration"
+                          >
+                            <Star className="w-3.5 h-3.5 fill-current" />
                           </button>
 
                           {/* Delete / Cancel Button */}
@@ -1176,6 +1240,133 @@ const MyBookings = () => {
                   className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold cursor-pointer shadow-md shadow-purple-600/30 disabled:opacity-50"
                 >
                   {isProcessingPay ? "Processing..." : `Pay ৳${Number(payType === "advance_deposit" ? Math.round((payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0) * 0.40) : (payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0) - (payBooking.pricingBreakdown?.paidAmount || 0)).toLocaleString()}`}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= Submit Review Modal (POST /reviews) ================= */}
+      {isReviewModalOpen && reviewBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Star className="w-5 h-5 text-amber-400 fill-current" />
+                <div>
+                  <h3 className="text-base font-bold text-white">Rate Your Celebration Setup</h3>
+                  <p className="text-[11px] text-slate-400">Order: {reviewBooking.bookingCode || "Booking"}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsReviewModalOpen(false)}
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitReview} className="p-6 space-y-5 text-xs text-slate-700 dark:text-slate-300">
+              {/* Event Info Card */}
+              <div className="p-4 rounded-2xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/40 space-y-1">
+                <p className="font-extrabold text-sm text-purple-950 dark:text-purple-200">
+                  {reviewBooking.serviceSnapshot?.title || reviewBooking.serviceName}
+                </p>
+                <p className="text-[11px] text-slate-500 flex items-center gap-2">
+                  <span>Venue: {reviewBooking.eventDetails?.venueName || "Venue"}</span>
+                  {reviewBooking.assignedAgent?.name && (
+                    <span>• Specialist: <b className="text-purple-700 dark:text-purple-300">{reviewBooking.assignedAgent.name}</b></span>
+                  )}
+                </p>
+              </div>
+
+              {/* Star Selector */}
+              <div className="space-y-2 text-center py-2">
+                <label className="font-bold text-xs text-slate-800 dark:text-slate-200 block">
+                  How would you rate the decoration and execution?
+                </label>
+                <div className="flex items-center justify-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const isFilled = (hoverRating || reviewRating) >= star;
+                    return (
+                      <button
+                        key={star}
+                        type="button"
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setReviewRating(star)}
+                        className="p-1 transition-transform hover:scale-125 cursor-pointer focus:outline-none"
+                      >
+                        <Star
+                          className={`w-8 h-8 transition-colors ${
+                            isFilled ? "text-amber-400 fill-amber-400 drop-shadow-sm" : "text-slate-300 dark:text-slate-700"
+                          }`}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+                <span className="text-xs font-black text-amber-500">
+                  {reviewRating === 5 && "★★★★★ Outstanding & Flawless!"}
+                  {reviewRating === 4 && "★★★★☆ Great Setup & Execution"}
+                  {reviewRating === 3 && "★★★☆☆ Satisfactory"}
+                  {reviewRating === 2 && "★★☆☆☆ Needs Improvement"}
+                  {reviewRating === 1 && "★☆☆☆☆ Disappointed"}
+                </span>
+              </div>
+
+              {/* Quick Feedback Chips */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-700 dark:text-slate-300">Quick Comments:</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    "Fairytale wedding stage setup!",
+                    "On-time delivery and friendly specialists.",
+                    "The lighting and flower canopy were breathtaking!",
+                    "Professional crew, zero stress execution.",
+                  ].map((chip, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setReviewComment((prev) => (prev ? `${prev} ${chip}` : chip))}
+                      className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 dark:hover:bg-purple-950/60 text-[10px] font-semibold text-slate-600 dark:text-slate-300 cursor-pointer transition-all border border-slate-200 dark:border-slate-700"
+                    >
+                      + {chip}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Comment Textarea */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-700 dark:text-slate-300">Detailed Feedback:</label>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder="Share details about the stage styling, floral quality, lighting, and specialist coordination..."
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  className="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                />
+              </div>
+
+              {/* Modal Actions */}
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsReviewModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingReview || !reviewComment.trim()}
+                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold cursor-pointer shadow-md shadow-purple-600/30 disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <Star className="w-3.5 h-3.5 fill-current" />
+                  {isSubmittingReview ? "Submitting..." : "Publish Review"}
                 </button>
               </div>
             </form>

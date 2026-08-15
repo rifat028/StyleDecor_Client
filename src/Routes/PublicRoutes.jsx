@@ -39,6 +39,7 @@ import AgentRoutes from "./AgentRoutes";
 import NotFound from "../components/errors/NotFound";
 import Transactions from "../features/customer/Transactions.page";
 import PaymentSuccess from "../features/customer/PaymentSuccess.page";
+import MyReviews from "../features/customer/MyReviews.page";
 
 const router = createBrowserRouter([
   {
@@ -138,6 +139,10 @@ const router = createBrowserRouter([
       {
         path: "transactions",
         Component: Transactions,
+      },
+      {
+        path: "my-reviews",
+        Component: MyReviews,
       },
 
       {
@@ -249,7 +254,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "my-reviews",
+        path: "agency-reviews",
         element: (
           <DecoratorRoutes>
             <AgencyReviews></AgencyReviews>
