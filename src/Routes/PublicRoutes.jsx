@@ -28,6 +28,7 @@ import Analytics from "../features/admin/Analytics.page";
 import ManageTransactions from "../features/admin/ManageTransactions.page";
 import ManageAgents from "../features/admin/ManageAgents.page";
 import MyAgents from "../features/decorator-dashboard/MyAgents.page";
+import AgencyReviews from "../features/decorator-dashboard/AgencyReviews.page";
 import MySchedule from "../features/agent-dashboard/MySchedule.page";
 import ActiveExecution from "../features/agent-dashboard/ActiveExecution.page";
 import AgentProfile from "../features/agent-dashboard/AgentProfile.page";
@@ -244,6 +245,14 @@ const router = createBrowserRouter([
         element: (
           <DecoratorRoutes>
             <MyAgents></MyAgents>
+          </DecoratorRoutes>
+        ),
+      },
+      {
+        path: "my-reviews",
+        element: (
+          <DecoratorRoutes>
+            <AgencyReviews></AgencyReviews>
           </DecoratorRoutes>
         ),
       },

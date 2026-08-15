@@ -20,6 +20,7 @@ import {
   Wallet,
   Activity,
   Award,
+  MessageSquare,
   ChevronLeft,
   ChevronRight,
   LogOut
@@ -162,6 +163,7 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
               <NavItem to="/dashboard/my-projects" icon={Palette} label="My Projects" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/my-earnings" icon={Wallet} label="My Earnings" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/my-agents" icon={Users} label="My Agents" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/my-reviews" icon={MessageSquare} label="Agency Reviews" isCollapsed={isCollapsed} />
             </>
           )}
         </ul>
