@@ -27,6 +27,7 @@ import MyEarnings from "../features/decorator-dashboard/MyEarnings.page";
 import Analytics from "../features/admin/Analytics.page";
 import ManageTransactions from "../features/admin/ManageTransactions.page";
 import ManageAgents from "../features/admin/ManageAgents.page";
+import ManageReviews from "../features/admin/ManageReviews.page";
 import MyAgents from "../features/decorator-dashboard/MyAgents.page";
 import AgencyReviews from "../features/decorator-dashboard/AgencyReviews.page";
 import MySchedule from "../features/agent-dashboard/MySchedule.page";
@@ -210,6 +211,14 @@ const router = createBrowserRouter([
         element: (
           <AdminRoutes>
             <ManageAgents></ManageAgents>
+          </AdminRoutes>
+        ),
+      },
+      {
+        path: "manage-reviews",
+        element: (
+          <AdminRoutes>
+            <ManageReviews></ManageReviews>
           </AdminRoutes>
         ),
       },

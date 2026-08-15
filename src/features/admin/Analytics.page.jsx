@@ -25,6 +25,9 @@ import {
   Layers,
   PieChart as PieIcon,
   BarChart3,
+  Star,
+  MessageSquare,
+  ShieldCheck,
 } from "lucide-react";
 
 const COLORS = ["#8B5CF6", "#3B82F6", "#10B981", "#F59E0B", "#EC4899", "#06B6D4"];
@@ -33,6 +36,7 @@ const Analytics = () => {
   const axiosSecure = useAxiosSecure();
 
   const [paymentStats, setPaymentStats] = useState(null);
+  const [reviewStats, setReviewStats] = useState(null);
   const [allBookings, setAllBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,7 +52,19 @@ const Analytics = () => {
     }
   };
 
-  // 2. Fetch all bookings for demand charts
+  // 2. Integration: GET /reviews?limit=1 (Platform Review Stats)
+  const loadReviewStats = async () => {
+    try {
+      const res = await axiosSecure.get("/reviews?limit=1");
+      if (res.data?.success) {
+        setReviewStats(res.data.stats);
+      }
+    } catch (err) {
+      console.warn("Failed to load review statistics:", err);
+    }
+  };
+
+  // 3. Fetch all bookings for demand charts
   const fetchAllBookings = async () => {
     try {
       const res = await axiosSecure.get("/bookings?limit=150");
@@ -63,7 +79,7 @@ const Analytics = () => {
   useEffect(() => {
     const initData = async () => {
       setLoading(true);
-      await Promise.all([loadPaymentStats(), fetchAllBookings()]);
+      await Promise.all([loadPaymentStats(), loadReviewStats(), fetchAllBookings()]);
       setLoading(false);
     };
     initData();
@@ -186,6 +202,53 @@ const Analytics = () => {
           </p>
         </div>
       </div>
+
+      {/* ================= Platform Quality & Reputation Strip (GET /reviews) ================= */}
+      {reviewStats && (
+        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+              <Star className="w-3.5 h-3.5 text-amber-500 fill-current" /> Platform Rating
+            </span>
+            <p className="text-xl sm:text-2xl font-black text-amber-500">
+              {reviewStats.averageRating} / 5.0
+            </p>
+            <p className="text-[10px] text-slate-400">Weighted average rating</p>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+              <MessageSquare className="w-3.5 h-3.5 text-purple-500" /> Total Feedback
+            </span>
+            <p className="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400">
+              {reviewStats.totalReviews}
+            </p>
+            <p className="text-[10px] text-slate-400">Verified customer reviews</p>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Published Reviews
+            </span>
+            <p className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
+              {reviewStats.publishedCount}
+            </p>
+            <p className="text-[10px] text-slate-400">Active public testimonials</p>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500" /> Vendor Response Rate
+            </span>
+            <p className="text-xl sm:text-2xl font-black text-indigo-600 dark:text-indigo-400">
+              {reviewStats.totalReviews > 0
+                ? `${Math.round(((reviewStats.repliedCount || 0) / reviewStats.totalReviews) * 100)}%`
+                : "100%"}
+            </p>
+            <p className="text-[10px] text-slate-400">Official decorator engagement</p>
+          </div>
+        </div>
+      )}
 
       {/* ================= Charts Section ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
