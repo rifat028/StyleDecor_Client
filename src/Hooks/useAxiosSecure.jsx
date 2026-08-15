@@ -14,10 +14,22 @@ const useAxiosSecure = () => {
   useEffect(() => {
     // request interceptor
     const reqInterceptor = axiosSecure.interceptors.request.use(
-      function (config) {
-        config.headers.Authorization = `Bearer ${user?.accessToken}`;
+      async function (config) {
+        if (user) {
+          try {
+            const token = (await user.getIdToken?.()) || user.accessToken;
+            if (token) {
+              config.headers.Authorization = `Bearer ${token}`;
+            }
+          } catch (e) {
+            console.warn("Failed to get auth token:", e);
+          }
+        }
         return config;
       },
+      function (error) {
+        return Promise.reject(error);
+      }
     );
 
     // response interceptor

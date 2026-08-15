@@ -25,6 +25,7 @@ import ManageCategories from "../features/admin/ManageCategories.page";
 import MyProjects from "../features/decorator-dashboard/MyProjects.page";
 import MyEarnings from "../features/decorator-dashboard/MyEarnings.page";
 import Analytics from "../features/admin/Analytics.page";
+import ManageTransactions from "../features/admin/ManageTransactions.page";
 import AdminRoutes from "./AdminRoutes";
 import DecoratorRoutes from "./DecoratorRoutes";
 import NotFound from "../components/errors/NotFound";
@@ -172,6 +173,22 @@ const router = createBrowserRouter([
         element: (
           <AdminRoutes>
             <ManageBooking></ManageBooking>
+          </AdminRoutes>
+        ),
+      },
+      {
+        path: "manage-transactions",
+        element: (
+          <AdminRoutes>
+            <ManageTransactions></ManageTransactions>
+          </AdminRoutes>
+        ),
+      },
+      {
+        path: "manage-payments",
+        element: (
+          <AdminRoutes>
+            <ManageTransactions></ManageTransactions>
           </AdminRoutes>
         ),
       },

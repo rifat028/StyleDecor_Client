@@ -145,6 +145,7 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
               <NavItem to="/dashboard/manage-decorators" icon={Users} label="Manage Decorators" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/manage-services" icon={Briefcase} label="Manage Services" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/manage-bookings" icon={Calendar} label="Manage Bookings" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-transactions" icon={CreditCard} label="Manage Payments" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/analytics" icon={BarChart3} label="Analytics" isCollapsed={isCollapsed} />
             </>
           )}

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
+import Spinner from "../home/components/Spinner";
 import {
   BarChart,
   Bar,
@@ -8,99 +9,71 @@ import {
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
+import {
+  DollarSign,
+  TrendingUp,
+  CreditCard,
+  Building,
+  Award,
+  RotateCcw,
+  Sparkles,
+  Calendar,
+  Layers,
+  PieChart as PieIcon,
+  BarChart3,
+} from "lucide-react";
 
-/**
- * Analytics.jsx (Admin) - CLIENT SIDE PROCESSING (NO NEW APIS)
- *
- * ✅ Uses ONLY your existing API:
- *    GET /bookings   (verifyFbToken protected)
- *
- * ✅ Your requirements:
- * 1) total completed booking count -> derived from bookings where status === "Completed"
- * 2) total earning -> SUM(totalCost) of completed bookings (NOT 20%)
- * 3) demand chart -> count vs category using bookings of ALL status
- *
- * Notes:
- * - Your /bookings API returns { data, totalCount } and is paginated.
- * - For analytics, we need ALL bookings. So we fetch all pages in a loop.
- * - Set LIMIT high if you want fewer requests (but keep safe).
- */
+const COLORS = ["#8B5CF6", "#3B82F6", "#10B981", "#F59E0B", "#EC4899", "#06B6D4"];
 
 const Analytics = () => {
   const axiosSecure = useAxiosSecure();
 
+  const [paymentStats, setPaymentStats] = useState(null);
   const [allBookings, setAllBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // --------- helper: fetch all pages from /bookings ----------
-  const fetchAllBookings = async () => {
-    const limit = 100; // fetch 100 per request (you can increase if needed)
-    let page = 1;
-
-    let collected = [];
-    let totalCount = 0;
-
-    while (true) {
-      const res = await axiosSecure.get(
-        `/bookings?page=${page}&limit=${limit}&sortDate=desc`
-      );
-
-      const data = res.data?.data || [];
-      totalCount = res.data?.totalCount || 0;
-
-      collected = [...collected, ...data];
-
-      // stop when we got all
-      if (collected.length >= totalCount || data.length === 0) break;
-
-      page += 1;
+  // 1. Integration: GET /payments/stats (Live Platform Financial & Revenue KPIs)
+  const loadPaymentStats = async () => {
+    try {
+      const res = await axiosSecure.get("/payments/stats");
+      if (res.data?.success) {
+        setPaymentStats(res.data.stats);
+      }
+    } catch (err) {
+      console.warn("Failed to load payment statistics:", err);
     }
-
-    return collected;
   };
 
-  // --------- load ALL bookings once ----------
-  useEffect(() => {
-    const loadAnalytics = async () => {
-      try {
-        setLoading(true);
-        const bookings = await fetchAllBookings();
-        setAllBookings(bookings);
-      } catch (err) {
-        console.error("Failed to load analytics:", err);
-        setAllBookings([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // 2. Fetch all bookings for demand charts
+  const fetchAllBookings = async () => {
+    try {
+      const res = await axiosSecure.get("/bookings?limit=150");
+      const list = res.data?.data || res.data || [];
+      setAllBookings(Array.isArray(list) ? list : []);
+    } catch (err) {
+      console.warn("Failed to load bookings for demand:", err);
+      setAllBookings([]);
+    }
+  };
 
-    loadAnalytics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const initData = async () => {
+      setLoading(true);
+      await Promise.all([loadPaymentStats(), fetchAllBookings()]);
+      setLoading(false);
+    };
+    initData();
   }, [axiosSecure]);
 
-  // 1) completed count (client side)
-  const completedBookings = useMemo(() => {
-    return allBookings.filter(
-      (b) => String(b.status || "").toLowerCase() === "completed"
-    );
-  }, [allBookings]);
-
-  const completedCount = completedBookings.length;
-
-  // 2) total earning = SUM(totalCost) of completed bookings
-  const totalRevenue = useMemo(() => {
-    return completedBookings.reduce(
-      (sum, b) => sum + (Number(b.totalCost) || 0),
-      0
-    );
-  }, [completedBookings]);
-
-  // 3) demand chart = count vs category for ALL status
+  // Category Demand Chart Data
   const demandChartData = useMemo(() => {
     const map = {};
     allBookings.forEach((b) => {
-      const cat = (b.serviceCategory || "unknown").toLowerCase();
+      const cat = b.serviceSnapshot?.category || b.serviceCategory || "General Decoration";
       map[cat] = (map[cat] || 0) + 1;
     });
 
@@ -110,97 +83,190 @@ const Analytics = () => {
     }));
   }, [allBookings]);
 
+  // Status Distribution Chart Data
+  const statusChartData = useMemo(() => {
+    const map = {};
+    allBookings.forEach((b) => {
+      const st = (b.status || "pending").replace(/_/g, " ");
+      map[st] = (map[st] || 0) + 1;
+    });
+
+    return Object.entries(map).map(([status, value]) => ({
+      name: status.toUpperCase(),
+      value,
+    }));
+  }, [allBookings]);
+
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <span className="loading loading-spinner loading-lg" />
+        <Spinner />
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-base-100 dark:bg-gray-900">
-      {/* 1) Top section with bg-base-100 */}
-      <div className="bg-base-100 dark:bg-gray-900 border-b border-base-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 py-10 md:py-14 text-center">
-          <h1 className="text-3xl md:text-5xl font-bold text-base-content dark:text-white">
-            Admin <span className="text-purple-500">Analytics</span>
-          </h1>
-          <p className="mt-4 max-w-2xl mx-auto text-sm md:text-base text-base-content/70 dark:text-gray-300">
-            Completed booking stats and service demand across all bookings.
-          </p>
+  const stats = paymentStats || {
+    totalVolume: 0,
+    platformCommission: 0,
+    vendorReceivables: 0,
+    gatewayFees: 0,
+    totalRefunded: 0,
+    completedTransactionsCount: 0,
+    totalTransactionsCount: 0,
+  };
 
-          <p className="mt-2 text-xs text-base-content/60 dark:text-gray-400">
-            (Fetched total bookings: {allBookings.length})
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 animate-fade-in space-y-8">
+      {/* ================= Header Banner ================= */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold uppercase tracking-wider mb-2">
+            <BarChart3 className="w-3.5 h-3.5" /> Platform Intelligence
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            Financial & Booking Analytics
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+            Real-time revenue monitoring, 10% platform marketplace commission aggregation, vendor payout accounting, and category demand.
           </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        {/* 2) Revenue Monitoring */}
-        <section>
-          <h2 className="text-xl md:text-2xl font-bold text-base-content dark:text-white mb-4">
-            Revenue Monitoring
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Total completed bookings */}
-            <div className="rounded-2xl border border-base-300 dark:border-gray-700 bg-base-200 dark:bg-gray-800 p-6">
-              <p className="text-sm text-base-content/70 dark:text-gray-300">
-                Total Completed Bookings
-              </p>
-              <p className="mt-2 text-3xl font-bold text-base-content dark:text-white">
-                {completedCount}
-              </p>
-              <p className="mt-1 text-xs text-base-content/60 dark:text-gray-400">
-                Calculated from bookings where status = Completed
-              </p>
-            </div>
-
-            {/* Total revenue = sum(totalCost) */}
-            <div className="rounded-2xl border border-base-300 dark:border-gray-700 bg-base-200 dark:bg-gray-800 p-6">
-              <p className="text-sm text-base-content/70 dark:text-gray-300">
-                Total Revenue (SUM of totalCost)
-              </p>
-              <p className="mt-2 text-3xl font-bold text-green-600">
-                ৳{Math.round(totalRevenue)}
-              </p>
-              <p className="mt-1 text-xs text-base-content/60 dark:text-gray-400">
-                Sum of totalCost for completed bookings
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* 3) Demand Chart */}
-        <section className="rounded-2xl border border-base-300 dark:border-gray-700 bg-base-100 dark:bg-gray-800 p-4 md:p-6">
-          <h2 className="text-xl md:text-2xl font-bold text-base-content dark:text-white mb-2">
-            Service Demand Chart
-          </h2>
-          <p className="text-sm text-base-content/70 dark:text-gray-300 mb-4">
-            Booking count by category (includes ALL booking statuses).
+      {/* ================= Financial Summary Cards (GET /payments/stats) ================= */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Platform Revenue */}
+        <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-600 to-indigo-700 text-white shadow-lg shadow-purple-600/20 space-y-1">
+          <span className="text-[11px] font-bold text-purple-200 uppercase tracking-wider flex items-center gap-1.5">
+            <Award className="w-3.5 h-3.5" /> Platform Revenue (10%)
+          </span>
+          <p className="text-2xl sm:text-3xl font-black">
+            ৳{Number(stats.platformCommission).toLocaleString()}
           </p>
+          <p className="text-[11px] text-purple-200 pt-1">
+            Net marketplace commission earned
+          </p>
+        </div>
 
-          {demandChartData.length === 0 ? (
-            <div className="p-6 text-center">
-              <p className="text-base-content dark:text-white">
-                No booking data found for chart.
+        {/* Total GMV */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-500" /> Gross Event GMV
+          </span>
+          <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100">
+            ৳{Number(stats.totalVolume).toLocaleString()}
+          </p>
+          <p className="text-[11px] text-slate-400 pt-1">
+            Across {stats.completedTransactionsCount} cleared transactions
+          </p>
+        </div>
+
+        {/* Vendor Payouts */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <Building className="w-3.5 h-3.5 text-indigo-500" /> Vendor Payouts
+          </span>
+          <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100">
+            ৳{Number(stats.vendorReceivables).toLocaleString()}
+          </p>
+          <p className="text-[11px] text-slate-400 pt-1">
+            Net payable to decorator agencies (88.5%)
+          </p>
+        </div>
+
+        {/* Total Refunds */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <RotateCcw className="w-3.5 h-3.5 text-rose-500" /> Processed Refunds
+          </span>
+          <p className="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400">
+            ৳{Number(stats.totalRefunded).toLocaleString()}
+          </p>
+          <p className="text-[11px] text-slate-400 pt-1">
+            Dispute settlements & cancellations
+          </p>
+        </div>
+      </div>
+
+      {/* ================= Charts Section ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Category Demand Bar Chart */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                Service Demand by Category
+              </h3>
+              <p className="text-xs text-slate-400">
+                Total event reservation volume across decoration categories
               </p>
             </div>
-          ) : (
-            <div className="h-80 md:h-95 md:px-30 md:pt-10">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={demandChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="category" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="count" />
-                </BarChart>
-              </ResponsiveContainer>
+            <Layers className="w-5 h-5 text-purple-500" />
+          </div>
+
+          <div className="h-72 w-full pt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={demandChartData}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                <XAxis dataKey="category" tick={{ fontSize: 10 }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1E293B",
+                    borderRadius: "12px",
+                    border: "none",
+                    color: "#fff",
+                    fontSize: "12px",
+                  }}
+                />
+                <Bar dataKey="count" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Booking Lifecycle Distribution Pie Chart */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                Booking Lifecycle Pipeline
+              </h3>
+              <p className="text-xs text-slate-400">
+                Distribution of orders across all operational stages
+              </p>
             </div>
-          )}
-        </section>
+            <PieIcon className="w-5 h-5 text-indigo-500" />
+          </div>
+
+          <div className="h-72 w-full pt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={statusChartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={90}
+                  paddingAngle={3}
+                  dataKey="value"
+                >
+                  {statusChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1E293B",
+                    borderRadius: "12px",
+                    border: "none",
+                    color: "#fff",
+                    fontSize: "12px",
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
     </div>
   );
