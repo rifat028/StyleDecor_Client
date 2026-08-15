@@ -10,7 +10,6 @@ import {
   User,
   Phone,
   Eye,
-  Trash2,
   Search,
   CheckCircle2,
   XCircle,
@@ -20,28 +19,13 @@ import {
   ArrowRight,
   X,
   CreditCard,
-  Tag,
   ShieldCheck,
-  Users,
   ChevronsLeft,
   ChevronLeft,
   ChevronRight,
   ChevronsRight,
   UserCheck,
 } from "lucide-react";
-
-const STATUS_OPTIONS = [
-  "in_draft",
-  "pending",
-  "accepted",
-  "advance_paid",
-  "preparing",
-  "on_the_way",
-  "in_progress",
-  "completed",
-  "fully_paid",
-  "rejected",
-];
 
 const ManageBookings = () => {
   const axiosSecure = useAxiosSecure();
@@ -71,12 +55,9 @@ const ManageBookings = () => {
   const [page, setPage] = useState(1);
   const limit = 10;
 
-  // Modals
+  // View Dossier Modal
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const [availableAgents, setAvailableAgents] = useState([]);
-  const [agentsLoading, setAgentsLoading] = useState(false);
 
   // Load Decorators List for Vendor Filter Dropdown
   useEffect(() => {
@@ -130,7 +111,7 @@ const ManageBookings = () => {
       const [allRes, accRes, progRes, compRes, pendRes] = await Promise.all([
         axiosSecure.get("/bookings?limit=1"),
         axiosSecure.get("/bookings?status=accepted&limit=1"),
-        axiosSecure.get("/bookings?status=inprogress&limit=1"),
+        axiosSecure.get("/bookings?status=in_progress&limit=1"),
         axiosSecure.get("/bookings?status=completed&limit=1"),
         axiosSecure.get("/bookings?status=pending&limit=1"),
       ]);
@@ -173,104 +154,15 @@ const ManageBookings = () => {
     setIsViewModalOpen(true);
   };
 
-  // Open Assign Modal
-  const handleOpenAssign = async (b) => {
-    setSelectedBooking(b);
-    setIsAssignModalOpen(true);
-    setAvailableAgents([]);
-    setAgentsLoading(true);
-
-    const decId = b.decoratorId || b.decorator?._id;
-    if (decId) {
-      try {
-        const res = await axiosSecure.get(`/agents/decorator/${decId}`);
-        const list = res.data?.data || res.data || [];
-        setAvailableAgents(Array.isArray(list) ? list : []);
-      } catch (err) {
-        console.warn("Failed to load decorator agents:", err);
-      } finally {
-        setAgentsLoading(false);
-      }
-    } else {
-      setAgentsLoading(false);
-    }
-  };
-
-  // Assign Agent Handler
-  const handleAssignAgent = async (agentId) => {
-    if (!selectedBooking?._id) return;
-    try {
-      await axiosSecure.patch(`/bookings/${selectedBooking._id}/assign`, {
-        agentId: agentId,
-        status: "accepted",
-      });
-      Swal.fire({
-        icon: "success",
-        title: "Agent Assigned",
-        text: "Specialist assigned to the booking and status marked Accepted.",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-      setIsAssignModalOpen(false);
-      loadBookings();
-      loadStats();
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Failed to assign agent.", "error");
-    }
-  };
-
-  // Quick Status Change Handler
-  const handleStatusChange = async (b, newStatus) => {
-    try {
-      await axiosSecure.patch(`/bookings/${b._id}/status`, { status: newStatus });
-      Swal.fire({
-        icon: "success",
-        title: "Status Updated",
-        text: `Booking is now marked as "${newStatus}".`,
-        timer: 1500,
-        showConfirmButton: false,
-      });
-      loadBookings();
-      loadStats();
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Failed to update status.", "error");
-    }
-  };
-
-  // Delete Booking Handler
-  const handleDeleteBooking = async (b) => {
-    const confirm = await Swal.fire({
-      title: "Delete Booking Record?",
-      text: `Are you sure you want to permanently remove booking "${b.bookingCode || b.serviceName}"? This action cannot be undone.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#ef4444",
-      confirmButtonText: "Yes, Delete Permanent",
-    });
-
-    if (!confirm.isConfirmed) return;
-
-    try {
-      await axiosSecure.delete(`/bookings/${b._id}`);
-      Swal.fire("Deleted!", "Booking record deleted successfully.", "success");
-      loadBookings();
-      loadStats();
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Failed to delete booking.", "error");
-    }
-  };
-
   // Status Badge Helper
   const renderStatusBadge = (status) => {
     const s = String(status || "").toLowerCase();
     switch (s) {
+      case "in_draft":
       case "draft":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 uppercase">
-            Draft
+            In Draft
           </span>
         );
       case "pending":
@@ -291,8 +183,8 @@ const ManageBookings = () => {
             <XCircle className="w-3 h-3" /> Rejected
           </span>
         );
-      case "advance paid":
       case "advance_paid":
+      case "advance paid":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 uppercase">
             <CreditCard className="w-3 h-3" /> Advance Paid
@@ -304,15 +196,15 @@ const ManageBookings = () => {
             <Sparkles className="w-3 h-3" /> Preparing
           </span>
         );
-      case "on the way":
       case "on_the_way":
+      case "on the way":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 uppercase">
             <Clock className="w-3 h-3" /> On The Way
           </span>
         );
-      case "inprogress":
       case "in_progress":
+      case "inprogress":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 uppercase">
             <Clock className="w-3 h-3" /> In Progress
@@ -324,8 +216,8 @@ const ManageBookings = () => {
             <CheckCircle2 className="w-3 h-3" /> Completed
           </span>
         );
-      case "fully paid":
       case "fully_paid":
+      case "fully paid":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 uppercase">
             <ShieldCheck className="w-3 h-3" /> Fully Paid
@@ -346,13 +238,13 @@ const ManageBookings = () => {
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <Calendar className="w-3.5 h-3.5" /> Bookings Supervision
+            <Calendar className="w-3.5 h-3.5" /> Bookings Supervision (Read-Only)
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
             Manage Event Bookings
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Audit all customer event reservations across Bangladesh, monitor agency assignments, and update lifecycle progress.
+            Audit and monitor all customer event reservations across Bangladesh. Booking modifications, agent assignments, and progress updates are managed directly by the providing decorator agencies.
           </p>
         </div>
       </div>
@@ -537,7 +429,7 @@ const ManageBookings = () => {
                   <th className="py-4 px-4">Event Date & Venue</th>
                   <th className="py-4 px-4">Amount (৳)</th>
                   <th className="py-4 px-4">Status</th>
-                  <th className="py-4 px-5 text-right">Actions</th>
+                  <th className="py-4 px-5 text-right">View Dossier</th>
                 </tr>
               </thead>
 
@@ -627,48 +519,20 @@ const ManageBookings = () => {
                         ৳{Number(grandTotal).toLocaleString()}
                       </td>
 
-                      {/* Status Dropdown */}
+                      {/* Read-Only Status Badge */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
-                        <div className="relative inline-block">
-                          <select
-                            value={b.status}
-                            onChange={(e) => handleStatusChange(b, e.target.value)}
-                            className="text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 cursor-pointer"
-                          >
-                            {STATUS_OPTIONS.map((st) => (
-                              <option key={st} value={st}>
-                                {st}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                        {renderStatusBadge(b.status)}
                       </td>
 
-                      {/* Actions */}
+                      {/* Action: View Dossier Only */}
                       <td className="py-3.5 px-5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => handleOpenAssign(b)}
-                            className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-indigo-600 cursor-pointer"
-                            title="Assign Field Agent"
-                          >
-                            <UserCheck className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleOpenView(b)}
-                            className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-purple-600 cursor-pointer"
-                            title="View Full Booking Dossier"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteBooking(b)}
-                            className="p-2 rounded-xl border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 cursor-pointer"
-                            title="Delete Booking Record"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => handleOpenView(b)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-purple-200 dark:border-purple-900/60 bg-purple-50/50 dark:bg-purple-950/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 text-purple-600 dark:text-purple-300 font-bold text-xs transition-colors cursor-pointer"
+                          title="View Full Booking Dossier"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> View
+                        </button>
                       </td>
                     </tr>
                   );
@@ -740,7 +604,7 @@ const ManageBookings = () => {
         )}
       </div>
 
-      {/* ================= View Dossier Modal ================= */}
+      {/* ================= View Dossier Modal (Read-Only) ================= */}
       {isViewModalOpen && selectedBooking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
           <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
@@ -837,6 +701,21 @@ const ManageBookings = () => {
                 </div>
               </div>
 
+              {/* Status & Assigned Specialist */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Current Lifecycle Status</span>
+                  <div className="pt-1">{renderStatusBadge(selectedBooking.status)}</div>
+                </div>
+                {selectedBooking.assignedAgent && (
+                  <div className="text-right">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Assigned Field Lead</span>
+                    <p className="font-bold text-slate-900 dark:text-slate-100">{selectedBooking.assignedAgent.name}</p>
+                    <p className="text-[10px] text-slate-500">{selectedBooking.assignedAgent.phone}</p>
+                  </div>
+                )}
+              </div>
+
               {/* Financial Breakdown */}
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 space-y-2">
                 <h5 className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px]">
@@ -865,85 +744,6 @@ const ManageBookings = () => {
                 className="px-5 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold cursor-pointer"
               >
                 Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= Assign Agent Modal ================= */}
-      {isAssignModalOpen && selectedBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col">
-            <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <UserCheck className="w-5 h-5 text-indigo-400" />
-                <h3 className="text-base font-bold text-white">
-                  Assign Field Agent
-                </h3>
-              </div>
-              <button
-                onClick={() => setIsAssignModalOpen(false)}
-                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-              <p className="text-xs text-slate-500">
-                Select an agent from <span className="font-bold text-purple-600">{selectedBooking.decorator?.businessName || "the providing agency"}</span> to lead this event:
-              </p>
-
-              {agentsLoading ? (
-                <div className="p-10 flex justify-center">
-                  <Spinner />
-                </div>
-              ) : availableAgents.length === 0 ? (
-                <p className="text-xs text-slate-400 text-center py-6">
-                  No active field agents found for this agency.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {availableAgents.map((agent) => (
-                    <div
-                      key={agent._id}
-                      className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between hover:border-purple-500 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={agent.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"}
-                          alt={agent.name}
-                          className="w-10 h-10 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-700"
-                        />
-                        <div>
-                          <p className="font-bold text-slate-900 dark:text-slate-100 text-xs">
-                            {agent.name}
-                          </p>
-                          <p className="text-[11px] text-slate-500">
-                            {agent.designation || "Event Specialist"} • {agent.phone}
-                          </p>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => handleAssignAgent(agent._id)}
-                        className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold cursor-pointer"
-                      >
-                        Assign
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-700 flex justify-end">
-              <button
-                onClick={() => setIsAssignModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold cursor-pointer"
-              >
-                Cancel
               </button>
             </div>
           </div>
