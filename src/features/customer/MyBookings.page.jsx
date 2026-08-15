@@ -45,6 +45,13 @@ const MyBookings = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
+  // Pay Modal State
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [payBooking, setPayBooking] = useState(null);
+  const [payType, setPayType] = useState("advance_deposit");
+  const [payMethod, setPayMethod] = useState("bkash");
+  const [isProcessingPay, setIsProcessingPay] = useState(false);
+
   // Edit Form State
   const [editFormData, setEditFormData] = useState({
     eventDate: "",
@@ -256,6 +263,73 @@ const MyBookings = () => {
     } catch (err) {
       console.error("Failed to delete booking:", err);
       Swal.fire("Error", "Failed to cancel booking. Please try again.", "error");
+    }
+  };
+
+  // Open Payment & Checkout Modal
+  const handleOpenPayModal = (b) => {
+    setPayBooking(b);
+    const paidAmt = Number(b.pricingBreakdown?.paidAmount || 0);
+    if (paidAmt > 0) {
+      setPayType("full_payment"); // Already paid deposit, pay remainder
+    } else {
+      setPayType("advance_deposit"); // Pay initial 40% deposit
+    }
+    setPayMethod("bkash");
+    setIsPayModalOpen(true);
+  };
+
+  // Process Payment Submission
+  const handleProcessPayment = async (e) => {
+    e.preventDefault();
+    if (!payBooking?._id) return;
+
+    try {
+      setIsProcessingPay(true);
+      const grandTotal = Number(payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0);
+      const existingPaid = Number(payBooking.pricingBreakdown?.paidAmount || 0);
+      const remainingDue = grandTotal - existingPaid;
+
+      const calcAmount = payType === "advance_deposit" ? Math.round(grandTotal * 0.40) : (remainingDue > 0 ? remainingDue : grandTotal);
+
+      if (payMethod === "stripe") {
+        // Stripe Hosted Checkout
+        const res = await axiosSecure.post("/payments/create-checkout-session", {
+          bookingId: payBooking._id,
+          serviceName: payBooking.serviceSnapshot?.title || payBooking.serviceName || "Event Decoration",
+          amount: calcAmount,
+          clientEmail: user?.email,
+        });
+
+        if (res.data?.url) {
+          window.location.href = res.data.url;
+          return;
+        }
+      }
+
+      // Local / Instant Gateway Payment (bKash, Nagad, SSLCommerz, Bank Transfer)
+      const res = await axiosSecure.post("/payments/initiate", {
+        bookingId: payBooking._id,
+        paymentType: payType,
+        paymentMethod: payMethod,
+        amount: calcAmount,
+      });
+
+      if (res.data?.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Payment Successful 🎉",
+          html: `<p class="text-sm">Payment code: <b class="font-mono text-purple-600">${res.data.paymentCode}</b></p><p class="text-xs text-slate-500 mt-1">Transaction ID: ${res.data.transactionId}</p>`,
+        });
+
+        setIsPayModalOpen(false);
+        loadBookings();
+      }
+    } catch (err) {
+      console.error("Failed to process payment:", err);
+      Swal.fire("Payment Error", err.response?.data?.message || "Failed to process payment. Please try again.", "error");
+    } finally {
+      setIsProcessingPay(false);
     }
   };
 
@@ -610,6 +684,17 @@ const MyBookings = () => {
                       {/* Action Buttons: View, Edit, Delete */}
                       <td className="py-3.5 px-5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Pay Now Button (if not fully paid and not rejected) */}
+                          {b.paymentStatus !== "paid" && b.status !== "rejected" && b.status !== "fully_paid" && (
+                            <button
+                              onClick={() => handleOpenPayModal(b)}
+                              className="p-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white cursor-pointer shadow-sm shadow-purple-600/30"
+                              title="Make Payment / Deposit"
+                            >
+                              <CreditCard className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
                           {/* View Button */}
                           <button
                             onClick={() => handleOpenView(b)}
@@ -957,6 +1042,140 @@ const MyBookings = () => {
                   className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold cursor-pointer shadow-md shadow-purple-600/30"
                 >
                   Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= Pay Advance / Settle Balance Modal (POST /payments & POST /payments/create-checkout-session) ================= */}
+      {isPayModalOpen && payBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <CreditCard className="w-5 h-5 text-purple-400" />
+                <h3 className="text-base font-bold text-white">
+                  Payment Checkout: {payBooking.bookingCode}
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsPayModalOpen(false)}
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleProcessPayment} className="p-6 space-y-5 text-xs text-slate-700 dark:text-slate-200">
+              {/* Service & Total Banner */}
+              <div className="p-4 rounded-2xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/50 space-y-1">
+                <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase">
+                  Service Reservation
+                </span>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  {payBooking.serviceSnapshot?.title || payBooking.serviceName}
+                </h4>
+                <div className="pt-2 flex items-center justify-between text-xs font-semibold">
+                  <span>Grand Total: ৳{Number(payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0).toLocaleString()}</span>
+                  <span className="text-emerald-600">
+                    Paid: ৳{Number(payBooking.pricingBreakdown?.paidAmount || 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Payment Type Selection */}
+              <div className="space-y-2">
+                <label className="font-bold text-slate-800 dark:text-slate-100">
+                  Select Payment Stage:
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPayType("advance_deposit")}
+                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                      payType === "advance_deposit"
+                        ? "border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold shadow-xs"
+                        : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+                    }`}
+                  >
+                    <p className="font-bold">40% Advance Deposit</p>
+                    <p className="text-[11px] text-slate-500">
+                      ৳{Math.round(Number(payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0) * 0.40).toLocaleString()}
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPayType("full_payment")}
+                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                      payType === "full_payment"
+                        ? "border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold shadow-xs"
+                        : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+                    }`}
+                  >
+                    <p className="font-bold">Full Settlement</p>
+                    <p className="text-[11px] text-slate-500">
+                      ৳{Number(
+                        (payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0) -
+                        (payBooking.pricingBreakdown?.paidAmount || 0)
+                      ).toLocaleString()}
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Payment Method Gateway Selection */}
+              <div className="space-y-2">
+                <label className="font-bold text-slate-800 dark:text-slate-100">
+                  Choose Payment Gateway:
+                </label>
+                <div className="grid grid-cols-3 gap-2.5">
+                  {[
+                    { id: "bkash", name: "bKash" },
+                    { id: "nagad", name: "Nagad" },
+                    { id: "sslcommerz", name: "SSLCommerz" },
+                    { id: "bank_transfer", name: "Bank Transfer" },
+                    { id: "stripe", name: "Stripe Card" },
+                  ].map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setPayMethod(m.id)}
+                      className={`p-2.5 rounded-xl border text-center font-bold cursor-pointer transition-all ${
+                        payMethod === m.id
+                          ? "border-purple-600 bg-purple-600 text-white shadow-md shadow-purple-600/25"
+                          : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100"
+                      }`}
+                    >
+                      {m.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Escrow Assurance */}
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 text-[11px] text-slate-500 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>Your funds are protected under StyleDecor Escrow until full event completion.</span>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsPayModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isProcessingPay}
+                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold cursor-pointer shadow-md shadow-purple-600/30 disabled:opacity-50"
+                >
+                  {isProcessingPay ? "Processing..." : `Pay ৳${Number(payType === "advance_deposit" ? Math.round((payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0) * 0.40) : (payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0) - (payBooking.pricingBreakdown?.paidAmount || 0)).toLocaleString()}`}
                 </button>
               </div>
             </form>
