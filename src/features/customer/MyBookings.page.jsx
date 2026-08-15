@@ -1,11 +1,32 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState, useCallback } from "react";
+import { Link } from "react-router";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import { AuthContext } from "../auth/AuthContext";
 import Swal from "sweetalert2";
-import { Tooltip } from "react-tooltip";
-import { FaEdit, FaTrashAlt, FaCreditCard } from "react-icons/fa";
 import Spinner from "../home/components/Spinner";
-import BookingNotFound from "./components/BookingNotFound";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Building,
+  User,
+  Phone,
+  Eye,
+  Edit3,
+  Trash2,
+  Search,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Sparkles,
+  Layers,
+  ArrowRight,
+  X,
+  CreditCard,
+  Tag,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 
 const MyBookings = () => {
   const axiosSecure = useAxiosSecure();
@@ -14,406 +35,907 @@ const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // modal states
-  const [isEditOpen, setIsEditOpen] = useState(false);
+  // Filters & Search
+  const [statusTab, setStatusTab] = useState("all");
+  const [searchText, setSearchText] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+
+  // Modals
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
-  // edit form state (only editable fields)
-  const [editContact, setEditContact] = useState("");
-  const [editLocation, setEditLocation] = useState("");
-  const [editUnit, setEditUnit] = useState("");
-  const [editDate, setEditDate] = useState("");
+  // Edit Form State
+  const [editFormData, setEditFormData] = useState({
+    eventDate: "",
+    startTime: "16:00",
+    endTime: "22:00",
+    venueName: "",
+    venueAddress: "",
+    guestCountEstimate: "100",
+    contact: "",
+    specialInstructions: "",
+  });
 
-  const tooltipId = useMemo(() => "booking-actions-tooltip", []);
-
-  useEffect(() => {
+  // Load Bookings
+  const loadBookings = useCallback(async () => {
     if (!user?.email) return;
-
-    const loadBookings = async () => {
-      try {
-        setLoading(true);
-        const res = await axiosSecure.get(`/bookings/${user.email}`);
-        setBookings(res.data || []);
-      } catch (error) {
-        console.error("Failed to load bookings:", error);
-        setBookings([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadBookings();
+    try {
+      setLoading(true);
+      const res = await axiosSecure.get(`/bookings/user/${user.email}`);
+      const list = res.data?.data || res.data || [];
+      setBookings(Array.isArray(list) ? list : []);
+    } catch (err) {
+      console.error("Failed to load customer bookings:", err);
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
   }, [axiosSecure, user?.email]);
 
-  // ---------- Actions ----------
-  const handleCancelBooking = async (bookingId) => {
-    const result = await Swal.fire({
-      title: "Cancel booking?",
-      text: "This booking will be removed permanently.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, cancel it",
-      cancelButtonText: "No",
+  useEffect(() => {
+    loadBookings();
+  }, [loadBookings]);
+
+  // Statistics
+  const stats = useMemo(() => {
+    return {
+      total: bookings.length,
+      confirmed: bookings.filter((b) => ["confirmed", "in_progress", "Assigned", "Planning", "Equipping", "On Way", "Setting up"].includes(b.status)).length,
+      completed: bookings.filter((b) => ["completed", "Completed"].includes(b.status)).length,
+      pending: bookings.filter((b) => ["pending", "unpaid"].includes(b.status) || b.paymentStatus === "unpaid").length,
+    };
+  }, [bookings]);
+
+  // Filtered & Sorted Bookings
+  const filteredBookings = useMemo(() => {
+    return bookings
+      .filter((b) => {
+        // Status Filter
+        if (statusTab !== "all") {
+          const currentStatus = String(b.status || "").toLowerCase();
+          if (statusTab === "confirmed") {
+            if (!["confirmed", "assigned", "planning", "equipping", "on way", "setting up"].includes(currentStatus)) return false;
+          } else if (statusTab === "in_progress") {
+            if (!["in_progress", "planning", "equipping", "on way", "setting up"].includes(currentStatus)) return false;
+          } else if (statusTab === "completed") {
+            if (currentStatus !== "completed") return false;
+          } else if (statusTab === "pending") {
+            if (currentStatus !== "pending") return false;
+          } else if (statusTab === "cancelled") {
+            if (currentStatus !== "cancelled") return false;
+          }
+        }
+
+        // Search Filter
+        if (searchText.trim()) {
+          const q = searchText.toLowerCase();
+          const code = (b.bookingCode || "").toLowerCase();
+          const title = (b.serviceSnapshot?.title || b.serviceName || "").toLowerCase();
+          const venue = (b.eventDetails?.venueName || b.location || "").toLowerCase();
+          const address = (b.eventDetails?.venueAddress || "").toLowerCase();
+          const decName = (b.decorator?.businessName || "").toLowerCase();
+
+          if (!code.includes(q) && !title.includes(q) && !venue.includes(q) && !address.includes(q) && !decName.includes(q)) {
+            return false;
+          }
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === "eventDate_asc") {
+          const dateA = new Date(a.eventDetails?.eventDate || a.bookingDate || 0);
+          const dateB = new Date(b.eventDetails?.eventDate || b.bookingDate || 0);
+          return dateA - dateB;
+        }
+        if (sortBy === "eventDate_desc") {
+          const dateA = new Date(a.eventDetails?.eventDate || a.bookingDate || 0);
+          const dateB = new Date(b.eventDetails?.eventDate || b.bookingDate || 0);
+          return dateB - dateA;
+        }
+        if (sortBy === "amount_desc") {
+          const amtA = a.pricingBreakdown?.grandTotal || a.totalCost || 0;
+          const amtB = b.pricingBreakdown?.grandTotal || b.totalCost || 0;
+          return amtB - amtA;
+        }
+        if (sortBy === "amount_asc") {
+          const amtA = a.pricingBreakdown?.grandTotal || a.totalCost || 0;
+          const amtB = b.pricingBreakdown?.grandTotal || b.totalCost || 0;
+          return amtA - amtB;
+        }
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      });
+  }, [bookings, statusTab, searchText, sortBy]);
+
+  // Open View Modal
+  const handleOpenView = (b) => {
+    setSelectedBooking(b);
+    setIsViewModalOpen(true);
+  };
+
+  // Open Edit Modal
+  const handleOpenEdit = (b) => {
+    setSelectedBooking(b);
+    const dateVal = b.eventDetails?.eventDate
+      ? new Date(b.eventDetails.eventDate).toISOString().split("T")[0]
+      : b.bookingDate || "";
+
+    setEditFormData({
+      eventDate: dateVal,
+      startTime: b.eventDetails?.startTime || "16:00",
+      endTime: b.eventDetails?.endTime || "22:00",
+      venueName: b.eventDetails?.venueName || b.location || "",
+      venueAddress: b.eventDetails?.venueAddress || b.location || "",
+      guestCountEstimate: String(b.eventDetails?.guestCountEstimate || "100"),
+      contact: b.contact || user?.phone || "",
+      specialInstructions: b.eventDetails?.specialInstructions || "",
     });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      // ✅ Server should have: DELETE /bookings/:id
-      await axiosSecure.delete(`/bookings/${bookingId}`);
-
-      // update UI
-      setBookings((prev) => prev.filter((b) => b._id !== bookingId));
-
-      Swal.fire({
-        title: "Cancelled!",
-        text: "Your booking has been cancelled.",
-        icon: "success",
-      });
-    } catch (error) {
-      console.error("Cancel failed:", error);
-      Swal.fire({
-        title: "Failed!",
-        text: "Could not cancel booking. Please try again.",
-        icon: "error",
-      });
-    }
+    setIsEditModalOpen(true);
   };
 
-  const openEditModal = (booking) => {
-    setSelectedBooking(booking);
-    setEditContact(booking?.contact || "");
-    setEditLocation(booking?.location || "");
-    setEditUnit(String(booking?.unit ?? ""));
-    setEditDate(booking?.bookingDate || "");
-    setIsEditOpen(true);
-  };
-
-  const closeEditModal = () => {
-    setIsEditOpen(false);
-    setSelectedBooking(null);
-  };
-
-  const handleConfirmEdit = async (e) => {
+  // Submit Edit Form
+  const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!selectedBooking?._id) return;
 
-    const result = await Swal.fire({
-      title: "Save changes?",
-      text: "Your booking information will be updated.",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Yes, update",
-      cancelButtonText: "No",
-    });
-
-    if (!result.isConfirmed) return;
-
-    const updatedData = {
-      contact: editContact,
-      location: editLocation,
-      unit: editUnit,
-      bookingDate: editDate,
-      totalCost: Number(editUnit) * selectedBooking.unitCost,
-    };
-
     try {
-      // ✅ Server should have: PATCH /bookings/:id
-      const res = await axiosSecure.patch(
-        `/bookings/${selectedBooking._id}`,
-        updatedData
-      );
+      const payload = {
+        eventDate: editFormData.eventDate,
+        startTime: editFormData.startTime,
+        endTime: editFormData.endTime,
+        venueName: editFormData.venueName.trim(),
+        venueAddress: editFormData.venueAddress.trim(),
+        guestCountEstimate: Number(editFormData.guestCountEstimate),
+        contact: editFormData.contact.trim(),
+        specialInstructions: editFormData.specialInstructions.trim(),
+      };
 
-      // update UI (optimistic update)
-      if (res?.data?.modifiedCount > 0 || res?.data?.acknowledged) {
-        setBookings((prev) =>
-          prev.map((b) =>
-            b._id === selectedBooking._id ? { ...b, ...updatedData } : b
-          )
-        );
-      } else {
-        // even if backend doesn't return modifiedCount, still update locally
-        setBookings((prev) =>
-          prev.map((b) =>
-            b._id === selectedBooking._id ? { ...b, ...updatedData } : b
-          )
-        );
-      }
-
-      closeEditModal();
+      await axiosSecure.patch(`/bookings/${selectedBooking._id}`, payload);
       Swal.fire({
-        title: "Updated!",
-        text: "Booking updated successfully.",
         icon: "success",
+        title: "Booking Updated",
+        text: "Your event logistics and contact details have been saved.",
+        timer: 1500,
+        showConfirmButton: false,
       });
-    } catch (error) {
-      console.error("Edit failed:", error);
-      Swal.fire({
-        title: "Failed!",
-        text: "Could not update booking. Please try again.",
-        icon: "error",
-      });
+
+      setIsEditModalOpen(false);
+      loadBookings();
+    } catch (err) {
+      console.error("Failed to update booking:", err);
+      Swal.fire("Error", err.response?.data?.message || "Failed to update booking.", "error");
     }
   };
 
-  const handlePay = async (booking) => {
-    const paymentInfo = {
-      clientEmail: booking.clientEmail,
-      serviceName: booking.serviceName,
-      unitCost: booking.unitCost,
-      unit: Number(booking.unit),
-      id: booking._id,
-    };
-    const res = await axiosSecure.post("/create-checkout-session", paymentInfo);
-    // console.log(res.data);
-    window.location.href = res.data.url;
-    // Swal.fire({
-    //   title: "Coming soon",
-    //   text: "Payment will be implemented later.",
-    //   icon: "info",
-    // });
+  // Delete / Cancel Booking
+  const handleDeleteBooking = async (b) => {
+    const isCompleted = ["completed", "Completed"].includes(b.status);
+    const confirm = await Swal.fire({
+      title: isCompleted ? "Remove Booking Record?" : "Cancel Event Booking?",
+      text: `Are you sure you want to ${isCompleted ? "remove this booking record" : "cancel this booking"} (${b.bookingCode || b.serviceName})?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      confirmButtonText: isCompleted ? "Yes, Delete" : "Yes, Cancel Booking",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await axiosSecure.delete(`/bookings/${b._id}`);
+      Swal.fire({
+        icon: "success",
+        title: "Cancelled",
+        text: "The booking has been successfully removed.",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      loadBookings();
+    } catch (err) {
+      console.error("Failed to delete booking:", err);
+      Swal.fire("Error", "Failed to cancel booking. Please try again.", "error");
+    }
   };
 
-  if (loading) {
-    return <Spinner></Spinner>;
-  }
+  // Status Badge Helper supporting full lifecycle
+  const renderStatusBadge = (status) => {
+    const s = String(status || "").toLowerCase();
+    switch (s) {
+      case "in_draft":
+      case "draft":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 uppercase">
+            In Draft
+          </span>
+        );
+      case "pending":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 uppercase">
+            <AlertCircle className="w-3 h-3" /> Pending
+          </span>
+        );
+      case "accepted":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 uppercase">
+            <CheckCircle2 className="w-3 h-3" /> Accepted
+          </span>
+        );
+      case "rejected":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 uppercase">
+            <XCircle className="w-3 h-3" /> Rejected
+          </span>
+        );
+      case "advance paid":
+      case "advance_paid":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 uppercase">
+            <CreditCard className="w-3 h-3" /> Advance Paid
+          </span>
+        );
+      case "preparing":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 uppercase">
+            <Sparkles className="w-3 h-3" /> Preparing
+          </span>
+        );
+      case "on the way":
+      case "on_the_way":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 uppercase">
+            <Clock className="w-3 h-3" /> On The Way
+          </span>
+        );
+      case "inprogress":
+      case "in_progress":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 uppercase">
+            <Clock className="w-3 h-3" /> In Progress
+          </span>
+        );
+      case "completed":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase">
+            <CheckCircle2 className="w-3 h-3" /> Completed
+          </span>
+        );
+      case "fully paid":
+      case "fully_paid":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 uppercase">
+            <ShieldCheck className="w-3 h-3" /> Fully Paid
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase">
+            {status}
+          </span>
+        );
+    }
+  };
+
+  // Payment Badge Helper
+  const renderPaymentBadge = (b) => {
+    const pStatus = b.paymentStatus || (b.paid ? "paid" : "unpaid");
+    if (pStatus === "paid") {
+      return (
+        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 uppercase">
+          Paid
+        </span>
+      );
+    }
+    if (pStatus === "partially_paid") {
+      return (
+        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900 uppercase">
+          Partial
+        </span>
+      );
+    }
+    return (
+      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900 uppercase">
+        Unpaid
+      </span>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-base-100 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 py-8 pt-5 md:pt-0">
-        {/* Title */}
-        <div className="bg-base-200 dark:bg-slate-900 mb-5 rounded-2xl">
-          <div className="max-w-7xl mx-auto px-4 py-10 md:py-14 text-center">
-            <h1 className="text-3xl md:text-5xl font-bold text-base-content dark:text-white">
-              My <span className="text-purple-500">Bookings</span>
-            </h1>
-            <p className="mt-4 max-w-2xl mx-auto text-sm md:text-base text-base-content/70 dark:text-slate-300">
-              Here is your booking history. You can see status and payment info.
-            </p>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 animate-fade-in space-y-8">
+      {/* ================= Header Banner ================= */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold uppercase tracking-wider mb-2">
+            <Calendar className="w-3.5 h-3.5" /> Event Reservations
           </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            My Bookings
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+            Track all your scheduled event setups, monitor assigned decorator agencies, and manage venue logistics.
+          </p>
         </div>
 
-        {/* Empty state */}
-        {bookings.length === 0 ? (
-          <BookingNotFound></BookingNotFound>
+        <Link
+          to="/services"
+          className="px-5 py-3 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/25 transition-all cursor-pointer shrink-0"
+        >
+          <Sparkles className="w-4 h-4" /> Book New Service
+        </Link>
+      </div>
+
+      {/* ================= KPI Summary Metric Cards ================= */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Total Bookings
+          </span>
+          <p className="text-2xl font-black text-slate-900 dark:text-slate-100">
+            {stats.total}
+          </p>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+            Confirmed / Active
+          </span>
+          <p className="text-2xl font-black text-blue-600 dark:text-blue-400">
+            {stats.confirmed}
+          </p>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+            Completed Events
+          </span>
+          <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+            {stats.completed}
+          </p>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">
+            Pending / Awaiting
+          </span>
+          <p className="text-2xl font-black text-amber-500">
+            {stats.pending}
+          </p>
+        </div>
+      </div>
+
+      {/* ================= Filter Controls & Search ================= */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-5">
+        {/* Status Tabs */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
+          {[
+            { id: "all", label: "All Bookings", count: stats.total },
+            { id: "confirmed", label: "Confirmed", count: stats.confirmed },
+            { id: "completed", label: "Completed", count: stats.completed },
+            { id: "pending", label: "Pending", count: stats.pending },
+          ].map((tab) => {
+            const isSelected = statusTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setStatusTab(tab.id)}
+                className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  isSelected
+                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                <span>{tab.label}</span>
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                    isSelected ? "bg-white/20 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search & Sort Controls */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="relative w-full sm:max-w-md">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search by code, service name, or venue..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <span className="text-xs font-semibold text-slate-400 shrink-0">Sort:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-purple-500 cursor-pointer"
+            >
+              <option value="newest">Newest First</option>
+              <option value="eventDate_asc">Event Date: Earliest First</option>
+              <option value="eventDate_desc">Event Date: Latest First</option>
+              <option value="amount_desc">Amount: High to Low</option>
+              <option value="amount_asc">Amount: Low to High</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= Bookings Data Table ================= */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+        {loading ? (
+          <div className="p-20 flex items-center justify-center">
+            <Spinner />
+          </div>
+        ) : filteredBookings.length === 0 ? (
+          <div className="p-16 text-center space-y-4">
+            <Calendar className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto" />
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
+              No Bookings Found
+            </h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              You don't have any bookings matching this criteria. Browse our decoration packages and book your next celebration!
+            </p>
+            <Link
+              to="/services"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 text-white text-xs font-bold hover:bg-purple-700 cursor-pointer shadow-md shadow-purple-600/25"
+            >
+              <Sparkles className="w-3.5 h-3.5" /> Explore Services
+            </Link>
+          </div>
         ) : (
-          <div className="rounded-2xl border border-base-300 dark:border-gray-700 bg-base-100 dark:bg-gray-800 overflow-hidden">
-            {/* ✅ Responsive table wrapper */}
-            <div className="overflow-x-auto">
-              <table className="table w-full">
-                <thead className="bg-base-200 dark:bg-gray-700">
-                  <tr className="text-base-content dark:text-white">
-                    <th>#</th>
-                    <th>Service</th>
-                    <th>Category</th>
-                    <th>Date</th>
-                    <th>Location</th>
-                    <th>Unit Cost</th>
-                    <th>Unit</th>
-                    <th>Total Cost</th>
-                    <th>Status</th>
-                    <th>Paid</th>
-                    <th className="text-center">Actions</th>
-                  </tr>
-                </thead>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-100/70 dark:bg-slate-800/70 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200 dark:border-slate-800">
+                  <th className="py-4 px-5">Booking Code</th>
+                  <th className="py-4 px-4">Service & Package</th>
+                  <th className="py-4 px-4">Decorator Agency</th>
+                  <th className="py-4 px-4">Event Date & Venue</th>
+                  <th className="py-4 px-4">Total (৳)</th>
+                  <th className="py-4 px-4">Status</th>
+                  <th className="py-4 px-4">Payment</th>
+                  <th className="py-4 px-5 text-right">Actions</th>
+                </tr>
+              </thead>
 
-                <tbody>
-                  {bookings.map((booking, index) => (
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredBookings.map((b) => {
+                  const code = b.bookingCode || `BK-${b._id.slice(-6).toUpperCase()}`;
+                  const title = b.serviceSnapshot?.title || b.serviceName || "Decoration Setup";
+                  const pkgTier = b.serviceSnapshot?.selectedPackage || "Standard Package";
+                  const agencyName = b.decorator?.businessName || "StyleDecor Agency";
+                  const agencyCity = b.decorator?.contactInfo?.city || "Dhaka";
+                  const rawDate = b.eventDetails?.eventDate || b.bookingDate;
+                  const dateStr = rawDate
+                    ? new Date(rawDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "TBD";
+                  const venue = b.eventDetails?.venueName || b.location || "Venue TBD";
+                  const total = b.pricingBreakdown?.grandTotal || b.totalCost || 0;
+
+                  return (
                     <tr
-                      key={booking._id || index}
-                      className="text-base-content dark:text-gray-100"
+                      key={b._id}
+                      className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                     >
-                      <td>{index + 1}</td>
-
-                      <td className="min-w-60">
-                        <p className="font-semibold">{booking.serviceName}</p>
-                        <p className="text-xs text-base-content/60 dark:text-gray-300">
-                          Provider: {booking.serviceProviderEmail}
-                        </p>
-                      </td>
-
-                      <td className="capitalize">{booking.serviceCategory}</td>
-                      <td className="min-w-26">{booking.bookingDate}</td>
-                      <td className="min-w-22">{booking.location}</td>
-                      <td className="min-w-17">৳{booking.unitCost}</td>
-                      <td className="min-w-5">{booking.unit}</td>
-                      <td className="min-w-17">৳{booking.totalCost}</td>
-
-                      <td className="min-w-30">
-                        <span
-                          className={`badge ${
-                            booking.status === "completed"
-                              ? "badge-success"
-                              : booking.status === "confirmed"
-                              ? "badge-info"
-                              : "badge-warning"
-                          }`}
-                        >
-                          {booking.status}
+                      {/* Code */}
+                      <td className="py-3.5 px-5">
+                        <span className="font-mono font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 px-2.5 py-1 rounded-lg border border-purple-200 dark:border-purple-900/50">
+                          {code}
                         </span>
                       </td>
 
-                      <td className="min-w-22">
-                        <span
-                          className={`badge ${
-                            booking.paid ? "badge-success" : "badge-error"
-                          }`}
-                        >
-                          {booking.paid ? "Yes" : "No"}
-                        </span>
+                      {/* Service & Package */}
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5 max-w-xs">
+                          <p className="font-bold text-slate-900 dark:text-slate-100 line-clamp-1">
+                            {title}
+                          </p>
+                          <span className="text-[10px] text-slate-400">
+                            Tier: <span className="font-semibold text-purple-600 dark:text-purple-400">{pkgTier}</span>
+                          </span>
+                        </div>
                       </td>
 
-                      {/* Actions */}
-                      <td className="min-w-37">
-                        <div className="flex items-center justify-center gap-3">
-                          {/* Edit */}
+                      {/* Decorator Agency */}
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5">
+                          <p className="font-bold text-slate-800 dark:text-slate-200 line-clamp-1 max-w-[140px]">
+                            {agencyName}
+                          </p>
+                          <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-purple-500" /> {agencyCity}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Event Date & Venue */}
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5">
+                          <p className="font-bold text-slate-800 dark:text-slate-200">
+                            {dateStr}
+                          </p>
+                          <span className="text-[10px] text-slate-400 line-clamp-1 max-w-[150px]">
+                            {venue}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Total Cost */}
+                      <td className="py-3.5 px-4 font-black text-slate-900 dark:text-slate-100 text-sm whitespace-nowrap">
+                        ৳{Number(total).toLocaleString()}
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        {renderStatusBadge(b.status)}
+                      </td>
+
+                      {/* Payment */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        {renderPaymentBadge(b)}
+                      </td>
+
+                      {/* Action Buttons: View, Edit, Delete */}
+                      <td className="py-3.5 px-5 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {/* View Button */}
                           <button
-                            type="button"
-                            className="btn btn-sm btn-outline dark:border-gray-600"
-                            data-tooltip-id={tooltipId}
-                            data-tooltip-content="Edit"
-                            disabled={booking.paid}
-                            onClick={() => openEditModal(booking)}
+                            onClick={() => handleOpenView(b)}
+                            className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 hover:text-purple-600 cursor-pointer"
+                            title="View Full Booking Dossier"
                           >
-                            <FaEdit />
+                            <Eye className="w-3.5 h-3.5" />
                           </button>
 
-                          {/* Cancel */}
+                          {/* Edit Button */}
                           <button
-                            type="button"
-                            className="btn btn-sm btn-outline dark:border-gray-600"
-                            data-tooltip-id={tooltipId}
-                            data-tooltip-content="Cancel"
-                            disabled={booking.paid}
-                            onClick={() => handleCancelBooking(booking._id)}
+                            onClick={() => handleOpenEdit(b)}
+                            className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer"
+                            title="Edit Event Details"
                           >
-                            <FaTrashAlt />
+                            <Edit3 className="w-3.5 h-3.5" />
                           </button>
 
-                          {/* Pay */}
+                          {/* Delete / Cancel Button */}
                           <button
-                            type="button"
-                            className="btn btn-sm btn-outline dark:border-gray-600"
-                            data-tooltip-id={tooltipId}
-                            data-tooltip-content="Pay"
-                            disabled={booking.paid}
-                            onClick={() => handlePay(booking)}
+                            onClick={() => handleDeleteBooking(b)}
+                            className="p-2 rounded-xl border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 cursor-pointer"
+                            title="Cancel / Remove Booking"
                           >
-                            <FaCreditCard />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {/* Tooltip component */}
-              <Tooltip id={tooltipId} place="top" />
-            </div>
-
-            {/* Footer */}
-            <div className="px-4 py-3 bg-base-200 dark:bg-gray-700 flex items-center justify-between">
-              <p className="text-sm text-base-content/70 dark:text-gray-200">
-                Total bookings:{" "}
-                <span className="font-semibold">{bookings.length}</span>
-              </p>
-            </div>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
 
-      {/* ===================== Edit Modal ===================== */}
-      {isEditOpen && selectedBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          {/* overlay */}
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={closeEditModal}
-          />
-
-          {/* modal box */}
-          <div className="relative w-full max-w-2xl rounded-2xl bg-base-100 dark:bg-gray-800 border border-base-300 dark:border-gray-700 p-6 shadow-lg">
-            <h3 className="text-xl font-bold text-base-content dark:text-white">
-              Edit Booking
-            </h3>
-            <p className="mt-1 text-sm text-base-content/70 dark:text-gray-300">
-              Only contact, location, unit and date can be changed.
-            </p>
-
-            <form onSubmit={handleConfirmEdit} className="mt-5 grid gap-4">
-              {/* Editable fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* ================= Full View Dossier Modal ================= */}
+      {isViewModalOpen && selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <Calendar className="w-5 h-5 text-purple-400" />
                 <div>
-                  <label className="label">
-                    <span className="label-text dark:text-gray-200">
-                      Contact No
-                    </span>
-                  </label>
-                  <input
-                    value={editContact}
-                    onChange={(e) => setEditContact(e.target.value)}
-                    placeholder="01XXXXXXXXX"
-                    className="input input-bordered w-full dark:bg-gray-900 dark:text-white"
-                    required
-                  />
+                  <h3 className="text-base font-bold text-white">
+                    Booking Dossier: {selectedBooking.bookingCode || `BK-${selectedBooking._id.slice(-6).toUpperCase()}`}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Status: <span className="capitalize font-semibold text-purple-300">{selectedBooking.status}</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-6 text-xs text-slate-600 dark:text-slate-300">
+              {/* Service & Agency Card */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
+                    {selectedBooking.serviceSnapshot?.category || selectedBooking.serviceCategory || "Event Decor"}
+                  </span>
+                  <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                    {selectedBooking.serviceSnapshot?.title || selectedBooking.serviceName}
+                  </h4>
+                  <p className="text-xs text-slate-500">
+                    Package Tier: <span className="font-semibold text-purple-600">{selectedBooking.serviceSnapshot?.selectedPackage || "Standard"}</span>
+                  </p>
                 </div>
 
-                <div>
-                  <label className="label">
-                    <span className="label-text dark:text-gray-200">Unit</span>
-                  </label>
-                  <input
-                    value={editUnit}
-                    onChange={(e) => setEditUnit(e.target.value)}
-                    placeholder="1"
-                    className="input input-bordered w-full dark:bg-gray-900 dark:text-white"
-                    required
-                  />
+                <div className="text-left sm:text-right space-y-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Providing Agency</span>
+                  <p className="font-bold text-slate-900 dark:text-slate-100">
+                    {selectedBooking.decorator?.businessName || "StyleDecor Verified Agency"}
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    {selectedBooking.decorator?.contactInfo?.phone || "Support Available"}
+                  </p>
                 </div>
+              </div>
 
-                <div>
-                  <label className="label">
-                    <span className="label-text dark:text-gray-200">
-                      Booking Date
+              {/* Assigned Agent Card (if assigned) */}
+              {selectedBooking.assignedAgent && (
+                <div className="p-3.5 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-900/40 flex items-center gap-3">
+                  <img
+                    src={selectedBooking.assignedAgent.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"}
+                    alt={selectedBooking.assignedAgent.name}
+                    className="w-10 h-10 rounded-full object-cover ring-2 ring-purple-500"
+                  />
+                  <div>
+                    <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase">
+                      Dedicated Event Specialist Assigned
                     </span>
+                    <p className="font-bold text-slate-900 dark:text-slate-100">
+                      {selectedBooking.assignedAgent.name} ({selectedBooking.assignedAgent.designation || "Lead Decorator"})
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Direct Contact: {selectedBooking.assignedAgent.phone}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Event Logistics Matrix */}
+              <div className="space-y-2">
+                <h5 className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px]">
+                  Event Logistics & Schedule
+                </h5>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 space-y-1">
+                    <span className="text-[10px] text-slate-400">Event Date & Timing</span>
+                    <p className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-purple-500" />
+                      {selectedBooking.eventDetails?.eventDate
+                        ? new Date(selectedBooking.eventDetails.eventDate).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : selectedBooking.bookingDate || "TBD"}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Hours: {selectedBooking.eventDetails?.startTime || "16:00"} - {selectedBooking.eventDetails?.endTime || "22:00"}
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 space-y-1">
+                    <span className="text-[10px] text-slate-400">Venue & Location</span>
+                    <p className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-purple-500" />
+                      {selectedBooking.eventDetails?.venueName || selectedBooking.location || "Venue TBD"}
+                    </p>
+                    <p className="text-[11px] text-slate-500 line-clamp-1">
+                      {selectedBooking.eventDetails?.venueAddress || selectedBooking.location || "Dhaka"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Special Instructions */}
+              {selectedBooking.eventDetails?.specialInstructions && (
+                <div className="space-y-1">
+                  <h5 className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px]">
+                    Special Instructions
+                  </h5>
+                  <p className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 italic">
+                    "{selectedBooking.eventDetails.specialInstructions}"
+                  </p>
+                </div>
+              )}
+
+              {/* Pricing Breakdown Summary */}
+              <div className="p-4 rounded-2xl bg-purple-50/40 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40 space-y-2">
+                <h5 className="font-bold text-purple-950 dark:text-purple-200 uppercase tracking-wider text-[11px]">
+                  Financial Breakdown
+                </h5>
+                <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                  <span>Package Subtotal</span>
+                  <span className="font-semibold">
+                    ৳{Number(selectedBooking.pricingBreakdown?.subtotal || selectedBooking.totalCost || 0).toLocaleString()}
+                  </span>
+                </div>
+                {selectedBooking.pricingBreakdown?.serviceTax > 0 && (
+                  <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                    <span>Platform Service Tax</span>
+                    <span>৳{Number(selectedBooking.pricingBreakdown.serviceTax).toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="pt-2 border-t border-purple-200/60 dark:border-purple-900/60 flex justify-between font-black text-sm text-slate-900 dark:text-slate-100">
+                  <span>Grand Total</span>
+                  <span className="text-purple-600 dark:text-purple-400">
+                    ৳{Number(selectedBooking.pricingBreakdown?.grandTotal || selectedBooking.totalCost || 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="px-5 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold cursor-pointer"
+              >
+                Close Dossier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= Edit Booking Modal ================= */}
+      {isEditModalOpen && selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+              <div>
+                <h3 className="text-base font-bold text-white">
+                  Edit Event Logistics
+                </h3>
+                <p className="text-xs text-slate-400">
+                  {selectedBooking.bookingCode || selectedBooking.serviceName}
+                </p>
+              </div>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="p-6 overflow-y-auto space-y-4 text-xs">
+              {/* Date & Contact */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700 dark:text-slate-300">
+                    Event Date *
                   </label>
                   <input
                     type="date"
-                    value={editDate}
-                    onChange={(e) => setEditDate(e.target.value)}
-                    className="input input-bordered w-full dark:bg-gray-900 dark:text-white"
                     required
+                    value={editFormData.eventDate}
+                    onChange={(e) => setEditFormData({ ...editFormData, eventDate: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
                   />
                 </div>
 
-                <div>
-                  <label className="label">
-                    <span className="label-text dark:text-gray-200">
-                      Location
-                    </span>
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700 dark:text-slate-300">
+                    Contact Phone Number *
                   </label>
                   <input
-                    value={editLocation}
-                    onChange={(e) => setEditLocation(e.target.value)}
-                    placeholder="Dhaka"
-                    className="input input-bordered w-full dark:bg-gray-900 dark:text-white"
+                    type="text"
                     required
+                    placeholder="+880 17XXXXXXXX"
+                    value={editFormData.contact}
+                    onChange={(e) => setEditFormData({ ...editFormData, contact: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
                   />
                 </div>
               </div>
 
-              {/* Buttons */}
-              <div className="mt-2 flex flex-col sm:flex-row gap-3 justify-end">
+              {/* Start Time & End Time */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700 dark:text-slate-300">
+                    Event Start Time
+                  </label>
+                  <input
+                    type="time"
+                    value={editFormData.startTime}
+                    onChange={(e) => setEditFormData({ ...editFormData, startTime: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700 dark:text-slate-300">
+                    Event End Time
+                  </label>
+                  <input
+                    type="time"
+                    value={editFormData.endTime}
+                    onChange={(e) => setEditFormData({ ...editFormData, endTime: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
+                  />
+                </div>
+              </div>
+
+              {/* Venue Name & Address */}
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700 dark:text-slate-300">
+                  Venue / Banquet Hall Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Sena Kunja Grand Ballroom"
+                  value={editFormData.venueName}
+                  onChange={(e) => setEditFormData({ ...editFormData, venueName: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700 dark:text-slate-300">
+                  Venue Full Address *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Dhaka Cantonment, Dhaka"
+                  value={editFormData.venueAddress}
+                  onChange={(e) => setEditFormData({ ...editFormData, venueAddress: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
+                />
+              </div>
+
+              {/* Guest Count */}
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700 dark:text-slate-300">
+                  Estimated Guest Count
+                </label>
+                <input
+                  type="number"
+                  min="10"
+                  placeholder="100"
+                  value={editFormData.guestCountEstimate}
+                  onChange={(e) => setEditFormData({ ...editFormData, guestCountEstimate: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
+                />
+              </div>
+
+              {/* Special Instructions */}
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700 dark:text-slate-300">
+                  Special Instructions / Requests
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Stage lighting setup needs to be done before 3 PM..."
+                  value={editFormData.specialInstructions}
+                  onChange={(e) => setEditFormData({ ...editFormData, specialInstructions: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
+                />
+              </div>
+
+              {/* Modal Footer */}
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
                 <button
                   type="button"
-                  className="btn btn-outline dark:border-gray-600 dark:text-gray-100"
-                  onClick={closeEditModal}
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  Confirm Update
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold cursor-pointer shadow-md shadow-purple-600/30"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

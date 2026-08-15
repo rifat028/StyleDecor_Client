@@ -1,510 +1,956 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import Spinner from "../home/components/Spinner";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Building,
+  User,
+  Phone,
+  Eye,
+  Trash2,
+  Search,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Sparkles,
+  Layers,
+  ArrowRight,
+  X,
+  CreditCard,
+  Tag,
+  ShieldCheck,
+  Users,
+  ChevronsLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRight,
+  UserCheck,
+} from "lucide-react";
 
-const PAGE_SIZE = 5;
+const STATUS_OPTIONS = [
+  "in_draft",
+  "pending",
+  "accepted",
+  "advance_paid",
+  "preparing",
+  "on_the_way",
+  "in_progress",
+  "completed",
+  "fully_paid",
+  "rejected",
+];
 
-const ManageBooking = () => {
+const ManageBookings = () => {
   const axiosSecure = useAxiosSecure();
 
-  // left filter
-  const [assignFilter, setAssignFilter] = useState("unassigned"); // default
-  // right filter
-  const [paidFilter, setPaidFilter] = useState("all"); // all | paid | unpaid
-
-  // sorting
-  const [dateSort, setDateSort] = useState("desc"); // asc | desc
-  const [statusSort, setStatusSort] = useState("none"); // none | asc | desc (only for assigned)
-
-  // pagination
-  const [page, setPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-
-  // data
+  // Data States
   const [bookings, setBookings] = useState([]);
+  const [decorators, setDecorators] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // modal
-  const [modalOpen, setModalOpen] = useState(false);
+  // Statistics Summary
+  const [stats, setStats] = useState({
+    total: 0,
+    accepted: 0,
+    inProgress: 0,
+    completed: 0,
+    pending: 0,
+  });
+
+  // Filter States
+  const [statusTab, setStatusTab] = useState("all");
+  const [selectedDecorator, setSelectedDecorator] = useState("all");
+  const [searchText, setSearchText] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  // Modals
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const [decorators, setDecorators] = useState([]);
-  const [decoratorLoading, setDecoratorLoading] = useState(false);
+  const [availableAgents, setAvailableAgents] = useState([]);
+  const [agentsLoading, setAgentsLoading] = useState(false);
 
-  // custom status order for assigned
-  const statusOrder = useMemo(
-    () => ({
-      Assigned: 1,
-      Planning: 2,
-      Equipping: 3,
-      "On Way": 4,
-      "Setting up": 5,
-      Completed: 6,
-    }),
-    []
-  );
-
-  // ------- Load bookings with pagination + bookingDate sort (server-side) -------
+  // Load Decorators List for Vendor Filter Dropdown
   useEffect(() => {
-    const loadBookings = async () => {
+    const fetchDecorators = async () => {
       try {
-        setLoading(true);
-
-        const assigned = assignFilter === "assigned" ? "true" : "false";
-
-        let url = `/bookings?assigned=${assigned}&page=${page}&limit=${PAGE_SIZE}&sortDate=${dateSort}`;
-        if (paidFilter !== "all") {
-          url += `&paid=${paidFilter === "paid" ? "true" : "false"}`;
-        }
-        const res = await axiosSecure.get(url);
-        setBookings(res.data?.data || []);
-        setTotalCount(res.data?.totalCount || 0);
+        const res = await axiosSecure.get("/decorators?limit=100&status=all");
+        const list = res.data?.data || res.data || [];
+        setDecorators(Array.isArray(list) ? list : []);
       } catch (err) {
-        console.error("Failed to load bookings:", err);
-        setBookings([]);
-        setTotalCount(0);
-      } finally {
-        setLoading(false);
+        console.warn("Failed to load decorators for dropdown:", err);
       }
     };
+    fetchDecorators();
+  }, [axiosSecure]);
 
-    loadBookings();
-  }, [axiosSecure, assignFilter, paidFilter, dateSort, page]);
-
-  // reset page when filters change
-  useEffect(() => {
-    setPage(1);
-  }, [assignFilter, paidFilter, dateSort]);
-
-  // -------================== Client-side status sort (assigned only) ===========================-------
-  const visibleBookings = useMemo(() => {
-    if (assignFilter !== "assigned") return bookings;
-    if (statusSort === "none") return bookings;
-
-    const copy = [...bookings];
-    copy.sort((a, b) => {
-      const aVal = statusOrder[a.status] || 999;
-      const bVal = statusOrder[b.status] || 999;
-      return statusSort === "asc" ? aVal - bVal : bVal - aVal;
-    });
-    return copy;
-  }, [bookings, assignFilter, statusSort, statusOrder]);
-
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-
-  // ------- Modal open/load decorators by location -------
-  const openAssignModal = async (booking) => {
-    setSelectedBooking(booking);
-    setModalOpen(true);
-    setDecorators([]);
-    setDecoratorLoading(true);
-
+  // Load Bookings with Filters & Pagination
+  const loadBookings = useCallback(async () => {
     try {
-      const res = await axiosSecure.get(
-        `/decorators?status=accepted&location=${encodeURIComponent(
-          booking.location
-        )}`
-      );
-      setDecorators(res.data || []);
+      setLoading(true);
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+        sort: sortBy,
+      });
+
+      if (statusTab !== "all") params.append("status", statusTab);
+      if (selectedDecorator !== "all") params.append("decoratorId", selectedDecorator);
+      if (searchText.trim()) params.append("search", searchText.trim());
+
+      const res = await axiosSecure.get(`/bookings?${params.toString()}`);
+      if (res.data?.success) {
+        setBookings(res.data.data || []);
+        setTotalCount(res.data.totalCount || 0);
+        setTotalPages(res.data.totalPages || 1);
+      } else if (Array.isArray(res.data)) {
+        setBookings(res.data);
+        setTotalCount(res.data.length);
+        setTotalPages(1);
+      }
     } catch (err) {
-      console.error("Failed to load decorators:", err);
-      setDecorators([]);
+      console.error("Failed to load bookings:", err);
+      setBookings([]);
     } finally {
-      setDecoratorLoading(false);
+      setLoading(false);
+    }
+  }, [axiosSecure, page, limit, statusTab, selectedDecorator, searchText, sortBy]);
+
+  // Load Summary Counters
+  const loadStats = useCallback(async () => {
+    try {
+      const [allRes, accRes, progRes, compRes, pendRes] = await Promise.all([
+        axiosSecure.get("/bookings?limit=1"),
+        axiosSecure.get("/bookings?status=accepted&limit=1"),
+        axiosSecure.get("/bookings?status=inprogress&limit=1"),
+        axiosSecure.get("/bookings?status=completed&limit=1"),
+        axiosSecure.get("/bookings?status=pending&limit=1"),
+      ]);
+
+      setStats({
+        total: allRes.data?.totalCount || 0,
+        accepted: accRes.data?.totalCount || 0,
+        inProgress: progRes.data?.totalCount || 0,
+        completed: compRes.data?.totalCount || 0,
+        pending: pendRes.data?.totalCount || 0,
+      });
+    } catch (err) {
+      console.warn("Failed to load stats:", err);
+    }
+  }, [axiosSecure]);
+
+  useEffect(() => {
+    loadBookings();
+    loadStats();
+  }, [loadBookings, loadStats]);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setSearchText(searchInput);
+    setPage(1);
+  };
+
+  const handleResetFilters = () => {
+    setStatusTab("all");
+    setSelectedDecorator("all");
+    setSearchText("");
+    setSearchInput("");
+    setSortBy("newest");
+    setPage(1);
+  };
+
+  // Open View Modal
+  const handleOpenView = (b) => {
+    setSelectedBooking(b);
+    setIsViewModalOpen(true);
+  };
+
+  // Open Assign Modal
+  const handleOpenAssign = async (b) => {
+    setSelectedBooking(b);
+    setIsAssignModalOpen(true);
+    setAvailableAgents([]);
+    setAgentsLoading(true);
+
+    const decId = b.decoratorId || b.decorator?._id;
+    if (decId) {
+      try {
+        const res = await axiosSecure.get(`/agents/decorator/${decId}`);
+        const list = res.data?.data || res.data || [];
+        setAvailableAgents(Array.isArray(list) ? list : []);
+      } catch (err) {
+        console.warn("Failed to load decorator agents:", err);
+      } finally {
+        setAgentsLoading(false);
+      }
+    } else {
+      setAgentsLoading(false);
     }
   };
 
-  const closeModal = () => {
-    setModalOpen(false);
-    setSelectedBooking(null);
-    setDecorators([]);
+  // Assign Agent Handler
+  const handleAssignAgent = async (agentId) => {
+    if (!selectedBooking?._id) return;
+    try {
+      await axiosSecure.patch(`/bookings/${selectedBooking._id}/assign`, {
+        agentId: agentId,
+        status: "accepted",
+      });
+      Swal.fire({
+        icon: "success",
+        title: "Agent Assigned",
+        text: "Specialist assigned to the booking and status marked Accepted.",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      setIsAssignModalOpen(false);
+      loadBookings();
+      loadStats();
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to assign agent.", "error");
+    }
   };
 
-  // ------- Assign flow -------
-  const handleSelectDecorator = async (decorator) => {
-    if (!selectedBooking?._id) return;
+  // Quick Status Change Handler
+  const handleStatusChange = async (b, newStatus) => {
+    try {
+      await axiosSecure.patch(`/bookings/${b._id}/status`, { status: newStatus });
+      Swal.fire({
+        icon: "success",
+        title: "Status Updated",
+        text: `Booking is now marked as "${newStatus}".`,
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      loadBookings();
+      loadStats();
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to update status.", "error");
+    }
+  };
 
+  // Delete Booking Handler
+  const handleDeleteBooking = async (b) => {
     const confirm = await Swal.fire({
-      title: "Assign this decorator?",
-      text: `Booking will be assigned to ${decorator.name}.`,
-      icon: "question",
+      title: "Delete Booking Record?",
+      text: `Are you sure you want to permanently remove booking "${b.bookingCode || b.serviceName}"? This action cannot be undone.`,
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes, Assign",
-      cancelButtonText: "Cancel",
+      confirmButtonColor: "#ef4444",
+      confirmButtonText: "Yes, Delete Permanent",
     });
+
     if (!confirm.isConfirmed) return;
 
     try {
-      await axiosSecure.patch(`/bookings/${selectedBooking._id}/assign`, {
-        assignTo: decorator._id,
-        status: "Assigned",
-        assigned: true,
-      });
-
-      await axiosSecure.patch(`/decorators/${decorator._id}/task`, {
-        incPendingBy: 1,
-      });
-
-      Swal.fire("Assigned!", "Booking assigned successfully.", "success");
-
-      // Remove from current page list immediately (unassigned view)
-      setBookings((prev) => prev.filter((b) => b._id !== selectedBooking._id));
-      setTotalCount((prev) => Math.max(0, prev - 1));
-
-      closeModal();
+      await axiosSecure.delete(`/bookings/${b._id}`);
+      Swal.fire("Deleted!", "Booking record deleted successfully.", "success");
+      loadBookings();
+      loadStats();
     } catch (err) {
-      console.error("Assign failed:", err);
-      Swal.fire("Error", "Failed to assign decorator.", "error");
+      console.error(err);
+      Swal.fire("Error", "Failed to delete booking.", "error");
     }
   };
 
-  // ------- UI helpers -------
-  const paidBadge = (paid) =>
-    paid ? (
-      <span className="badge badge-success">Paid</span>
-    ) : (
-      <span className="badge badge-error">Unpaid</span>
-    );
-
-  const statusBadge = (status) => {
-    if (!status) return <span className="badge badge-warning">pending</span>;
-    const st = String(status).toLowerCase();
-    if (st === "completed")
-      return <span className="badge badge-success">Completed</span>;
-    if (st.includes("assigned"))
-      return <span className="badge badge-info">Assigned</span>;
-    return <span className="badge badge-warning">{status}</span>;
+  // Status Badge Helper
+  const renderStatusBadge = (status) => {
+    const s = String(status || "").toLowerCase();
+    switch (s) {
+      case "draft":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 uppercase">
+            Draft
+          </span>
+        );
+      case "pending":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 uppercase">
+            <AlertCircle className="w-3 h-3" /> Pending
+          </span>
+        );
+      case "accepted":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 uppercase">
+            <CheckCircle2 className="w-3 h-3" /> Accepted
+          </span>
+        );
+      case "rejected":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 uppercase">
+            <XCircle className="w-3 h-3" /> Rejected
+          </span>
+        );
+      case "advance paid":
+      case "advance_paid":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 uppercase">
+            <CreditCard className="w-3 h-3" /> Advance Paid
+          </span>
+        );
+      case "preparing":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 uppercase">
+            <Sparkles className="w-3 h-3" /> Preparing
+          </span>
+        );
+      case "on the way":
+      case "on_the_way":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 uppercase">
+            <Clock className="w-3 h-3" /> On The Way
+          </span>
+        );
+      case "inprogress":
+      case "in_progress":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 uppercase">
+            <Clock className="w-3 h-3" /> In Progress
+          </span>
+        );
+      case "completed":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase">
+            <CheckCircle2 className="w-3 h-3" /> Completed
+          </span>
+        );
+      case "fully paid":
+      case "fully_paid":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 uppercase">
+            <ShieldCheck className="w-3 h-3" /> Fully Paid
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase">
+            {status}
+          </span>
+        );
+    }
   };
 
-  const goPrev = () => setPage((p) => Math.max(1, p - 1));
-  const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
-
   return (
-    <div className="min-h-screen bg-base-100 dark:bg-gray-900">
-      {/* Top section */}
-      <div className="bg-base-200 dark:bg-slate-900 mb-6">
-        <div className="max-w-7xl mx-auto px-4 py-10 md:py-14 text-center">
-          <h1 className="text-3xl md:text-5xl font-bold text-base-content dark:text-white">
-            Manage <span className="text-purple-500">Bookings</span>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 animate-fade-in space-y-8">
+      {/* ================= Header Banner ================= */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold uppercase tracking-wider mb-2">
+            <Calendar className="w-3.5 h-3.5" /> Bookings Supervision
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            Manage Event Bookings
           </h1>
-          <p className="mt-4 max-w-2xl mx-auto text-sm md:text-base text-base-content/70 dark:text-slate-300">
-            Assign decorators to bookings and monitor progress.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+            Audit all customer event reservations across Bangladesh, monitor agency assignments, and update lifecycle progress.
           </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 pb-10">
-        {/* Controls row */}
-        <div className="mb-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-          {/* Left: radio */}
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="assignFilter"
-                className="radio radio-primary"
-                checked={assignFilter === "unassigned"}
-                onChange={() => {
-                  setAssignFilter("unassigned");
-                }}
-              />
-              <span className="text-base-content dark:text-white">
-                Unassigned
-              </span>
-            </label>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="assignFilter"
-                className="radio radio-primary"
-                checked={assignFilter === "assigned"}
-                onChange={() => {
-                  setAssignFilter("assigned");
-                  setPaidFilter("all");
-                }}
-              />
-              <span className="text-base-content dark:text-white">
-                Assigned
-              </span>
-            </label>
-          </div>
-
-          {/* Right: Filters + Sorting */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:justify-end">
-            {/* Paid filter */}
-            {assignFilter == "unassigned" && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-base-content/70 dark:text-gray-200">
-                  Payment:
-                </span>
-                <select
-                  className="select select-bordered select-sm dark:bg-gray-900 dark:text-white dark:border-gray-600"
-                  value={paidFilter}
-                  onChange={(e) => setPaidFilter(e.target.value)}
-                >
-                  <option value="all">All</option>
-                  <option value="paid">Paid</option>
-                  <option value="unpaid">Unpaid</option>
-                </select>
-              </div>
-            )}
-
-            {/* Date sort */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-base-content/70 dark:text-gray-200">
-                Date:
-              </span>
-              <select
-                className="select select-bordered select-sm dark:bg-gray-900 dark:text-white dark:border-gray-600"
-                value={dateSort}
-                onChange={(e) => setDateSort(e.target.value)}
-              >
-                <option value="desc">Newest first</option>
-                <option value="asc">Oldest first</option>
-              </select>
-            </div>
-
-            {/* Status sort (assigned only) */}
-            {assignFilter === "assigned" && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-base-content/70 dark:text-gray-200">
-                  Status:
-                </span>
-                <select
-                  className="select select-bordered select-sm dark:bg-gray-900 dark:text-white dark:border-gray-600"
-                  value={statusSort}
-                  onChange={(e) => setStatusSort(e.target.value)}
-                >
-                  <option value="none">No sort</option>
-                  <option value="asc">Low → High</option>
-                  <option value="desc">High → Low</option>
-                </select>
-              </div>
-            )}
-          </div>
+      {/* ================= Live Statistics Counters ================= */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Total Bookings
+          </span>
+          <p className="text-2xl font-black text-slate-900 dark:text-slate-100">
+            {stats.total}
+          </p>
         </div>
 
-        {/* Table */}
+        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+            Accepted
+          </span>
+          <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400">
+            {stats.accepted}
+          </p>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+            In Progress
+          </span>
+          <p className="text-2xl font-black text-blue-600 dark:text-blue-400">
+            {stats.inProgress}
+          </p>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+            Completed
+          </span>
+          <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+            {stats.completed}
+          </p>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">
+            Pending Review
+          </span>
+          <p className="text-2xl font-black text-amber-500">
+            {stats.pending}
+          </p>
+        </div>
+      </div>
+
+      {/* ================= Filter Controls & Status Tabs ================= */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-5">
+        {/* Status Tabs */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
+          {[
+            { id: "all", label: "All Bookings" },
+            { id: "in_draft", label: "In Draft" },
+            { id: "pending", label: "Pending" },
+            { id: "accepted", label: "Accepted" },
+            { id: "advance_paid", label: "Advance Paid" },
+            { id: "preparing", label: "Preparing" },
+            { id: "on_the_way", label: "On The Way" },
+            { id: "in_progress", label: "In Progress" },
+            { id: "completed", label: "Completed" },
+            { id: "fully_paid", label: "Fully Paid" },
+            { id: "rejected", label: "Rejected" },
+          ].map((tab) => {
+            const isSelected = statusTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setStatusTab(tab.id);
+                  setPage(1);
+                }}
+                className={`px-3.5 py-1.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                  isSelected
+                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search & Dropdowns */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Keyword Search */}
+          <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search code, customer, or venue..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="w-full pl-10 pr-20 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-purple-500"
+            />
+            <button
+              type="submit"
+              className="absolute right-1 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold cursor-pointer"
+            >
+              Search
+            </button>
+          </form>
+
+          {/* Decorator Agency Dropdown */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-400 shrink-0">Vendor:</span>
+            <select
+              value={selectedDecorator}
+              onChange={(e) => {
+                setSelectedDecorator(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-purple-500 cursor-pointer truncate"
+            >
+              <option value="all">All Decorators</option>
+              {decorators.map((d) => (
+                <option key={d._id} value={d._id}>
+                  {d.businessName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sort */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-400 shrink-0">Sort:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-purple-500 cursor-pointer"
+            >
+              <option value="newest">Newest First</option>
+              <option value="eventDate_asc">Event Date: Earliest First</option>
+              <option value="eventDate_desc">Event Date: Latest First</option>
+              <option value="amount_desc">Amount: High to Low</option>
+              <option value="amount_asc">Amount: Low to High</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= Bookings Data Table ================= */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
         {loading ? (
-          <Spinner></Spinner>
-        ) : visibleBookings.length === 0 ? (
-          <div className="rounded-2xl border border-base-300 dark:border-gray-700 bg-base-200 dark:bg-gray-800 p-8 text-center">
-            <p className="text-base-content dark:text-white font-medium">
-              No bookings found.
+          <div className="p-20 flex items-center justify-center">
+            <Spinner />
+          </div>
+        ) : bookings.length === 0 ? (
+          <div className="p-16 text-center space-y-3">
+            <Calendar className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto" />
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
+              No Bookings Found
+            </h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              No bookings matched your filter criteria. Click Reset Filters to view all bookings.
             </p>
-            <p className="mt-2 text-sm text-base-content/70 dark:text-gray-300">
-              Try changing filters.
-            </p>
+            <button
+              onClick={handleResetFilters}
+              className="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold hover:bg-purple-700 cursor-pointer"
+            >
+              Reset Filters
+            </button>
           </div>
         ) : (
-          <div className="rounded-2xl border border-base-300 dark:border-gray-700 bg-base-100 dark:bg-gray-800 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="table w-full">
-                <thead className="bg-base-200 dark:bg-gray-700">
-                  <tr className="text-base-content dark:text-white">
-                    <th>#</th>
-                    <th>Client</th>
-                    <th>Service</th>
-                    <th>Location</th>
-                    <th>Booking Date</th>
-                    <th>Total</th>
-                    <th>Paid</th>
-                    <th>Status</th>
-                    {assignFilter === "unassigned" ? (
-                      <th className="text-center">Action</th>
-                    ) : (
-                      <th>Assigned To</th>
-                    )}
-                  </tr>
-                </thead>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-100/70 dark:bg-slate-800/70 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200 dark:border-slate-800">
+                  <th className="py-4 px-5">Booking Code</th>
+                  <th className="py-4 px-4">Customer</th>
+                  <th className="py-4 px-4">Service & Package</th>
+                  <th className="py-4 px-4">Decorator Agency</th>
+                  <th className="py-4 px-4">Event Date & Venue</th>
+                  <th className="py-4 px-4">Amount (৳)</th>
+                  <th className="py-4 px-4">Status</th>
+                  <th className="py-4 px-5 text-right">Actions</th>
+                </tr>
+              </thead>
 
-                <tbody>
-                  {visibleBookings.map((b, index) => (
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {bookings.map((b) => {
+                  const code = b.bookingCode || `BK-${b._id.slice(-6).toUpperCase()}`;
+                  const clientName = b.customer?.name || b.clientName || "Valued Client";
+                  const clientEmail = b.customer?.email || b.clientEmail || "";
+                  const serviceTitle = b.serviceSnapshot?.title || b.serviceName || "Decoration Setup";
+                  const pkgTier = b.serviceSnapshot?.selectedPackage || "Standard";
+                  const agencyName = b.decorator?.businessName || "StyleDecor Agency";
+                  const rawDate = b.eventDetails?.eventDate || b.bookingDate;
+                  const dateStr = rawDate
+                    ? new Date(rawDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "TBD";
+                  const venue = b.eventDetails?.venueName || b.location || "Venue TBD";
+                  const grandTotal = b.pricingBreakdown?.grandTotal || b.totalCost || 0;
+
+                  return (
                     <tr
                       key={b._id}
-                      className="text-base-content dark:text-gray-100"
+                      className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                     >
-                      {/* index should reflect page */}
-                      <td>{(page - 1) * PAGE_SIZE + index + 1}</td>
-
-                      <td className="min-w-50">
-                        <p className="font-semibold">{b.clientName}</p>
-                        <p className="text-xs text-base-content/60 dark:text-gray-300">
-                          {b.clientEmail}
-                        </p>
+                      {/* Code */}
+                      <td className="py-3.5 px-5">
+                        <span className="font-mono font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 px-2.5 py-1 rounded-lg border border-purple-200 dark:border-purple-900/50">
+                          {code}
+                        </span>
                       </td>
 
-                      <td className="min-w-55">
-                        <p className="font-semibold">{b.serviceName}</p>
-                        <p className="text-xs text-base-content/60 dark:text-gray-300 capitalize">
-                          {b.serviceCategory}
-                        </p>
+                      {/* Customer */}
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5">
+                          <p className="font-bold text-slate-900 dark:text-slate-100">
+                            {clientName}
+                          </p>
+                          <p className="text-[10px] text-slate-400 truncate max-w-[140px]">
+                            {clientEmail}
+                          </p>
+                        </div>
                       </td>
 
-                      <td className="min-w-28">{b.location}</td>
-                      <td className="min-w-25">{b.bookingDate}</td>
-                      <td className="min-w-20">৳{b.totalCost}</td>
-                      <td className="min-w-22">{paidBadge(b.paid)}</td>
-
-                      <td className="min-w-30">
-                        {assignFilter === "unassigned"
-                          ? statusBadge("pending")
-                          : statusBadge(b.status || "Assigned")}
-                      </td>
-
-                      {assignFilter === "unassigned" ? (
-                        <td className="min-w-40">
-                          <div className="flex justify-center">
-                            <button
-                              className="btn btn-sm btn-primary"
-                              disabled={!b.paid}
-                              onClick={() => openAssignModal(b)}
-                            >
-                              Assign Decorator
-                            </button>
-                          </div>
-                        </td>
-                      ) : (
-                        <td className="min-w-55">
-                          <span className="text-sm text-base-content/80 dark:text-gray-200">
-                            {b.assignTo || "—"}
+                      {/* Service & Package */}
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5 max-w-xs">
+                          <p className="font-bold text-slate-900 dark:text-slate-100 line-clamp-1">
+                            {serviceTitle}
+                          </p>
+                          <span className="text-[10px] text-slate-400">
+                            Tier: <span className="font-semibold text-purple-600">{pkgTier}</span>
                           </span>
-                        </td>
-                      )}
+                        </div>
+                      </td>
+
+                      {/* Decorator Agency */}
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5">
+                          <p className="font-bold text-slate-800 dark:text-slate-200 line-clamp-1 max-w-[140px]">
+                            {agencyName}
+                          </p>
+                          {b.assignedAgent && (
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                              <UserCheck className="w-3 h-3" /> {b.assignedAgent.name}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Event Date & Venue */}
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5">
+                          <p className="font-bold text-slate-800 dark:text-slate-200">
+                            {dateStr}
+                          </p>
+                          <span className="text-[10px] text-slate-400 line-clamp-1 max-w-[150px]">
+                            {venue}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Amount */}
+                      <td className="py-3.5 px-4 font-black text-slate-900 dark:text-slate-100 text-sm whitespace-nowrap">
+                        ৳{Number(grandTotal).toLocaleString()}
+                      </td>
+
+                      {/* Status Dropdown */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <div className="relative inline-block">
+                          <select
+                            value={b.status}
+                            onChange={(e) => handleStatusChange(b, e.target.value)}
+                            className="text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 cursor-pointer"
+                          >
+                            {STATUS_OPTIONS.map((st) => (
+                              <option key={st} value={st}>
+                                {st}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-3.5 px-5 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenAssign(b)}
+                            className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-indigo-600 cursor-pointer"
+                            title="Assign Field Agent"
+                          >
+                            <UserCheck className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenView(b)}
+                            className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-purple-600 cursor-pointer"
+                            title="View Full Booking Dossier"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBooking(b)}
+                            className="p-2 rounded-xl border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 cursor-pointer"
+                            title="Delete Booking Record"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Footer pagination */}
-            <div className="px-4 py-3 bg-base-200 dark:bg-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <p className="text-sm text-base-content/70 dark:text-gray-200">
-                Showing{" "}
-                <span className="font-semibold">
-                  {(page - 1) * PAGE_SIZE + 1}
-                </span>{" "}
-                -{" "}
-                <span className="font-semibold">
-                  {Math.min(page * PAGE_SIZE, totalCount)}
-                </span>{" "}
-                of <span className="font-semibold">{totalCount}</span>
-              </p>
-
-              <div className="flex items-center gap-2">
-                <button
-                  className="btn btn-sm"
-                  onClick={goPrev}
-                  disabled={page === 1}
-                >
-                  Prev
-                </button>
-                <span className="text-sm text-base-content dark:text-white">
-                  Page <b>{page}</b> / {totalPages}
-                </span>
-                <button
-                  className="btn btn-sm"
-                  onClick={goNext}
-                  disabled={page === totalPages}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
 
-        {/* ---------------- Assign Modal ---------------- */}
-        {modalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-              className="absolute inset-0 bg-black/40"
-              onClick={closeModal}
-            />
+        {/* ================= Table Pagination Footer ================= */}
+        {totalCount > limit && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 text-xs">
+            <p className="text-slate-500">
+              Showing{" "}
+              <span className="font-bold text-slate-900 dark:text-slate-100">
+                {(page - 1) * limit + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-bold text-slate-900 dark:text-slate-100">
+                {Math.min(page * limit, totalCount)}
+              </span>{" "}
+              of{" "}
+              <span className="font-bold text-slate-900 dark:text-slate-100">
+                {totalCount}
+              </span>{" "}
+              bookings
+            </p>
 
-            <div className="relative w-full max-w-4xl rounded-2xl bg-base-100 dark:bg-gray-800 border border-base-300 dark:border-gray-700 shadow-lg overflow-hidden">
-              <div className="p-4 md:p-6 border-b border-base-300 dark:border-gray-700 flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg md:text-xl font-bold text-base-content dark:text-white">
-                    Assign Decorator
-                  </h3>
-                  <p className="text-sm text-base-content/70 dark:text-gray-300 mt-1">
-                    Area:{" "}
-                    <span className="font-semibold">
-                      {selectedBooking?.location}
-                    </span>
-                  </p>
-                </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setPage(1)}
+                disabled={page === 1}
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
+                title="First Page"
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
+                title="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
 
-                <button className="btn btn-sm" onClick={closeModal}>
-                  Close
-                </button>
-              </div>
+              <span className="px-3 py-1.5 rounded-xl bg-purple-600 text-white font-bold text-xs">
+                Page {page} of {totalPages}
+              </span>
 
-              <div className="p-4 md:p-6">
-                {decoratorLoading ? (
-                  <Spinner></Spinner>
-                ) : decorators.length === 0 ? (
-                  <div className="rounded-xl border border-base-300 dark:border-gray-700 bg-base-200 dark:bg-gray-900 p-6 text-center">
-                    <p className="text-base-content dark:text-white font-medium">
-                      No decorators found in this area.
-                    </p>
-                    <p className="text-sm text-base-content/70 dark:text-gray-300 mt-1">
-                      Add decorators for this location first.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="table w-full">
-                      <thead className="bg-base-200 dark:bg-gray-700">
-                        <tr className="text-base-content dark:text-white">
-                          <th>#</th>
-                          <th>Name</th>
-                          <th>Email</th>
-                          <th>Expertise</th>
-                          <th>Experience</th>
-                          <th>Pending</th>
-                          <th className="text-center">Select</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {decorators.map((d, idx) => (
-                          <tr
-                            key={d._id}
-                            className="text-base-content dark:text-gray-100"
-                          >
-                            <td>{idx + 1}</td>
-                            <td className="font-semibold">{d.name}</td>
-                            <td className="min-w-50">{d.email}</td>
-                            <td className="capitalize">
-                              {d.decorationExpertise}
-                            </td>
-                            <td>{d.experience} yr</td>
-                            <td>{d.taskPending ?? 0}</td>
-                            <td>
-                              <div className="flex justify-center">
-                                <button
-                                  className="btn btn-sm btn-primary"
-                                  onClick={() => handleSelectDecorator(d)}
-                                >
-                                  Select
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
+                title="Next Page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setPage(totalPages)}
+                disabled={page >= totalPages}
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
+                title="Last Page"
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         )}
       </div>
+
+      {/* ================= View Dossier Modal ================= */}
+      {isViewModalOpen && selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <Calendar className="w-5 h-5 text-purple-400" />
+                <h3 className="text-base font-bold text-white">
+                  Booking Dossier: {selectedBooking.bookingCode || selectedBooking.serviceName}
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-6 text-xs text-slate-600 dark:text-slate-300">
+              {/* Customer & Agency Overview */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 space-y-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Customer Profile</span>
+                  <p className="font-bold text-slate-900 dark:text-slate-100">
+                    {selectedBooking.customer?.name || selectedBooking.clientName || "Valued Client"}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    {selectedBooking.customer?.email || selectedBooking.clientEmail}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    Phone: {selectedBooking.contact || selectedBooking.customer?.phone || "N/A"}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 space-y-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Decorator Agency</span>
+                  <p className="font-bold text-slate-900 dark:text-slate-100">
+                    {selectedBooking.decorator?.businessName || "StyleDecor Verified Agency"}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    City: {selectedBooking.decorator?.contactInfo?.city || "Dhaka"}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    Agency Hotline: {selectedBooking.decorator?.contactInfo?.phone || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Service & Package Snapshot */}
+              <div className="p-4 rounded-2xl bg-purple-50/40 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40 space-y-1">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
+                  {selectedBooking.serviceSnapshot?.category || "Decoration"}
+                </span>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  {selectedBooking.serviceSnapshot?.title || selectedBooking.serviceName}
+                </h4>
+                <p className="text-[11px] text-slate-500">
+                  Selected Package: <span className="font-semibold text-purple-600">{selectedBooking.serviceSnapshot?.selectedPackage || "Standard Tier"}</span>
+                </p>
+              </div>
+
+              {/* Event Schedule & Venue */}
+              <div className="space-y-2">
+                <h5 className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px]">
+                  Event Logistics & Schedule
+                </h5>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 space-y-1">
+                    <span className="text-[10px] text-slate-400">Date & Timing</span>
+                    <p className="font-bold text-slate-900 dark:text-slate-100">
+                      {selectedBooking.eventDetails?.eventDate
+                        ? new Date(selectedBooking.eventDetails.eventDate).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : selectedBooking.bookingDate || "TBD"}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Hours: {selectedBooking.eventDetails?.startTime || "16:00"} - {selectedBooking.eventDetails?.endTime || "22:00"}
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 space-y-1">
+                    <span className="text-[10px] text-slate-400">Venue & Address</span>
+                    <p className="font-bold text-slate-900 dark:text-slate-100">
+                      {selectedBooking.eventDetails?.venueName || selectedBooking.location || "Venue TBD"}
+                    </p>
+                    <p className="text-[11px] text-slate-500 line-clamp-1">
+                      {selectedBooking.eventDetails?.venueAddress || selectedBooking.location || "Dhaka"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Financial Breakdown */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 space-y-2">
+                <h5 className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px]">
+                  Financial Accounting
+                </h5>
+                <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                  <span>Subtotal</span>
+                  <span>৳{Number(selectedBooking.pricingBreakdown?.subtotal || selectedBooking.totalCost || 0).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                  <span>Service Tax (5%)</span>
+                  <span>৳{Number(selectedBooking.pricingBreakdown?.serviceTax || 0).toLocaleString()}</span>
+                </div>
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-black text-sm text-slate-900 dark:text-slate-100">
+                  <span>Grand Total</span>
+                  <span className="text-purple-600 dark:text-purple-400">
+                    ৳{Number(selectedBooking.pricingBreakdown?.grandTotal || selectedBooking.totalCost || 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="px-5 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= Assign Agent Modal ================= */}
+      {isAssignModalOpen && selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <UserCheck className="w-5 h-5 text-indigo-400" />
+                <h3 className="text-base font-bold text-white">
+                  Assign Field Agent
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsAssignModalOpen(false)}
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              <p className="text-xs text-slate-500">
+                Select an agent from <span className="font-bold text-purple-600">{selectedBooking.decorator?.businessName || "the providing agency"}</span> to lead this event:
+              </p>
+
+              {agentsLoading ? (
+                <div className="p-10 flex justify-center">
+                  <Spinner />
+                </div>
+              ) : availableAgents.length === 0 ? (
+                <p className="text-xs text-slate-400 text-center py-6">
+                  No active field agents found for this agency.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {availableAgents.map((agent) => (
+                    <div
+                      key={agent._id}
+                      className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between hover:border-purple-500 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={agent.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"}
+                          alt={agent.name}
+                          className="w-10 h-10 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-700"
+                        />
+                        <div>
+                          <p className="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                            {agent.name}
+                          </p>
+                          <p className="text-[11px] text-slate-500">
+                            {agent.designation || "Event Specialist"} • {agent.phone}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleAssignAgent(agent._id)}
+                        className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold cursor-pointer"
+                      >
+                        Assign
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+              <button
+                onClick={() => setIsAssignModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default ManageBooking;
+export default ManageBookings;
