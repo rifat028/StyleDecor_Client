@@ -2,7 +2,8 @@
 
 > **File:** `src/features/admin/ManageBookings.page.jsx`  
 > **Route:** `/dashboard/manage-bookings`  
-> **Access:** `Admin`
+> **Access:** `Admin`  
+> **Sub-Components Location:** `src/components/pages/Admin/BookingManagement/`
 
 ---
 
@@ -12,15 +13,15 @@ The Manage Bookings page provides platform administrators with oversight of all 
 ---
 
 ## 2. Architecture & Sub-Component Decomposition
-To maintain clean separation of concerns and eliminate monolithic code files, the page is decomposed into sub-components under `src/features/admin/components/`:
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/BookingManagement/`:
 
 - **Main Page:** `src/features/admin/ManageBookings.page.jsx`
-- **Sub-Components:**
-  1. `ManageBookingsStats.jsx` — Stat cards for Total Bookings, Pending, In Progress, Completed, and Cancelled with skeleton fallback.
-  2. `ManageBookingsFilters.jsx` — Search bar on the left with clear button; Status, Date Range, and City dropdowns on the right without redundant filter icons.
-  3. `BookingTableRow.jsx` — Table row with px-2 cell padding, canonical min-w-* constraints, status badge, and centered bordered action buttons.
-  4. `ManageBookingsViewModal.jsx` — View full booking dossier modal using reusable Modal.
-  5. `ManageBookingsAssignModal.jsx` — Assign decorator or field agent modal using reusable Modal.
+- **Sub-Components Directory:** `src/components/pages/Admin/BookingManagement/`
+  1. [`ManageBookingsStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/BookingManagement/ManageBookingsStats.jsx) — Ultra-compact stat cards for Total Bookings, Pending, In Progress, Completed, and Cancelled with skeleton fallback.
+  2. [`ManageBookingsFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/BookingManagement/ManageBookingsFilters.jsx) — Search bar on the left with clear button; Status, Date Range, and City dropdowns on the right without redundant filter icons.
+  3. [`BookingTableRow.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/BookingManagement/BookingTableRow.jsx) — Table row with px-2 cell padding, canonical min-w-* constraints, status badge, and centered bordered action buttons.
+  4. [`ManageBookingsViewModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/BookingManagement/ManageBookingsViewModal.jsx) — View full booking dossier modal using reusable Modal.
+  5. [`ManageBookingsAssignModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/BookingManagement/ManageBookingsAssignModal.jsx) — Assign decorator or field agent modal using reusable Modal.
 
 ---
 
@@ -32,7 +33,7 @@ To maintain clean separation of concerns and eliminate monolithic code files, th
 
 2. **Stat Cards Section**:
    - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes.
-   - Sits directly below the header in its own section.
+   - Ultra-compact horizontal layout with minimal height (~48px) and no captions/subtitles.
    - Interactive click-to-filter support and pulse skeleton loader fallback state (`loading={true}`) when stats data is fetching or unavailable.
 
 3. **Search & Filters Bar Section**:
@@ -67,9 +68,9 @@ To maintain clean separation of concerns and eliminate monolithic code files, th
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/features/admin/components/`.
+- [ ] Sub-components live in `src/components/pages/Admin/BookingManagement/`.
 - [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
-- [ ] Stat cards use `<StatCard>` with tone styling and skeleton loading fallback.
+- [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
 - [ ] Search input has clear button and clean dropdowns without redundant filter icons.
 - [ ] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
 - [ ] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds.

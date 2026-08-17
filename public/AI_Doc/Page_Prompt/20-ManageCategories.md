@@ -2,7 +2,8 @@
 
 > **File:** `src/features/admin/ManageCategories.page.jsx`  
 > **Route:** `/dashboard/manage-categories`  
-> **Access:** `Admin`
+> **Access:** `Admin`  
+> **Sub-Components Location:** `src/components/pages/Admin/CategoryManagement/`
 
 ---
 
@@ -12,18 +13,18 @@ The Manage Categories page allows platform administrators to manage service cate
 ---
 
 ## 2. Architecture & Sub-Component Decomposition
-To maintain clean separation of concerns and eliminate monolithic code files, the page is decomposed into sub-components under `src/features/admin/components/`:
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/CategoryManagement/`:
 
 - **Main Page:** `src/features/admin/ManageCategories.page.jsx`
-- **Sub-Components:**
-  1. `ManageCategoriesStats.jsx` — Stat cards for Total Categories, Active, Inactive, and Total Subcategories with skeleton loading fallback.
-  2. `ManageCategoriesFilters.jsx` — Search bar on the left with clear button; Status filter dropdown on the right without redundant filter icons.
-  3. `CategoryAccordionRow.jsx` — Category accordion row with px-2 cell padding, canonical min-w-* constraints, switch toggle, and bordered action buttons.
-  4. `SubCategoryTable.jsx` — Subcategory table with px-2 cell padding, min-w-* classes, and reusable TableSkeleton loader.
-  5. `ManageCategoriesCreateModal.jsx` — Create category modal using reusable Modal.
-  6. `EditCategoryModal.jsx` — Edit category modal using reusable Modal.
-  7. `AddSubCategoryModal.jsx` — Add subcategory modal using reusable Modal.
-  8. `EditSubCategoryModal.jsx` — Edit subcategory modal using reusable Modal.
+- **Sub-Components Directory:** `src/components/pages/Admin/CategoryManagement/`
+  1. [`ManageCategoriesStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/CategoryManagement/ManageCategoriesStats.jsx) — Ultra-compact stat cards for Total Categories, Active, Inactive, and Total Subcategories with skeleton loading fallback.
+  2. [`ManageCategoriesFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/CategoryManagement/ManageCategoriesFilters.jsx) — Search bar on the left with clear button; Status filter dropdown on the right without redundant filter icons.
+  3. [`CategoryAccordionRow.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/CategoryManagement/CategoryAccordionRow.jsx) — Category accordion row with px-2 cell padding, canonical min-w-* constraints, switch toggle, and bordered action buttons.
+  4. [`SubCategoryTable.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/CategoryManagement/SubCategoryTable.jsx) — Subcategory table with px-2 cell padding, min-w-* classes, and reusable TableSkeleton loader.
+  5. [`ManageCategoriesCreateModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/CategoryManagement/ManageCategoriesCreateModal.jsx) — Create category modal using reusable Modal.
+  6. [`EditCategoryModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/CategoryManagement/EditCategoryModal.jsx) — Edit category modal using reusable Modal.
+  7. [`AddSubCategoryModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/CategoryManagement/AddSubCategoryModal.jsx) — Add subcategory modal using reusable Modal.
+  8. [`EditSubCategoryModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/CategoryManagement/EditSubCategoryModal.jsx) — Edit subcategory modal using reusable Modal.
 
 ---
 
@@ -35,7 +36,7 @@ To maintain clean separation of concerns and eliminate monolithic code files, th
 
 2. **Stat Cards Section**:
    - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes.
-   - Sits directly below the header in its own section.
+   - Ultra-compact horizontal layout with minimal height (~48px) and no captions/subtitles.
    - Interactive click-to-filter support and pulse skeleton loader fallback state (`loading={true}`) when stats data is fetching or unavailable.
 
 3. **Search & Filters Bar Section**:
@@ -70,13 +71,31 @@ To maintain clean separation of concerns and eliminate monolithic code files, th
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/features/admin/components/`.
-- [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
-- [ ] Stat cards use `<StatCard>` with tone styling and skeleton loading fallback.
-- [ ] Search input has clear button and clean dropdowns without redundant filter icons.
-- [ ] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
-- [ ] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds.
-- [ ] Table loading renders reusable `<TableSkeleton>`.
-- [ ] Pagination has 3-part layout with limit dropdown in the middle and `Prev` / `Page X / Y` / `Next` on the right.
-- [ ] Single-line comments only (`// ...`) with light density.
-- [ ] `npm run build` compiles with 0 errors.
+- [x] Sub-components live in `src/components/pages/Admin/CategoryManagement/`.
+- [x] Header has icon, title, and subtitle on top-left, and Action button on top-right.
+- [x] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
+- [x] Search input has clear button and clean dropdowns without redundant filter icons.
+- [x] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
+- [x] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds.
+- [x] Table loading renders reusable `<TableSkeleton>`.
+- [x] Single-line comments only (`// ...`) with light density.
+- [x] `npm run build` compiles with 0 errors.
+
+---
+
+```
+=================================================================
+-------------------------- Change Log ---------------------------
+=================================================================
+```
+- **Date**: 2026-08-17
+- **Target Page**: `src/features/admin/ManageCategories.page.jsx`
+- **Actions Taken**:
+  - Decomposed 1256-line monolithic file into 8 dedicated sub-components in `src/components/pages/Admin/CategoryManagement/` (`ManageCategoriesStats.jsx`, `ManageCategoriesFilters.jsx`, `CategoryAccordionRow.jsx`, `SubCategoryTable.jsx`, `SwitchToggle.jsx`, `ManageCategoriesCreateModal.jsx`, `EditCategoryModal.jsx`, `AddSubCategoryModal.jsx`, `EditSubCategoryModal.jsx`).
+  - Redesigned header with icon + title + subtitle on left and Refresh/Add buttons on right.
+  - Implemented ultra-compact `<StatCard>` section (~48px height) with skeleton loading fallback.
+  - Created clean search input with 350ms debounce and clear button, paired with clean status filter and Expand/Collapse All toggle.
+  - Standardized subcategory table with `rounded-none`, `px-2` cell padding, and canonical `min-w-*` classes (`min-w-45`, `min-w-40`, `min-w-25`).
+  - Added bordered `rounded-md` action buttons with hover backgrounds.
+  - Preserved optimistic updates with automatic rollback for category and subcategory active/inactive status toggles.
+  - Applied single-line comments only (`// ...`) with light density.

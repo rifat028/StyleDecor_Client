@@ -2,7 +2,8 @@
 
 > **File:** `src/features/admin/ManageReviews.page.jsx`  
 > **Route:** `/dashboard/manage-reviews`  
-> **Access:** `Admin`
+> **Access:** `Admin`  
+> **Sub-Components Location:** `src/components/pages/Admin/ReviewManagement/`
 
 ---
 
@@ -12,14 +13,14 @@ The Manage Reviews page allows platform administrators to moderate customer feed
 ---
 
 ## 2. Architecture & Sub-Component Decomposition
-To maintain clean separation of concerns and eliminate monolithic code files, the page is decomposed into sub-components under `src/features/admin/components/`:
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/ReviewManagement/`:
 
 - **Main Page:** `src/features/admin/ManageReviews.page.jsx`
-- **Sub-Components:**
-  1. `ManageReviewsStats.jsx` — Stat cards for Total Reviews, Average Rating, Featured, and Flagged with skeleton fallback.
-  2. `ManageReviewsFilters.jsx` — Search by reviewer or service with clear button; Rating (1-5 stars) and Featured dropdowns on the right without redundant filter icons.
-  3. `ReviewTableRow.jsx` — Table row with px-2 cell padding, canonical min-w-* constraints, star rating badge, and centered bordered action buttons.
-  4. `ManageReviewDetailsModal.jsx` — Inspect full review and customer details modal using reusable Modal.
+- **Sub-Components Directory:** `src/components/pages/Admin/ReviewManagement/`
+  1. [`ManageReviewsStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ReviewManagement/ManageReviewsStats.jsx) — Ultra-compact stat cards for Total Reviews, Average Rating, Featured, and Flagged with skeleton fallback.
+  2. [`ManageReviewsFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ReviewManagement/ManageReviewsFilters.jsx) — Search by reviewer or service with clear button; Rating (1-5 stars) and Featured dropdowns on the right without redundant filter icons.
+  3. [`ReviewTableRow.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ReviewManagement/ReviewTableRow.jsx) — Table row with px-2 cell padding, canonical min-w-* constraints, star rating badge, and centered bordered action buttons.
+  4. [`ManageReviewDetailsModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ReviewManagement/ManageReviewDetailsModal.jsx) — Inspect full review and customer details modal using reusable Modal.
 
 ---
 
@@ -31,7 +32,7 @@ To maintain clean separation of concerns and eliminate monolithic code files, th
 
 2. **Stat Cards Section**:
    - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes.
-   - Sits directly below the header in its own section.
+   - Ultra-compact horizontal layout with minimal height (~48px) and no captions/subtitles.
    - Interactive click-to-filter support and pulse skeleton loader fallback state (`loading={true}`) when stats data is fetching or unavailable.
 
 3. **Search & Filters Bar Section**:
@@ -66,9 +67,9 @@ To maintain clean separation of concerns and eliminate monolithic code files, th
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/features/admin/components/`.
+- [ ] Sub-components live in `src/components/pages/Admin/ReviewManagement/`.
 - [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
-- [ ] Stat cards use `<StatCard>` with tone styling and skeleton loading fallback.
+- [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
 - [ ] Search input has clear button and clean dropdowns without redundant filter icons.
 - [ ] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
 - [ ] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds.

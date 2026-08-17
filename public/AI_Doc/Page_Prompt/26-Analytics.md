@@ -2,7 +2,8 @@
 
 > **File:** `src/features/admin/Analytics.page.jsx`  
 > **Route:** `/dashboard/analytics`  
-> **Access:** `Admin`
+> **Access:** `Admin`  
+> **Sub-Components Location:** `src/components/pages/Admin/Analytics/`
 
 ---
 
@@ -12,15 +13,15 @@ The Platform Analytics page provides platform administrators with business intel
 ---
 
 ## 2. Architecture & Sub-Component Decomposition
-To maintain clean separation of concerns and eliminate monolithic code files, the page is decomposed into sub-components under `src/features/admin/components/`:
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/Analytics/`:
 
 - **Main Page:** `src/features/admin/Analytics.page.jsx`
-- **Sub-Components:**
-  1. `AnalyticsStats.jsx` — High-level metric summary cards with skeleton fallback.
-  2. `AnalyticsFilters.jsx` — Date range selector (Last 7 Days, 30 Days, 1 Year, All Time) without redundant filter icons.
-  3. `RevenueChartCard.jsx` — Revenue and profit trend area/line chart card.
-  4. `BookingsDistributionCard.jsx` — Category and status breakdown donut/bar chart card.
-  5. `RegionalPerformanceTable.jsx` — Geographic division performance table with px-2 cell padding and min-w-* constraints.
+- **Sub-Components Directory:** `src/components/pages/Admin/Analytics/`
+  1. [`AnalyticsStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/AnalyticsStats.jsx) — Ultra-compact high-level metric summary cards with skeleton fallback.
+  2. [`AnalyticsFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/AnalyticsFilters.jsx) — Date range selector (Last 7 Days, 30 Days, 1 Year, All Time) without redundant filter icons.
+  3. [`RevenueChartCard.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/RevenueChartCard.jsx) — Revenue and profit trend area/line chart card.
+  4. [`BookingsDistributionCard.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/BookingsDistributionCard.jsx) — Category and status breakdown donut/bar chart card.
+  5. [`RegionalPerformanceTable.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/RegionalPerformanceTable.jsx) — Geographic division performance table with px-2 cell padding and min-w-* constraints.
 
 ---
 
@@ -32,7 +33,7 @@ To maintain clean separation of concerns and eliminate monolithic code files, th
 
 2. **Stat Cards Section**:
    - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes.
-   - Sits directly below the header in its own section.
+   - Ultra-compact horizontal layout with minimal height (~48px) and no captions/subtitles.
    - Interactive click-to-filter support and pulse skeleton loader fallback state (`loading={true}`) when stats data is fetching or unavailable.
 
 3. **Search & Filters Bar Section**:
@@ -67,9 +68,9 @@ To maintain clean separation of concerns and eliminate monolithic code files, th
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/features/admin/components/`.
+- [ ] Sub-components live in `src/components/pages/Admin/Analytics/`.
 - [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
-- [ ] Stat cards use `<StatCard>` with tone styling and skeleton loading fallback.
+- [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
 - [ ] Search input has clear button and clean dropdowns without redundant filter icons.
 - [ ] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
 - [ ] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds.

@@ -2,7 +2,8 @@
 
 > **File:** `src/features/admin/ManageTransactions.page.jsx`  
 > **Route:** `/dashboard/manage-transactions`  
-> **Access:** `Admin`
+> **Access:** `Admin`  
+> **Sub-Components Location:** `src/components/pages/Admin/TransactionManagement/`
 
 ---
 
@@ -12,14 +13,14 @@ The Manage Transactions page allows platform administrators to audit financial t
 ---
 
 ## 2. Architecture & Sub-Component Decomposition
-To maintain clean separation of concerns and eliminate monolithic code files, the page is decomposed into sub-components under `src/features/admin/components/`:
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/TransactionManagement/`:
 
 - **Main Page:** `src/features/admin/ManageTransactions.page.jsx`
-- **Sub-Components:**
-  1. `ManageTransactionsStats.jsx` — Stat cards for Gross Volume, Successful Payments, Pending Refunds, and Platform Fees with skeleton fallback.
-  2. `ManageTransactionsFilters.jsx` — Search by transaction ID or user with clear button; Payment Method, Status, and Date dropdowns on the right without redundant filter icons.
-  3. `TransactionTableRow.jsx` — Table row with px-2 cell padding, canonical min-w-* constraints, method badge, and centered bordered action buttons.
-  4. `TransactionDetailsModal.jsx` — View transaction invoice modal using reusable Modal.
+- **Sub-Components Directory:** `src/components/pages/Admin/TransactionManagement/`
+  1. [`ManageTransactionsStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/TransactionManagement/ManageTransactionsStats.jsx) — Ultra-compact stat cards for Gross Volume, Successful Payments, Pending Refunds, and Platform Fees with skeleton fallback.
+  2. [`ManageTransactionsFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/TransactionManagement/ManageTransactionsFilters.jsx) — Search by transaction ID or user with clear button; Payment Method, Status, and Date dropdowns on the right without redundant filter icons.
+  3. [`TransactionTableRow.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/TransactionManagement/TransactionTableRow.jsx) — Table row with px-2 cell padding, canonical min-w-* constraints, method badge, and centered bordered action buttons.
+  4. [`TransactionDetailsModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/TransactionManagement/TransactionDetailsModal.jsx) — View transaction invoice modal using reusable Modal.
 
 ---
 
@@ -31,7 +32,7 @@ To maintain clean separation of concerns and eliminate monolithic code files, th
 
 2. **Stat Cards Section**:
    - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes.
-   - Sits directly below the header in its own section.
+   - Ultra-compact horizontal layout with minimal height (~48px) and no captions/subtitles.
    - Interactive click-to-filter support and pulse skeleton loader fallback state (`loading={true}`) when stats data is fetching or unavailable.
 
 3. **Search & Filters Bar Section**:
@@ -66,9 +67,9 @@ To maintain clean separation of concerns and eliminate monolithic code files, th
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/features/admin/components/`.
+- [ ] Sub-components live in `src/components/pages/Admin/TransactionManagement/`.
 - [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
-- [ ] Stat cards use `<StatCard>` with tone styling and skeleton loading fallback.
+- [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
 - [ ] Search input has clear button and clean dropdowns without redundant filter icons.
 - [ ] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
 - [ ] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds.
