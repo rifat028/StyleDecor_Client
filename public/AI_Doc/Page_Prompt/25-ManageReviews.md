@@ -12,15 +12,17 @@ The Manage Reviews page allows platform administrators to moderate customer feed
 
 ---
 
-## 2. Architecture & Sub-Component Decomposition
-All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/ReviewManagement/`:
+## 2. Architecture & Sub-Component Sizing Standard
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/ReviewManagement/`.
+
+> [!IMPORTANT]
+> **Component Sizing Rule:** Each decomposed sub-component must contain **at least 100–150 lines to a maximum of 250–350 lines**. Avoid fragmenting code into tiny micro-files (< 100 lines); group related cohesive functionality (e.g. Toolbar/Stats+Filters, Table+Rows+Pagination, Modals) together.
 
 - **Main Page:** `src/features/admin/ManageReviews.page.jsx`
 - **Sub-Components Directory:** `src/components/pages/Admin/ReviewManagement/`
-  1. [`ManageReviewsStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ReviewManagement/ManageReviewsStats.jsx) — Ultra-compact stat cards for Total Reviews, Average Rating, Featured, and Flagged with skeleton fallback.
-  2. [`ManageReviewsFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ReviewManagement/ManageReviewsFilters.jsx) — Search by reviewer or service with clear button; Rating (1-5 stars) and Featured dropdowns on the right without redundant filter icons.
-  3. [`ReviewTableRow.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ReviewManagement/ReviewTableRow.jsx) — Table row with px-2 cell padding, canonical min-w-* constraints, star rating badge, and centered bordered action buttons.
-  4. [`ManageReviewDetailsModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ReviewManagement/ManageReviewDetailsModal.jsx) — Inspect full review and customer details modal using reusable Modal.
+  1. [`ReviewManagementToolbar.jsx (120-150 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ReviewManagement/ReviewManagementToolbar.jsx) — Consolidated toolbar with rating overview stat cards and search/star rating/featured filters.
+  2. [`ReviewManagementTable.jsx (180-240 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ReviewManagement/ReviewManagementTable.jsx) — Reviews moderation table with px-2 cell padding, canonical min-w-* constraints, TableSkeleton, and 3-part Pagination.
+  3. [`ReviewDetailsModal.jsx (140-200 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ReviewManagement/ReviewDetailsModal.jsx) — Full review inspection and customer reply modal.
 
 ---
 
@@ -67,7 +69,7 @@ All split sub-components for this page MUST reside in their dedicated directory 
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/components/pages/Admin/ReviewManagement/`.
+- [ ] Sub-components live in `src/components/pages/Admin/ReviewManagement/` and adhere to the 100-350 lines sizing standard.
 - [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
 - [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
 - [ ] Search input has clear button and clean dropdowns without redundant filter icons.

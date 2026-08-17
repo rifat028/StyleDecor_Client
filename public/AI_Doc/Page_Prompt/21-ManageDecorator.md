@@ -12,16 +12,17 @@ The Manage Decorators page allows platform administrators to verify decorator ap
 
 ---
 
-## 2. Architecture & Sub-Component Decomposition
-All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/DecoratorManagement/`:
+## 2. Architecture & Sub-Component Sizing Standard
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/DecoratorManagement/`.
+
+> [!IMPORTANT]
+> **Component Sizing Rule:** Each decomposed sub-component must contain **at least 100–150 lines to a maximum of 250–350 lines**. Avoid fragmenting code into tiny micro-files (< 100 lines); group related cohesive functionality (e.g. Toolbar/Stats+Filters, Table+Rows+Pagination, Modals) together.
 
 - **Main Page:** `src/features/admin/ManageDecorator.page.jsx`
 - **Sub-Components Directory:** `src/components/pages/Admin/DecoratorManagement/`
-  1. [`ManageDecoratorStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/DecoratorManagement/ManageDecoratorStats.jsx) — Ultra-compact stat cards for Total Decorators, Verified, Pending Approval, and Suspended with skeleton fallback.
-  2. [`ManageDecoratorFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/DecoratorManagement/ManageDecoratorFilters.jsx) — Search input on the left with clear button; Status and City dropdowns on the right without redundant filter icons.
-  3. [`DecoratorTableRow.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/DecoratorManagement/DecoratorTableRow.jsx) — Table row with px-2 cell padding, canonical min-w-* constraints, status badge, and centered bordered action buttons.
-  4. [`ManageDecoratorViewModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/DecoratorManagement/ManageDecoratorViewModal.jsx) — View decorator application and portfolio modal using reusable Modal.
-  5. [`ManageDecoratorStatusModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/DecoratorManagement/ManageDecoratorStatusModal.jsx) — Update status and verification modal using reusable Modal.
+  1. [`DecoratorManagementToolbar.jsx (120-150 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/DecoratorManagement/DecoratorManagementToolbar.jsx) — Consolidated toolbar with ultra-compact stat cards (Total, Verified, Pending, Suspended) and search/city/verification filters.
+  2. [`DecoratorManagementTable.jsx (180-240 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/DecoratorManagement/DecoratorManagementTable.jsx) — Table component with px-2 cell padding, canonical min-w-* constraints, verification badges, TableSkeleton, and 3-part Pagination.
+  3. [`DecoratorManagementModals.jsx (220-300 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/DecoratorManagement/DecoratorManagementModals.jsx) — Consolidated portfolio inspection and status approval/suspension modals.
 
 ---
 
@@ -68,7 +69,7 @@ All split sub-components for this page MUST reside in their dedicated directory 
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/components/pages/Admin/DecoratorManagement/`.
+- [ ] Sub-components live in `src/components/pages/Admin/DecoratorManagement/` and adhere to the 100-350 lines sizing standard.
 - [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
 - [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
 - [ ] Search input has clear button and clean dropdowns without redundant filter icons.

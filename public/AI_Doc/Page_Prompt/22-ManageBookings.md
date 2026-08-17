@@ -12,16 +12,17 @@ The Manage Bookings page provides platform administrators with oversight of all 
 
 ---
 
-## 2. Architecture & Sub-Component Decomposition
-All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/BookingManagement/`:
+## 2. Architecture & Sub-Component Sizing Standard
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/BookingManagement/`.
+
+> [!IMPORTANT]
+> **Component Sizing Rule:** Each decomposed sub-component must contain **at least 100–150 lines to a maximum of 250–350 lines**. Avoid fragmenting code into tiny micro-files (< 100 lines); group related cohesive functionality (e.g. Toolbar/Stats+Filters, Table+Rows+Pagination, Modals) together.
 
 - **Main Page:** `src/features/admin/ManageBookings.page.jsx`
 - **Sub-Components Directory:** `src/components/pages/Admin/BookingManagement/`
-  1. [`ManageBookingsStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/BookingManagement/ManageBookingsStats.jsx) — Ultra-compact stat cards for Total Bookings, Pending, In Progress, Completed, and Cancelled with skeleton fallback.
-  2. [`ManageBookingsFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/BookingManagement/ManageBookingsFilters.jsx) — Search bar on the left with clear button; Status, Date Range, and City dropdowns on the right without redundant filter icons.
-  3. [`BookingTableRow.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/BookingManagement/BookingTableRow.jsx) — Table row with px-2 cell padding, canonical min-w-* constraints, status badge, and centered bordered action buttons.
-  4. [`ManageBookingsViewModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/BookingManagement/ManageBookingsViewModal.jsx) — View full booking dossier modal using reusable Modal.
-  5. [`ManageBookingsAssignModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/BookingManagement/ManageBookingsAssignModal.jsx) — Assign decorator or field agent modal using reusable Modal.
+  1. [`BookingManagementToolbar.jsx (120-150 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/BookingManagement/BookingManagementToolbar.jsx) — Consolidated toolbar with stat cards and search/status/city/date range filters.
+  2. [`BookingManagementTable.jsx (180-240 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/BookingManagement/BookingManagementTable.jsx) — Table component with px-2 cell padding, canonical min-w-* constraints, status pill badges, TableSkeleton, and 3-part Pagination.
+  3. [`BookingManagementModals.jsx (240-320 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/BookingManagement/BookingManagementModals.jsx) — Consolidated booking dossier view modal and decorator/agent assignment modal.
 
 ---
 
@@ -68,7 +69,7 @@ All split sub-components for this page MUST reside in their dedicated directory 
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/components/pages/Admin/BookingManagement/`.
+- [ ] Sub-components live in `src/components/pages/Admin/BookingManagement/` and adhere to the 100-350 lines sizing standard.
 - [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
 - [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
 - [ ] Search input has clear button and clean dropdowns without redundant filter icons.

@@ -12,15 +12,17 @@ The Manage Services page provides platform administrators with oversight of all 
 
 ---
 
-## 2. Architecture & Sub-Component Decomposition
-All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/ServiceManagement/`:
+## 2. Architecture & Sub-Component Sizing Standard
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/ServiceManagement/`.
+
+> [!IMPORTANT]
+> **Component Sizing Rule:** Each decomposed sub-component must contain **at least 100–150 lines to a maximum of 250–350 lines**. Avoid fragmenting code into tiny micro-files (< 100 lines); group related cohesive functionality (e.g. Toolbar/Stats+Filters, Table+Rows+Pagination, Modals) together.
 
 - **Main Page:** `src/features/admin/ManageServices.page.jsx`
 - **Sub-Components Directory:** `src/components/pages/Admin/ServiceManagement/`
-  1. [`ManageServicesStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ServiceManagement/ManageServicesStats.jsx) — Metric summary cards for Total Services, Active, Inactive, and Featured with tone styling and skeleton loading fallback (loading={true}).
-  2. [`ManageServicesFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ServiceManagement/ManageServicesFilters.jsx) — Search bar on the left with clear button; Category, Status, and Sorting dropdowns on the right without redundant filter icons.
-  3. [`ServiceTableRow.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ServiceManagement/ServiceTableRow.jsx) — Table row with px-2 cell padding, canonical min-w-* responsive constraints, status toggles, and centered bordered action buttons.
-  4. [`ManageServicesViewModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ServiceManagement/ManageServicesViewModal.jsx) — View full service package details modal using reusable Modal.
+  1. [`ServiceManagementToolbar.jsx (120-150 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ServiceManagement/ServiceManagementToolbar.jsx) — Consolidated toolbar with ultra-compact stat cards (Total, Active, Inactive, Featured) and clean search & multi-dropdown filters.
+  2. [`ServiceManagementTable.jsx (180-240 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ServiceManagement/ServiceManagementTable.jsx) — Table component with px-2 cell padding, canonical min-w-* constraints, status switches, TableSkeleton loader, and 3-part Pagination footer.
+  3. [`ServiceManagementModals.jsx (180-260 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/ServiceManagement/ServiceManagementModals.jsx) — Consolidated service details dossier and status update modals.
 
 ---
 
@@ -67,7 +69,7 @@ All split sub-components for this page MUST reside in their dedicated directory 
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/components/pages/Admin/ServiceManagement/`.
+- [ ] Sub-components live in `src/components/pages/Admin/ServiceManagement/` and adhere to the 100-350 lines sizing standard.
 - [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
 - [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
 - [ ] Search input has clear button and clean dropdowns without redundant filter icons.

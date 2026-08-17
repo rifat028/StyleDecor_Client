@@ -2,22 +2,10 @@ import React, { useEffect, useState, useCallback } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
-import {
-  Users,
-  RefreshCw,
-  Shield,
-  Palette,
-  Briefcase,
-  UserCheck,
-} from "lucide-react";
-import EmptyState from "../../components/ui/EmptyState";
-import Pagination from "../../components/ui/Pagination";
-import TableSkeleton from "../../components/ui/TableSkeleton";
-import ManageUserStats from "../../components/pages/Admin/UserManagement/ManageUserStats";
-import ManageUserFilters from "../../components/pages/Admin/UserManagement/ManageUserFilters";
-import UserTableRow from "../../components/pages/Admin/UserManagement/UserTableRow";
-import ManageUserViewModal from "../../components/pages/Admin/UserManagement/ManageUserViewModal";
-import ManageUserEditModal from "../../components/pages/Admin/UserManagement/ManageUserEditModal";
+import { Users, RefreshCw, Shield, Palette, Briefcase, UserCheck } from "lucide-react";
+import UserManagementToolbar from "../../components/pages/Admin/UserManagement/UserManagementToolbar";
+import UserManagementTable from "../../components/pages/Admin/UserManagement/UserManagementTable";
+import UserManagementModals from "../../components/pages/Admin/UserManagement/UserManagementModals";
 
 // Protected super admin email constant
 const SUPER_ADMIN_EMAIL = "admin.styledecor1@gmail.com";
@@ -299,7 +287,7 @@ const ManageUser = () => {
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
-      {/* 1. Top Header Bar: Icon, Title & Subtitle on Left, Action on Right */}
+      {/* 1. Top Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div className="flex items-center gap-3.5">
           <div className="p-3 bg-purple-100 dark:bg-purple-950/60 rounded-xl text-purple-600 dark:text-purple-400 shrink-0 shadow-xs">
@@ -328,29 +316,20 @@ const ManageUser = () => {
         </button>
       </div>
 
-      {/* 2. Stat Cards Section */}
-      <ManageUserStats
+      {/* 2. Consolidated Toolbar (Stats & Search/Filters: ~130 lines) */}
+      <UserManagementToolbar
         stats={stats}
         roleFilter={roleFilter}
         onSelectRoleFilter={(r) => {
           setRoleFilter(r);
           setPage(1);
         }}
-        loading={statsLoading || !stats}
-      />
-
-      {/* 3. Search & Filter Bar Section */}
-      <ManageUserFilters
+        loadingStats={statsLoading || !stats}
         search={search}
         onSearchChange={setSearch}
         onClearSearch={() => {
           setSearch("");
           setDebouncedSearch("");
-          setPage(1);
-        }}
-        roleFilter={roleFilter}
-        onRoleFilterChange={(val) => {
-          setRoleFilter(val);
           setPage(1);
         }}
         cityFilter={cityFilter}
@@ -362,101 +341,43 @@ const ManageUser = () => {
         citiesList={citiesList}
       />
 
-      {/* 4. Users Table (Unrounded Crisp Container) */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden rounded-none">
-        {loading ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
-                  <th className="py-3.5 px-2 min-w-55">User Profile</th>
-                  <th className="py-3.5 px-2 min-w-45">Contact & City</th>
-                  <th className="py-3.5 px-2 min-w-32.5">System Role</th>
-                  <th className="py-3.5 px-2 text-center min-w-35">Quick Role Switch</th>
-                  <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
-                </tr>
-              </thead>
-              <TableSkeleton rows={5} columns={5} />
-            </table>
-          </div>
-        ) : users.length === 0 ? (
-          <EmptyState
-            icon={Users}
-            title="No Users Found"
-            message="Try adjusting your search criteria or role filters."
-            action={{
-              label: "Clear All Filters",
-              onClick: handleResetFilters,
-            }}
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
-                  <th className="py-3.5 px-2 min-w-55">User Profile</th>
-                  <th className="py-3.5 px-2 min-w-45">Contact & City</th>
-                  <th className="py-3.5 px-2 min-w-32.5">System Role</th>
-                  <th className="py-3.5 px-2 text-center min-w-35">Quick Role Switch</th>
-                  <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
-                {users.map((user) => (
-                  <UserTableRow
-                    key={user._id}
-                    user={user}
-                    superAdminEmail={SUPER_ADMIN_EMAIL}
-                    onView={setViewingUser}
-                    onEdit={handleOpenEdit}
-                    onDelete={handleDeleteUser}
-                    onQuickRoleChange={handleQuickRoleChange}
-                    getPlaceholderAvatar={getPlaceholderAvatar}
-                    getRoleBadge={getRoleBadge}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* 5. Pagination Footer (Matching Background Color with Table Header) */}
-        {!loading && users.length > 0 && (
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            totalCount={totalCount}
-            limit={limit}
-            onPageChange={setPage}
-            onLimitChange={(newLimit) => {
-              setLimit(newLimit);
-              setPage(1);
-            }}
-            itemLabel="users"
-          />
-        )}
-      </div>
-
-      {/* 6. View User Details Modal */}
-      <ManageUserViewModal
-        user={viewingUser}
-        isOpen={!!viewingUser}
-        onClose={() => setViewingUser(null)}
+      {/* 3. Consolidated Table Component (~200 lines) */}
+      <UserManagementTable
+        users={users}
+        loading={loading}
+        superAdminEmail={SUPER_ADMIN_EMAIL}
+        onView={setViewingUser}
+        onEdit={handleOpenEdit}
+        onDelete={handleDeleteUser}
+        onQuickRoleChange={handleQuickRoleChange}
         getPlaceholderAvatar={getPlaceholderAvatar}
         getRoleBadge={getRoleBadge}
+        onResetFilters={handleResetFilters}
+        page={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        limit={limit}
+        onPageChange={setPage}
+        onLimitChange={(newLimit) => {
+          setLimit(newLimit);
+          setPage(1);
+        }}
       />
 
-      {/* 7. Edit User Form Modal */}
-      <ManageUserEditModal
-        user={editingUser}
-        isOpen={!!editingUser}
-        onClose={() => setEditingUser(null)}
+      {/* 4. Consolidated Modals Component (~260 lines) */}
+      <UserManagementModals
+        viewingUser={viewingUser}
+        onCloseView={() => setViewingUser(null)}
+        editingUser={editingUser}
+        onCloseEdit={() => setEditingUser(null)}
         editFormData={editFormData}
         setEditFormData={setEditFormData}
-        onSubmit={handleSaveEdit}
-        submitting={submittingEdit}
+        onSaveEdit={handleSaveEdit}
+        submittingEdit={submittingEdit}
         citiesList={citiesList}
         superAdminEmail={SUPER_ADMIN_EMAIL}
+        getPlaceholderAvatar={getPlaceholderAvatar}
+        getRoleBadge={getRoleBadge}
       />
     </div>
   );

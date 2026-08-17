@@ -2,15 +2,10 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
-import { Layers, Plus, RefreshCw, Sparkles } from "lucide-react";
-import EmptyState from "../../components/ui/EmptyState";
-import ManageCategoriesStats from "../../components/pages/Admin/CategoryManagement/ManageCategoriesStats";
-import ManageCategoriesFilters from "../../components/pages/Admin/CategoryManagement/ManageCategoriesFilters";
-import CategoryAccordionRow from "../../components/pages/Admin/CategoryManagement/CategoryAccordionRow";
-import ManageCategoriesCreateModal from "../../components/pages/Admin/CategoryManagement/ManageCategoriesCreateModal";
-import EditCategoryModal from "../../components/pages/Admin/CategoryManagement/EditCategoryModal";
-import AddSubCategoryModal from "../../components/pages/Admin/CategoryManagement/AddSubCategoryModal";
-import EditSubCategoryModal from "../../components/pages/Admin/CategoryManagement/EditSubCategoryModal";
+import { Layers, Plus, RefreshCw } from "lucide-react";
+import CategoryManagementToolbar from "../../components/pages/Admin/CategoryManagement/CategoryManagementToolbar";
+import CategoryAccordionList from "../../components/pages/Admin/CategoryManagement/CategoryAccordionList";
+import CategoryManagementModals from "../../components/pages/Admin/CategoryManagement/CategoryManagementModals";
 
 // Helper to generate URL-friendly slugs
 const generateSlug = (text) => {
@@ -473,7 +468,7 @@ const ManageCategories = () => {
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
-      {/* 1. Top Header Bar: Icon, Title & Subtitle on Left, Actions on Right */}
+      {/* 1. Top Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div className="flex items-center gap-3.5">
           <div className="p-3 bg-purple-100 dark:bg-purple-950/60 rounded-xl text-purple-600 dark:text-purple-400 shrink-0 shadow-xs">
@@ -512,122 +507,73 @@ const ManageCategories = () => {
         </div>
       </div>
 
-      {/* 2. Ultra-Compact Stat Cards Section */}
-      <ManageCategoriesStats
+      {/* 2. Consolidated Toolbar (~130 lines) */}
+      <CategoryManagementToolbar
         stats={stats}
         statusFilter={statusFilter}
         onSelectStatusFilter={setStatusFilter}
-        loading={loading}
-      />
-
-      {/* 3. Search & Filters Bar Section */}
-      <ManageCategoriesFilters
+        loadingStats={loading}
         search={search}
         onSearchChange={setSearch}
         onClearSearch={() => {
           setSearch("");
           setDebouncedSearch("");
         }}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
         areAllExpanded={areAllExpanded}
         onToggleExpandAll={handleToggleExpandAll}
         categoriesCount={filteredCategories.length}
       />
 
-      {/* 4. Category Accordion List (Unrounded Crisp Style) */}
-      {loading ? (
-        <div className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-none p-8 space-y-4 animate-pulse">
-          {Array.from({ length: 4 }).map((_, idx) => (
-            <div
-              key={idx}
-              className="h-16 bg-slate-100 dark:bg-slate-800 rounded-none"
-            />
-          ))}
-        </div>
-      ) : filteredCategories.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none">
-          <EmptyState
-            icon={Layers}
-            title="No Categories Found"
-            message="Try adjusting your search criteria or status filter."
-            action={{
-              label: "Clear Filters",
-              onClick: () => {
-                setSearch("");
-                setDebouncedSearch("");
-                setStatusFilter("all");
-              },
-            }}
-          />
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filteredCategories.map((category) => (
-            <CategoryAccordionRow
-              key={category._id}
-              category={category}
-              isExpanded={!!expandedCategories[category._id]}
-              onToggleExpand={toggleExpand}
-              onToggleStatus={handleToggleCategoryStatus}
-              onOpenEdit={handleOpenEditCategory}
-              onDeleteCategory={handleDeleteCategory}
-              onOpenAddSub={handleOpenAddSub}
-              onOpenEditSub={handleOpenEditSub}
-              onToggleSubStatus={handleToggleSubCategoryStatus}
-              onDeleteSub={handleDeleteSubCategory}
-            />
-          ))}
-        </div>
-      )}
+      {/* 3. Consolidated Accordion List Component (~280 lines) */}
+      <CategoryAccordionList
+        categories={filteredCategories}
+        loading={loading}
+        expandedCategories={expandedCategories}
+        onToggleExpand={toggleExpand}
+        onToggleStatus={handleToggleCategoryStatus}
+        onOpenEdit={handleOpenEditCategory}
+        onDeleteCategory={handleDeleteCategory}
+        onOpenAddSub={handleOpenAddSub}
+        onOpenEditSub={handleOpenEditSub}
+        onToggleSubStatus={handleToggleSubCategoryStatus}
+        onDeleteSub={handleDeleteSubCategory}
+        onResetFilters={() => {
+          setSearch("");
+          setDebouncedSearch("");
+          setStatusFilter("all");
+        }}
+      />
 
-      {/* 5. Modals */}
-      {/* Create Category Modal */}
-      <ManageCategoriesCreateModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+      {/* 4. Consolidated Modals Suite (~330 lines) */}
+      <CategoryManagementModals
+        isCreateOpen={isCreateModalOpen}
+        onCloseCreate={() => setIsCreateModalOpen(false)}
         createFormData={createFormData}
         setCreateFormData={setCreateFormData}
         tempSubName={tempSubName}
         setTempSubName={setTempSubName}
         onAddSubTag={handleAddSubTag}
         onRemoveSubTag={handleRemoveSubTag}
-        onSubmit={handleCreateCategory}
-        submitting={submittingCreate}
-      />
-
-      {/* Edit Category Modal */}
-      <EditCategoryModal
-        category={editingCategory}
-        isOpen={!!editingCategory}
-        onClose={() => setEditingCategory(null)}
+        onCreateSubmit={handleCreateCategory}
+        submittingCreate={submittingCreate}
+        editingCategory={editingCategory}
+        onCloseEditCategory={() => setEditingCategory(null)}
         editFormData={editFormData}
         setEditFormData={setEditFormData}
-        onSubmit={handleSaveEditCategory}
-        submitting={submittingEdit}
-      />
-
-      {/* Add Subcategory Modal */}
-      <AddSubCategoryModal
-        category={subCategoryModalTarget}
-        isOpen={!!subCategoryModalTarget}
-        onClose={() => setSubCategoryModalTarget(null)}
+        onEditCategorySubmit={handleSaveEditCategory}
+        submittingEditCategory={submittingEdit}
+        subCategoryModalTarget={subCategoryModalTarget}
+        onCloseAddSub={() => setSubCategoryModalTarget(null)}
         newSubData={newSubData}
         setNewSubData={setNewSubData}
-        onSubmit={handleAddSubCategory}
-        submitting={submittingSub}
-        generateSlug={generateSlug}
-      />
-
-      {/* Edit Subcategory Modal */}
-      <EditSubCategoryModal
-        target={editingSubCategory}
-        isOpen={!!editingSubCategory}
-        onClose={() => setEditingSubCategory(null)}
+        onAddSubSubmit={handleAddSubCategory}
+        submittingAddSub={submittingSub}
+        editingSubCategory={editingSubCategory}
+        onCloseEditSub={() => setEditingSubCategory(null)}
         editSubData={editSubData}
         setEditSubData={setEditSubData}
-        onSubmit={handleSaveEditSub}
-        submitting={submittingEditSub}
+        onEditSubSubmit={handleSaveEditSub}
+        submittingEditSub={submittingEditSub}
         generateSlug={generateSlug}
       />
     </div>

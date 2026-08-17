@@ -12,16 +12,17 @@ The User Management page serves as the administrative hub for managing all user 
 
 ---
 
-## 2. Architecture & Sub-Component Decomposition
-All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/UserManagement/`:
+## 2. Architecture & Sub-Component Sizing Standard
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/UserManagement/`.
+
+> [!IMPORTANT]
+> **Component Sizing Rule:** Each decomposed sub-component must contain **at least 100–150 lines to a maximum of 250–350 lines**. Avoid fragmenting code into tiny micro-files (< 100 lines); group related cohesive functionality (e.g. Toolbar/Stats+Filters, Table+Rows+Pagination, Modals) together.
 
 - **Main Page:** `src/features/admin/ManageUser.page.jsx`
 - **Sub-Components Directory:** `src/components/pages/Admin/UserManagement/`
-  1. [`ManageUserStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/UserManagement/ManageUserStats.jsx) — Ultra-compact stat cards for Total Users, Administrators, Decorators, Field Agents, and Customers with click-to-filter support and pulse skeleton loading states.
-  2. [`ManageUserFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/UserManagement/ManageUserFilters.jsx) — Search input on the left with clear button; Role and City dropdown filters on the right without superfluous filter icons.
-  3. [`UserTableRow.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/UserManagement/UserTableRow.jsx) — Table row with px-2 cell padding, canonical min-w-* responsive constraints, quick role switch dropdown, and centered bordered action buttons.
-  4. [`ManageUserViewModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/UserManagement/ManageUserViewModal.jsx) — View full user profile modal utilizing the reusable Modal shell.
-  5. [`ManageUserEditModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/UserManagement/ManageUserEditModal.jsx) — Edit user profile and address modal utilizing the reusable Modal shell.
+  1. [`UserManagementToolbar.jsx (120-150 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/UserManagement/UserManagementToolbar.jsx) — Consolidated toolbar containing ultra-compact stat cards and search/role/city filters.
+  2. [`UserManagementTable.jsx (180-220 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/UserManagement/UserManagementTable.jsx) — Full table component with px-2 cell padding, canonical min-w-* constraints, quick role switch, TableSkeleton, EmptyState, and 3-part Pagination.
+  3. [`UserManagementModals.jsx (250-300 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/UserManagement/UserManagementModals.jsx) — Consolidated View User Dossier modal and Edit User Profile modal.
 
 ---
 
@@ -68,7 +69,7 @@ All split sub-components for this page MUST reside in their dedicated directory 
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/components/pages/Admin/UserManagement/`.
+- [ ] Sub-components live in `src/components/pages/Admin/UserManagement/` and adhere to the 100-350 lines sizing standard.
 - [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
 - [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
 - [ ] Search input has clear button and clean dropdowns without redundant filter icons.
@@ -89,7 +90,7 @@ All split sub-components for this page MUST reside in their dedicated directory 
 - **Date**: 2026-08-17
 - **Target Page**: `src/features/admin/ManageUser.page.jsx`
 - **Actions Taken**:
-  - Split 1028+ lines monolithic file into 5 dedicated sub-components in `src/components/pages/Admin/UserManagement/` (`ManageUserStats.jsx`, `ManageUserFilters.jsx`, `UserTableRow.jsx`, `ManageUserViewModal.jsx`, `ManageUserEditModal.jsx`).
+  - Consolidated sub-components into 3 cohesive 100-300 line files in `src/components/pages/Admin/UserManagement/` (`UserManagementToolbar.jsx`, `UserManagementTable.jsx`, `UserManagementModals.jsx`).
   - Implemented top header with icon + title + subtitle on top-left, and Refresh button on top-right.
   - Implemented ultra-compact `<StatCard>` section with minimal vertical height (~48px) and pulse skeleton fallback.
   - Created search bar with 350ms debounce and clear button, paired with clean Role and City dropdowns (no redundant filter icons).

@@ -12,16 +12,17 @@ The Manage Field Agents page allows platform administrators to supervise field s
 
 ---
 
-## 2. Architecture & Sub-Component Decomposition
-All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/AgentManagement/`:
+## 2. Architecture & Sub-Component Sizing Standard
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/AgentManagement/`.
+
+> [!IMPORTANT]
+> **Component Sizing Rule:** Each decomposed sub-component must contain **at least 100–150 lines to a maximum of 250–350 lines**. Avoid fragmenting code into tiny micro-files (< 100 lines); group related cohesive functionality (e.g. Toolbar/Stats+Filters, Table+Rows+Pagination, Modals) together.
 
 - **Main Page:** `src/features/admin/ManageAgents.page.jsx`
 - **Sub-Components Directory:** `src/components/pages/Admin/AgentManagement/`
-  1. [`ManageAgentsStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/AgentManagement/ManageAgentsStats.jsx) — Ultra-compact stat cards for Total Agents, Active on Field, Available, and Off-Duty with skeleton fallback.
-  2. [`ManageAgentsFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/AgentManagement/ManageAgentsFilters.jsx) — Search by agent name/phone with clear button; Coverage Area and Availability dropdowns on the right without redundant filter icons.
-  3. [`AgentTableRow.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/AgentManagement/AgentTableRow.jsx) — Table row with px-2 cell padding, canonical min-w-* constraints, assigned count badge, and centered bordered action buttons.
-  4. [`ManageAgentViewModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/AgentManagement/ManageAgentViewModal.jsx) — View agent profile and assignment history modal using reusable Modal.
-  5. [`ManageAgentFormModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/AgentManagement/ManageAgentFormModal.jsx) — Add/edit agent details modal using reusable Modal.
+  1. [`AgentManagementToolbar.jsx (120-150 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/AgentManagement/AgentManagementToolbar.jsx) — Consolidated toolbar with agent readiness stat cards and search/area/availability filters.
+  2. [`AgentManagementTable.jsx (180-240 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/AgentManagement/AgentManagementTable.jsx) — Field agents roster table with px-2 cell padding, canonical min-w-* constraints, TableSkeleton, and 3-part Pagination.
+  3. [`AgentManagementModals.jsx (200-280 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/AgentManagement/AgentManagementModals.jsx) — Consolidated agent profile dossier modal and status update/assignment modal.
 
 ---
 
@@ -68,7 +69,7 @@ All split sub-components for this page MUST reside in their dedicated directory 
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/components/pages/Admin/AgentManagement/`.
+- [ ] Sub-components live in `src/components/pages/Admin/AgentManagement/` and adhere to the 100-350 lines sizing standard.
 - [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
 - [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
 - [ ] Search input has clear button and clean dropdowns without redundant filter icons.

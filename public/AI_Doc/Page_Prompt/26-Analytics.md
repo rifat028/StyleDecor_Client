@@ -12,16 +12,18 @@ The Platform Analytics page provides platform administrators with business intel
 
 ---
 
-## 2. Architecture & Sub-Component Decomposition
-All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/Analytics/`:
+## 2. Architecture & Sub-Component Sizing Standard
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/Analytics/`.
+
+> [!IMPORTANT]
+> **Component Sizing Rule:** Each decomposed sub-component must contain **at least 100–150 lines to a maximum of 250–350 lines**. Avoid fragmenting code into tiny micro-files (< 100 lines); group related cohesive functionality (e.g. Toolbar/Stats+Filters, Table+Rows+Pagination, Modals) together.
 
 - **Main Page:** `src/features/admin/Analytics.page.jsx`
 - **Sub-Components Directory:** `src/components/pages/Admin/Analytics/`
-  1. [`AnalyticsStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/AnalyticsStats.jsx) — Ultra-compact high-level metric summary cards with skeleton fallback.
-  2. [`AnalyticsFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/AnalyticsFilters.jsx) — Date range selector (Last 7 Days, 30 Days, 1 Year, All Time) without redundant filter icons.
-  3. [`RevenueChartCard.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/RevenueChartCard.jsx) — Revenue and profit trend area/line chart card.
-  4. [`BookingsDistributionCard.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/BookingsDistributionCard.jsx) — Category and status breakdown donut/bar chart card.
-  5. [`RegionalPerformanceTable.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/RegionalPerformanceTable.jsx) — Geographic division performance table with px-2 cell padding and min-w-* constraints.
+  1. [`AnalyticsToolbar.jsx (100-140 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/AnalyticsToolbar.jsx) — Date range selector and high-level KPI stat cards.
+  2. [`RevenueChartCard.jsx (150-220 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/RevenueChartCard.jsx) — Revenue and profit trend area/line chart card.
+  3. [`BookingsDistributionCard.jsx (150-220 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/BookingsDistributionCard.jsx) — Category and status breakdown donut/bar chart card.
+  4. [`RegionalPerformanceTable.jsx (140-200 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/Analytics/RegionalPerformanceTable.jsx) — Geographic division performance table with px-2 cell padding and min-w-* constraints.
 
 ---
 
@@ -68,7 +70,7 @@ All split sub-components for this page MUST reside in their dedicated directory 
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/components/pages/Admin/Analytics/`.
+- [ ] Sub-components live in `src/components/pages/Admin/Analytics/` and adhere to the 100-350 lines sizing standard.
 - [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
 - [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
 - [ ] Search input has clear button and clean dropdowns without redundant filter icons.

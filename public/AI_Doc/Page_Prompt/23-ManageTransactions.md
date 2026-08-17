@@ -12,15 +12,17 @@ The Manage Transactions page allows platform administrators to audit financial t
 
 ---
 
-## 2. Architecture & Sub-Component Decomposition
-All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/TransactionManagement/`:
+## 2. Architecture & Sub-Component Sizing Standard
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Admin/TransactionManagement/`.
+
+> [!IMPORTANT]
+> **Component Sizing Rule:** Each decomposed sub-component must contain **at least 100–150 lines to a maximum of 250–350 lines**. Avoid fragmenting code into tiny micro-files (< 100 lines); group related cohesive functionality (e.g. Toolbar/Stats+Filters, Table+Rows+Pagination, Modals) together.
 
 - **Main Page:** `src/features/admin/ManageTransactions.page.jsx`
 - **Sub-Components Directory:** `src/components/pages/Admin/TransactionManagement/`
-  1. [`ManageTransactionsStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/TransactionManagement/ManageTransactionsStats.jsx) — Ultra-compact stat cards for Gross Volume, Successful Payments, Pending Refunds, and Platform Fees with skeleton fallback.
-  2. [`ManageTransactionsFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/TransactionManagement/ManageTransactionsFilters.jsx) — Search by transaction ID or user with clear button; Payment Method, Status, and Date dropdowns on the right without redundant filter icons.
-  3. [`TransactionTableRow.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/TransactionManagement/TransactionTableRow.jsx) — Table row with px-2 cell padding, canonical min-w-* constraints, method badge, and centered bordered action buttons.
-  4. [`TransactionDetailsModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/TransactionManagement/TransactionDetailsModal.jsx) — View transaction invoice modal using reusable Modal.
+  1. [`TransactionManagementToolbar.jsx (120-150 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/TransactionManagement/TransactionManagementToolbar.jsx) — Consolidated toolbar with financial volume stat cards and search/payment method/status filters.
+  2. [`TransactionManagementTable.jsx (180-240 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/TransactionManagement/TransactionManagementTable.jsx) — Financial audit table with px-2 cell padding, canonical min-w-* constraints, TableSkeleton, and 3-part Pagination.
+  3. [`TransactionDetailsModal.jsx (140-200 lines)`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/TransactionManagement/TransactionDetailsModal.jsx) — Invoice and payment breakdown modal.
 
 ---
 
@@ -67,7 +69,7 @@ All split sub-components for this page MUST reside in their dedicated directory 
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/components/pages/Admin/TransactionManagement/`.
+- [ ] Sub-components live in `src/components/pages/Admin/TransactionManagement/` and adhere to the 100-350 lines sizing standard.
 - [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
 - [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
 - [ ] Search input has clear button and clean dropdowns without redundant filter icons.
