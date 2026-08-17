@@ -6,7 +6,7 @@ Do not skip the research step and jump straight to the generic checklist below �
 
 ---
 
-## 1. Inputs to read, per page
+## 1. Inputs to read, per page 
 
 For the page being processed:
 
@@ -14,8 +14,7 @@ For the page being processed:
 2. **The page's own source file** — read it in full (not excerpts).
 3. **Every component the page directly imports and that isn't a generic/shared UI primitive** — e.g. if `ManageUser.page.jsx` renders a bespoke `<UserRow>` sub-component that only it uses, read that too. Skip components already flagged for extraction as shared (`02-Reusable-Components.md`) — those are handled by the generic checklist, not re-derived per page.
 4. **All seven audit docs** (`00-Scan-Overview.md` through `06-UI-Upgrade-Guide.md`) — grep each for the page's file name, route, or feature name to pull any findings already on record for this page. Note the section/line reference so the prompt can point back to it.
-5. **`00-Color-System.md`** — the canonical semantic-color mapping for this project. Required reading for the "Color consistency" checklist item (§3.6 below).
-6. **Any hook(s) the page uses directly** (e.g. `useAxiosSecure`, `useRole`) only insofar as their behavior affects this page's correctness (e.g. the commented-out 401 handling in `03-Frontend-Issues-And-Solutions.md` §5 affects every authenticated page — note it, don't re-investigate the hook itself).
+5. **Any hook(s) the page uses directly** (e.g. `useAxiosSecure`, `useRole`) only insofar as their behavior affects this page's correctness (e.g. the commented-out 401 handling in `03-Frontend-Issues-And-Solutions.md` §5 affects every authenticated page — note it, don't re-investigate the hook itself).
 
 ---
 
@@ -39,17 +38,16 @@ These are the standing quality bars every page should be held to, per the user's
 | # | Dimension | What to check |
 |---|---|---|
 | 1 | **Reusable components** | Does this page hand-roll markup that duplicates a pattern documented in `02-Reusable-Components.md` (Pagination, DataTable, EmptyState, StatCard, Modal, ThemeToggle, UserMenu, RatingBadge, Avatar, format utils)? Should it be migrated to the shared component once built, or does it introduce a *new* duplicate pattern not yet catalogued? |
-| 2 | **Component decomposition / file size** | Note the file's line count. As a rough trigger, treat 400+ lines, or 2+ modals defined inline, or a page mixing "data table + filters + 2-3 modals + form logic" all in one component, as a candidate for splitting — regardless of whether any of it is duplicated elsewhere (that's checklist item 1; this is about *local* readability, not cross-file reuse). Identify concrete split points: each modal → its own file in a co-located `components/` folder next to the page (e.g. `src/features/admin/components/ManageUserEditModal.jsx`), a large table's row markup → a `<TableRow>` sub-component, a stats/KPI row → its own component, large inline constant arrays/objects (status maps, form-field configs) → a separate `constants.js` alongside the page. A sub-component extracted for readability only (used once, not shared) still belongs in a `components/` folder next to the page it serves, not `src/components/ui/` — that directory is for cross-page shared pieces only. |
-| 3 | **Skeleton loader vs spinner loader** | Does the page's loading state use a full-replace `<Spinner>` (layout-shift-inducing) where a skeleton (`TableRowSkeleton`, `CardGridSkeleton`, or a page-specific skeleton) would preserve layout? Reserve spinners for short/global/full-page transitions; use skeletons for lists/tables/cards with predictable shape. |
-| 4 | **Tooltip usage** | Are there icon-only buttons, truncated text, or non-obvious controls that need a tooltip for clarity, and don't have one? Are existing tooltips (if any) consistent in trigger/style with the rest of the app? |
-| 5 | **Responsiveness** | Does the layout hold up at mobile (`<640px`), tablet (`640–1024px`), and desktop widths? Check for fixed-width elements, overflow, tables without a mobile fallback, touch-target size on interactive elements. |
-| 6 | **Color consistency** | Check every color class on the page against `00-Color-System.md` — the project's canonical semantic-color mapping (primary/neutral/success/warning/danger/info + the tint-chip pattern). Flag any class that doesn't map to a defined role (wrong hue for its meaning, `red-*` used where `rose-*` is the destructive standard, a deprecated hue like `gray`/`cyan`/`teal`/`yellow`, or a missing `dark:` pairing per the §2 table). Do **not** compare against sibling pages — they may be inconsistent too; `00-Color-System.md` is the only source of truth. |
-| 7 | **Design consistency** | Do spacing, border-radius, shadow, typography scale, and component styling match sibling pages in the same dashboard area (e.g. this admin page vs. other `ManageX` pages)? |
-| 8 | **Overall correctness** | Any logic bugs, wrong data bindings, race conditions, stale closures, unhandled promise rejections, or state not resetting between navigations? Cross-check against confirmed bugs in `03-Frontend-Issues-And-Solutions.md` and `04-Business-Logic.md` if this page touches booking/payment/commission math. |
-| 9 | **Overall improvement** | Any relevant idea from `05-Upgrade-Ideas.md` that specifically targets this page (e.g. rating distribution chart on Service Details) — cite it if so. |
-| 10 | **Coding standard** | Prop drilling vs. sensible state placement, naming consistency, no dead state (cross-check the ESLint `no-unused-vars` findings in `03-Frontend-Issues-And-Solutions.md` §11 for this file), no `console.log` left in, no inline magic numbers/strings that should be named constants. |
-| 11 | **Comments** | Non-obvious logic (business rules, workarounds, calculations) should have a short comment explaining *why*. Flag places where intent is currently unclear from the code alone — don't ask for comments restating *what* the code does. |
-| 12 | **Accessibility** | Keyboard reachability, `aria-label`s on icon-only controls, focus management on modals/dropdowns opened from this page — cross-check `01-UI-UX-Issues.md` and `06-UI-Upgrade-Guide.md` Phase 2 for patterns already identified elsewhere in the app. |
+| 2 | **Skeleton loader vs spinner loader** | Does the page's loading state use a full-replace `<Spinner>` (layout-shift-inducing) where a skeleton (`TableRowSkeleton`, `CardGridSkeleton`, or a page-specific skeleton) would preserve layout? Reserve spinners for short/global/full-page transitions; use skeletons for lists/tables/cards with predictable shape. |
+| 3 | **Tooltip usage** | Are there icon-only buttons, truncated text, or non-obvious controls that need a tooltip for clarity, and don't have one? Are existing tooltips (if any) consistent in trigger/style with the rest of the app? |
+| 4 | **Responsiveness** | Does the layout hold up at mobile (`<640px`), tablet (`640–1024px`), and desktop widths? Check for fixed-width elements, overflow, tables without a mobile fallback, touch-target size on interactive elements. |
+| 5 | **Color consistency** | Does the page reuse the app's existing Tailwind/DaisyUI color tokens and dark-mode classes, or does it introduce one-off hex/RGB values or skip `dark:` variants that exist elsewhere on the same page? |
+| 6 | **Design consistency** | Do spacing, border-radius, shadow, typography scale, and component styling match sibling pages in the same dashboard area (e.g. this admin page vs. other `ManageX` pages)? |
+| 7 | **Overall correctness** | Any logic bugs, wrong data bindings, race conditions, stale closures, unhandled promise rejections, or state not resetting between navigations? Cross-check against confirmed bugs in `03-Frontend-Issues-And-Solutions.md` and `04-Business-Logic.md` if this page touches booking/payment/commission math. |
+| 8 | **Overall improvement** | Any relevant idea from `05-Upgrade-Ideas.md` that specifically targets this page (e.g. rating distribution chart on Service Details) — cite it if so. |
+| 9 | **Coding standard** | Prop drilling vs. sensible state placement, naming consistency, no dead state (cross-check the ESLint `no-unused-vars` findings in `03-Frontend-Issues-And-Solutions.md` §11 for this file), no `console.log` left in, no inline magic numbers/strings that should be named constants. |
+| 10 | **Comments** | Non-obvious logic (business rules, workarounds, calculations) should have a short comment explaining *why*. Flag places where intent is currently unclear from the code alone — don't ask for comments restating *what* the code does. |
+| 11 | **Accessibility** | Keyboard reachability, `aria-label`s on icon-only controls, focus management on modals/dropdowns opened from this page — cross-check `01-UI-UX-Issues.md` and `06-UI-Upgrade-Guide.md` Phase 2 for patterns already identified elsewhere in the app. |
 
 ---
 
@@ -72,7 +70,6 @@ Each page prompt file must follow this structure exactly:
 
 ### Generic checklist
 - **Reusable components:** <Applies: evidence | N/A: why>
-- **Component decomposition / file size:** <Applies: file's line count + concrete split points | N/A: why — e.g. "file is under 300 lines, no split needed">
 - **Skeleton/spinner loader:** <Applies: evidence | N/A: why>
 - **Tooltip:** <Applies: evidence | N/A: why>
 - **Responsiveness:** <Applies: evidence | N/A: why>
