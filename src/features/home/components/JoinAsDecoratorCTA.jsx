@@ -14,14 +14,14 @@ import {
 
 const JoinAsDecoratorCTA = () => {
   return (
-    <section className="py-12 px-4 md:px-8 lg:px-12 bg-gray-50/50 dark:bg-gray-950 transition-colors duration-300">
+    <section className="py-12 px-4 md:px-8 lg:px-12 bg-slate-50/50 dark:bg-slate-950 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         {/* Full-width Banner Container */}
-        <div className="relative rounded-3xl bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 text-white p-8 md:p-12 lg:p-14 shadow-2xl overflow-hidden border border-purple-800/40">
+        <div className="relative rounded-3xl bg-linear-to-r from-slate-900 via-purple-950 to-slate-900 text-white p-8 md:p-12 lg:p-14 shadow-2xl overflow-hidden border border-purple-800/40">
           {/* Decorative Floating Ambient Glow & Grid Overlay */}
           <div className="absolute inset-0 bg-[radial-gradient(#a855f7_1px,transparent_1px)] [background-size:20px_20px] opacity-15 pointer-events-none" />
           <div className="absolute -top-20 -right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
 
           {/* Two-Column Layout (60% / 40% Desktop) */}
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
@@ -30,7 +30,7 @@ const JoinAsDecoratorCTA = () => {
               {/* Top Pill Badge */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-400/30 text-xs font-semibold tracking-wide w-fit">
                 <Briefcase className="w-4 h-4 text-purple-400" />
-                <span>🤝 Partner With Us</span>
+                <span>Partner With Us</span>
               </div>
 
               {/* Headline & Sub-headline */}
@@ -38,7 +38,7 @@ const JoinAsDecoratorCTA = () => {
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
                   Are You an{" "}
                   <span className="text-purple-300">Event Decorator</span>?{" "}
-                  <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300 bg-clip-text text-transparent">
+                  <span className="bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                     Grow Your Business 3x Faster.
                   </span>
                 </h2>
@@ -110,7 +110,7 @@ const JoinAsDecoratorCTA = () => {
                 <div>
                   <Link
                     to="/join-as-decorator"
-                    className="w-full inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-purple-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-extrabold text-base sm:text-lg px-8 py-4 rounded-xl shadow-lg shadow-purple-600/30 transition-all duration-300 scale-100 hover:scale-[1.03] active:scale-95 group cursor-pointer"
+                    className="w-full inline-flex items-center justify-center gap-2.5 bg-linear-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-extrabold text-base sm:text-lg px-8 py-4 rounded-xl shadow-lg shadow-purple-600/30 transition-all duration-300 scale-100 hover:scale-[1.03] active:scale-95 group cursor-pointer"
                   >
                     <span>Register as Decorator</span>
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

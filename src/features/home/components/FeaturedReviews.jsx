@@ -1,19 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import useAxiosSecure from "../../../hooks/useAxiosSecure";
-import { Link } from "react-router";
 import {
-  Star,
   Quote,
   Sparkles,
   ShieldCheck,
   Award,
   ChevronLeft,
   ChevronRight,
-  Heart,
-  MessageSquare,
-  Building,
   CheckCircle2,
 } from "lucide-react";
+import RatingBadge from "../../../components/ui/RatingBadge";
 
 // Fallback high-quality reviews in case server is loading
 const fallbackReviews = [
@@ -67,7 +63,6 @@ const FeaturedReviews = () => {
   const axiosSecure = useAxiosSecure();
   const [reviews, setReviews] = useState(fallbackReviews);
   const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const scrollContainerRef = useRef(null);
 
   // 1. Integration: GET /reviews/featured
@@ -103,7 +98,7 @@ const FeaturedReviews = () => {
   };
 
   return (
-    <section className="py-16 sm:py-24 bg-gradient-to-b from-white via-purple-50/20 to-slate-50 dark:from-slate-950 dark:via-slate-900/40 dark:to-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden relative">
+    <section className="py-16 sm:py-24 bg-linear-to-b from-white via-purple-50/20 to-slate-50 dark:from-slate-950 dark:via-slate-900/40 dark:to-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden relative">
       {/* Background Glows */}
       <div className="absolute top-1/3 -left-48 w-96 h-96 bg-purple-400/10 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 -right-48 w-96 h-96 bg-indigo-400/10 dark:bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
@@ -119,7 +114,7 @@ const FeaturedReviews = () => {
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
               Real Celebrations, <br className="hidden sm:inline" />
-              <span className="bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-500 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
                 Unforgettable Stories
               </span>
             </h2>
@@ -132,12 +127,8 @@ const FeaturedReviews = () => {
           {/* Controls & Trust Badge */}
           <div className="flex items-center gap-3 self-start md:self-end">
             <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold shadow-xs">
-              <div className="flex items-center text-amber-500">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                ))}
-              </div>
-              <span className="text-slate-800 dark:text-slate-200">4.9 / 5.0 Rating</span>
+              <RatingBadge value={4.9} showCount={false} />
+              <span className="text-slate-800 dark:text-slate-200">/ 5.0 Rating</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -145,6 +136,7 @@ const FeaturedReviews = () => {
                 onClick={handlePrev}
                 className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/50 hover:text-purple-600 transition-all shadow-xs cursor-pointer active:scale-95"
                 title="Previous review"
+                aria-label="Previous review"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -152,6 +144,7 @@ const FeaturedReviews = () => {
                 onClick={handleNext}
                 className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/50 hover:text-purple-600 transition-all shadow-xs cursor-pointer active:scale-95"
                 title="Next review"
+                aria-label="Next review"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -160,90 +153,108 @@ const FeaturedReviews = () => {
         </div>
 
         {/* Reviews Carousel Stream */}
-        <div
-          ref={scrollContainerRef}
-          className="flex gap-6 overflow-x-auto pb-4 pt-2 snap-x snap-mandatory scrollbar-none scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          {reviews.map((r, idx) => (
-            <div
-              key={r._id || idx}
-              className="w-[300px] sm:w-[360px] md:w-[400px] shrink-0 snap-start bg-white dark:bg-slate-900/90 rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-none flex flex-col justify-between space-y-6 transition-all hover:-translate-y-1 hover:border-purple-300 dark:hover:border-purple-700/60 duration-300 relative group"
-            >
-              {/* Top Row: Client Info & Star Rating */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <img
-                        src={r.customerPhotoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120"}
-                        alt={r.customerName}
-                        className="w-12 h-12 rounded-2xl object-cover ring-2 ring-purple-500/20 group-hover:ring-purple-500/50 transition-all"
-                      />
-                      <span className="absolute -bottom-1 -right-1 p-0.5 rounded-full bg-emerald-500 text-white ring-2 ring-white dark:ring-slate-900">
-                        <CheckCircle2 className="w-3 h-3" />
-                      </span>
-                    </div>
-
-                    <div>
-                      <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                        {r.customerName || "Valued Client"}
-                      </h4>
-                      <p className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
-                        <ShieldCheck className="w-3 h-3 text-purple-500" /> Verified Booking
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Stars */}
-                  <div className="flex items-center gap-0.5 text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-xl border border-amber-200/60 dark:border-amber-900/50">
-                    <Star className="w-3.5 h-3.5 fill-current" />
-                    <span className="text-xs font-black text-amber-600 dark:text-amber-400 ml-0.5">
-                      {r.rating}.0
-                    </span>
+        {loading ? (
+          <div className="flex gap-6 overflow-hidden pb-4 pt-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+            {[1, 2, 3].map((idx) => (
+              <div
+                key={idx}
+                className="w-[300px] sm:w-[360px] md:w-[400px] shrink-0 bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-slate-800 animate-pulse space-y-4"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800" />
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-2/3" />
+                    <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded-md w-1/3" />
                   </div>
                 </div>
+                <div className="h-16 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-6 overflow-x-auto pb-4 pt-2 snap-x snap-mandatory scrollbar-none scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {reviews.map((r, idx) => (
+              <div
+                key={r._id || idx}
+                className="w-[300px] sm:w-[360px] md:w-[400px] shrink-0 snap-start bg-white dark:bg-slate-900/90 rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-none flex flex-col justify-between space-y-6 transition-all hover:-translate-y-1 hover:border-purple-300 dark:hover:border-purple-700/60 duration-300 relative group"
+              >
+                {/* Top Row: Client Info & Star Rating */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <img
+                          src={r.customerPhotoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120"}
+                          alt={r.customerName}
+                          className="w-12 h-12 rounded-2xl object-cover ring-2 ring-purple-500/20 group-hover:ring-purple-500/50 transition-all"
+                        />
+                        <span className="absolute -bottom-1 -right-1 p-0.5 rounded-full bg-emerald-500 text-white ring-2 ring-white dark:ring-slate-900">
+                          <CheckCircle2 className="w-3 h-3" />
+                        </span>
+                      </div>
 
-                {/* Comment */}
-                <div className="relative pt-1">
-                  <Quote className="w-8 h-8 text-purple-200 dark:text-purple-950/80 absolute -top-2 -left-1 pointer-events-none" />
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-normal leading-relaxed relative z-10 italic line-clamp-4">
-                    "{r.comment}"
-                  </p>
+                      <div>
+                        <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                          {r.customerName || "Valued Client"}
+                        </h4>
+                        <p className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
+                          <ShieldCheck className="w-3 h-3 text-purple-500" /> Verified Booking
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Stars */}
+                    <div className="flex items-center gap-0.5 text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-xl border border-amber-200/60 dark:border-amber-900/50">
+                      <RatingBadge value={r.rating} showCount={false} />
+                    </div>
+                  </div>
+
+                  {/* Comment */}
+                  <div className="relative pt-1">
+                    <Quote className="w-8 h-8 text-purple-200 dark:text-purple-950/80 absolute -top-2 -left-1 pointer-events-none" />
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-normal leading-relaxed relative z-10 italic line-clamp-4">
+                      "{r.comment}"
+                    </p>
+                  </div>
+
+                  {/* Images if available */}
+                  {r.images && r.images.length > 0 && (
+                    <div className="flex items-center gap-2 pt-1">
+                      {r.images.slice(0, 3).map((img, imgIdx) => (
+                        <img
+                          key={imgIdx}
+                          src={img}
+                          alt="Decor Setup"
+                          className="w-14 h-14 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700 hover:scale-105 transition-transform"
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                {/* Images if available */}
-                {r.images && r.images.length > 0 && (
-                  <div className="flex items-center gap-2 pt-1">
-                    {r.images.slice(0, 3).map((img, imgIdx) => (
-                      <img
-                        key={imgIdx}
-                        src={img}
-                        alt="Decor Setup"
-                        className="w-14 h-14 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700 hover:scale-105 transition-transform"
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+                {/* Bottom Tag: Lead Specialist & Date */}
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                  <span className="inline-flex items-center gap-1.5 font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 px-2.5 py-1 rounded-lg border border-purple-100 dark:border-purple-900/40 truncate max-w-[200px]">
+                    <Award className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">{r.agentName ? `Lead: ${r.agentName}` : "Field Specialist"}</span>
+                  </span>
 
-              {/* Bottom Tag: Lead Specialist & Date */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                <span className="inline-flex items-center gap-1.5 font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 px-2.5 py-1 rounded-lg border border-purple-100 dark:border-purple-900/40 truncate max-w-[200px]">
-                  <Award className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">{r.agentName ? `Lead: ${r.agentName}` : "Field Specialist"}</span>
-                </span>
-
-                <span className="shrink-0 font-medium">
-                  {new Date(r.createdAt || Date.now()).toLocaleDateString("en-US", {
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </span>
+                  <span className="shrink-0 font-medium">
+                    {new Date(r.createdAt || Date.now()).toLocaleDateString("en-US", {
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Trust Metric Highlight Strip */}
         <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs grid grid-cols-2 md:grid-cols-4 gap-6 text-center">

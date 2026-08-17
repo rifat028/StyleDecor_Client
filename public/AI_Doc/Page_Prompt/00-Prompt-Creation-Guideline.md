@@ -46,7 +46,7 @@ These are the standing quality bars every page should be held to, per the user's
 | 7 | **Overall correctness** | Any logic bugs, wrong data bindings, race conditions, stale closures, unhandled promise rejections, or state not resetting between navigations? Cross-check against confirmed bugs in `03-Frontend-Issues-And-Solutions.md` and `04-Business-Logic.md` if this page touches booking/payment/commission math. |
 | 8 | **Overall improvement** | Any relevant idea from `05-Upgrade-Ideas.md` that specifically targets this page (e.g. rating distribution chart on Service Details) — cite it if so. |
 | 9 | **Coding standard** | Prop drilling vs. sensible state placement, naming consistency, no dead state (cross-check the ESLint `no-unused-vars` findings in `03-Frontend-Issues-And-Solutions.md` §11 for this file), no `console.log` left in, no inline magic numbers/strings that should be named constants. |
-| 10 | **Comments** | Non-obvious logic (business rules, workarounds, calculations) should have a short comment explaining *why*. Flag places where intent is currently unclear from the code alone — don't ask for comments restating *what* the code does. |
+| 10 | **Comments** | Non-obvious logic (business rules, calculations, key state) should have a concise single-line comment (`// ...`). All comments MUST be single-line only (no `/* ... */`, `/** ... */`, or decorative ASCII banners). Comment density should remain light: annotate component purpose, complex functions/hooks, and sub-components if large, without cluttering the code. |
 | 11 | **Accessibility** | Keyboard reachability, `aria-label`s on icon-only controls, focus management on modals/dropdowns opened from this page — cross-check `01-UI-UX-Issues.md` and `06-UI-Upgrade-Guide.md` Phase 2 for patterns already identified elsewhere in the app. |
 
 ---
@@ -87,6 +87,7 @@ Each page prompt file must follow this structure exactly:
 - names the exact file(s) to change
 - lists the concrete changes to make, grouped by the findings above, most severe first
 - tells the agent to reuse existing shared components/hooks/utils where they already exist, and only introduce a new shared component if this page is the first of several needing the same pattern (cross-reference 02-Reusable-Components.md)
+- enforces all comments to be single-line only (// ...) with clean, light density (on functions/components/large subcomponents)
 - tells the agent to preserve existing behavior not covered by these findings
 - tells the agent to verify responsiveness and dark mode visually after the change (per the project's UI-change testing convention)
 - does NOT include vague instructions like "improve the UI" — every instruction traces back to a specific finding above>
@@ -113,3 +114,5 @@ Each page prompt file must follow this structure exactly:
 - If a generic checklist item is N/A, still write the line — silence reads as "not checked," an explicit N/A reads as "checked, doesn't apply."
 - Keep the Implementation Prompt actionable and scoped to this one page. Cross-cutting infrastructure work (React Query adoption, TypeScript migration, CI pipeline) belongs in `05-Upgrade-Ideas.md`, not repeated inside every page prompt — only reference it if this specific page is the natural first candidate.
 - Don't duplicate the entire text of 00-06 into the page prompt — cite and summarize, don't paste.
+- **Commenting rule**: All code comments must strictly use single-line format (`// ...`), never multi-line block comments (`/* ... */`, `/** ... */`) or ASCII decorative banners (`// =====`). Maintain light comment density focused on functions, top-level components, and large sub-components.
+

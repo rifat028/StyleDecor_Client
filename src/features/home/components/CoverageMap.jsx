@@ -103,6 +103,7 @@ const CoverageMap = ({ coverage }) => {
   const [requestSubmitted, setRequestSubmitted] = useState(false);
 
   const activeCity = CITIES.find((c) => c.id === activeCityId) || CITIES[0];
+  const totalCoveragePoints = Array.isArray(coverage) && coverage.length > 0 ? coverage.length : 20;
 
   const handleRequestSubmit = (e) => {
     e.preventDefault();
@@ -125,24 +126,24 @@ const CoverageMap = ({ coverage }) => {
   };
 
   return (
-    <section className="py-16 px-4 md:px-8 lg:px-12 bg-gradient-to-b from-gray-50 via-purple-50/20 to-gray-50 dark:from-gray-950 dark:via-purple-950/10 dark:to-gray-950 transition-colors duration-300">
+    <section className="py-16 px-4 md:px-8 lg:px-12 bg-linear-to-b from-slate-50 via-purple-50/20 to-slate-50 dark:from-slate-950 dark:via-purple-950/10 dark:to-slate-950 transition-colors duration-300">
       <div className="max-w-7xl mx-auto space-y-12">
         {/* 1. Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-sm font-semibold tracking-wide border border-purple-200 dark:border-purple-800/50 shadow-xs">
             <MapPin className="w-4 h-4 text-purple-600 dark:text-purple-400 animate-bounce" />
-            <span>📍 Service Locations</span>
+            <span>Service Locations</span>
           </div>
 
-          <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white leading-tight">
+          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white leading-tight">
             We Are{" "}
-            <span className="bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
               Decorating Events Across Bangladesh
             </span>
           </h2>
 
-          <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 font-normal">
-            From intimate home gatherings to grand venue setups, our verified decoration agencies are active in all major hubs.
+          <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 font-normal">
+            From intimate home gatherings to grand venue setups, our verified decoration agencies are active in {totalCoveragePoints}+ coverage points nationwide.
           </p>
         </div>
 
@@ -153,12 +154,12 @@ const CoverageMap = ({ coverage }) => {
             {/* City Selection Header & Pills */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Compass className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                   Select Coverage Hub
                 </h3>
                 <span className="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/50 px-2.5 py-1 rounded-full border border-purple-200 dark:border-purple-800">
-                  {CITIES.length} Active Regions
+                  {CITIES.length} Major Hubs ({totalCoveragePoints}+ Points)
                 </span>
               </div>
 
@@ -175,7 +176,7 @@ const CoverageMap = ({ coverage }) => {
                       className={`relative flex items-center justify-between p-3.5 rounded-xl text-left transition-all duration-300 cursor-pointer border ${
                         isActive
                           ? "bg-purple-600 text-white shadow-lg shadow-purple-500/25 border-purple-500 scale-[1.02] ring-2 ring-purple-400/50"
-                          : "bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-md"
+                          : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-md"
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
@@ -183,7 +184,7 @@ const CoverageMap = ({ coverage }) => {
                           className={`w-2.5 h-2.5 rounded-full ${
                             isActive
                               ? "bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]"
-                              : "bg-gray-300 dark:bg-gray-700"
+                              : "bg-slate-300 dark:bg-slate-700"
                           }`}
                         />
                         <span className="font-semibold text-sm sm:text-base">
@@ -200,22 +201,22 @@ const CoverageMap = ({ coverage }) => {
             </div>
 
             {/* Active City Stats Box */}
-            <div className="bg-white dark:bg-gray-900/90 rounded-2xl p-6 sm:p-7 border border-purple-100 dark:border-purple-900/40 shadow-xl shadow-purple-900/5 backdrop-blur-xs relative overflow-hidden transition-all duration-300">
+            <div className="bg-white dark:bg-slate-900/90 rounded-2xl p-6 sm:p-7 border border-purple-100 dark:border-purple-900/40 shadow-xl shadow-purple-900/5 backdrop-blur-xs relative overflow-hidden transition-all duration-300">
               {/* Decorative accent top bar */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-purple-600 via-indigo-500 to-pink-500" />
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-indigo-500 to-purple-600" />
 
               {/* Selected City Header */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-slate-100 dark:border-slate-800">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <h4 className="text-2xl font-bold text-slate-900 dark:text-white">
                       {activeCity.name} Hub
                     </h4>
                     <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
                       {activeCity.badge}
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                     {activeCity.tagline}
                   </p>
                 </div>
@@ -231,12 +232,12 @@ const CoverageMap = ({ coverage }) => {
                 {/* Active Decorators */}
                 <div className="p-4 rounded-xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/50 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-purple-600 dark:text-purple-400 mb-2">
-                    <span className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    <span className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                       Active Decorators
                     </span>
                     <Building2 className="w-4 h-4" />
                   </div>
-                  <p className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">
+                  <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
                     {activeCity.decorators}
                   </p>
                 </div>
@@ -244,12 +245,12 @@ const CoverageMap = ({ coverage }) => {
                 {/* Events Completed */}
                 <div className="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-2">
-                    <span className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    <span className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                       Events Completed
                     </span>
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
-                  <p className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">
+                  <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
                     {activeCity.eventsCompleted}
                   </p>
                 </div>
@@ -257,12 +258,12 @@ const CoverageMap = ({ coverage }) => {
                 {/* Popular Specialty */}
                 <div className="p-4 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 flex flex-col justify-between col-span-2 sm:col-span-1">
                   <div className="flex items-center justify-between text-indigo-600 dark:text-indigo-400 mb-2">
-                    <span className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    <span className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                       Popular Specialty
                     </span>
                     <Sparkles className="w-4 h-4" />
                   </div>
-                  <p className="text-sm font-bold text-gray-900 dark:text-white line-clamp-2">
+                  <p className="text-sm font-bold text-slate-900 dark:text-white line-clamp-2">
                     {activeCity.specialty}
                   </p>
                 </div>
@@ -270,12 +271,12 @@ const CoverageMap = ({ coverage }) => {
                 {/* Response Time */}
                 <div className="p-4 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 flex flex-col justify-between col-span-2 sm:col-span-1">
                   <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 mb-2">
-                    <span className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    <span className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                       Response Time
                     </span>
                     <Clock className="w-4 h-4" />
                   </div>
-                  <p className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">
+                  <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
                     {activeCity.responseTime}
                   </p>
                 </div>
@@ -283,14 +284,14 @@ const CoverageMap = ({ coverage }) => {
 
               {/* Popular Covered Zones Tag Cloud */}
               <div className="pt-2">
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
                   Top Neighborhoods Covered:
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {activeCity.popularAreas.map((area, idx) => (
                     <span
                       key={idx}
-                      className="px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                      className="px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
                     >
                       {area}
                     </span>
@@ -365,13 +366,15 @@ const CoverageMap = ({ coverage }) => {
                 const isHovered = hoveredCityId === city.id;
 
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={city.id}
                     style={{
                       left: `${city.coordinates.x}%`,
-                      top: `${city.coordinates.y}%`
+                      top: `${city.coordinates.y}%`,
                     }}
-                    className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
+                    aria-label={`Select ${city.name} hub`}
+                    className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group bg-transparent border-0 p-0 focus:outline-hidden"
                     onClick={() => setActiveCityId(city.id)}
                     onMouseEnter={() => setHoveredCityId(city.id)}
                     onMouseLeave={() => setHoveredCityId(null)}
@@ -391,7 +394,7 @@ const CoverageMap = ({ coverage }) => {
                     <div
                       className={`relative z-10 p-2.5 rounded-full flex items-center justify-center transition-all duration-300 ${
                         isActive
-                          ? "bg-gradient-to-tr from-purple-600 to-pink-500 text-white scale-125 shadow-[0_0_25px_rgba(168,85,247,0.9)] ring-4 ring-purple-300/30"
+                          ? "bg-linear-to-tr from-indigo-500 to-purple-600 text-white scale-125 shadow-[0_0_25px_rgba(168,85,247,0.9)] ring-4 ring-purple-300/30"
                           : "bg-slate-800 text-purple-400 border border-purple-500/40 hover:scale-110 hover:bg-purple-600 hover:text-white"
                       }`}
                     >
@@ -414,7 +417,7 @@ const CoverageMap = ({ coverage }) => {
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -439,7 +442,7 @@ const CoverageMap = ({ coverage }) => {
         </div>
 
         {/* 3. Coverage Search & Request Bar (Bottom Widget) */}
-        <div className="relative rounded-2xl bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white p-6 sm:p-8 shadow-2xl overflow-hidden border border-purple-800/40">
+        <div className="relative rounded-2xl bg-linear-to-r from-purple-900 via-indigo-900 to-slate-900 text-white p-6 sm:p-8 shadow-2xl overflow-hidden border border-purple-800/40">
           {/* Decorative background glow */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -483,7 +486,7 @@ const CoverageMap = ({ coverage }) => {
                   </div>
                   <button
                     type="submit"
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-md hover:shadow-purple-500/25 transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-linear-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold text-sm shadow-md hover:shadow-purple-500/25 transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
                   >
                     <span>Request Service in My Area</span>
                     <Send className="w-4 h-4" />

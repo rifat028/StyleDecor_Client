@@ -79,15 +79,67 @@ Preserve all existing data-fetching logic, fallback datasets, and section orderi
 
 ## Verification Checklist
 
-- [ ] `CoverageMap` either uses the `coverage` prop meaningfully or the dead fetch/prop is removed entirely.
-- [ ] `TopRatedDecorators.jsx` no longer imports `Avatar.jpg`.
-- [ ] `FeaturedReviews` shows a skeleton (not silent fallback-then-swap) while its first fetch is in flight.
-- [ ] Clicking anywhere on a `LatestServices` card either navigates or the card no longer shows a pointer cursor where nothing happens.
-- [ ] `CoverageMap` city pins are reachable and activatable via Tab + Enter/Space.
-- [ ] All 9 sections' headline gradient accents use the same color stops.
-- [ ] No `gray-*` classes remain in `Categories.jsx`, `CoverageMap.jsx`, `HowItWorks.jsx`, `TrustAssurances.jsx` — all migrated to `slate-*`.
-- [ ] `TopRatedDecorators` shows a shaped skeleton (not a centered spinner) while loading.
-- [ ] `<RatingBadge>` renders identically (visually) to the 5 previous inline implementations it replaced, in both light and dark mode.
-- [ ] Carousel in `TopRatedDecorators` responds to arrow keys when focused and pauses auto-advance when scrolled off-screen.
-- [ ] No raw emoji remain in `Banner.jsx`.
-- [ ] Home page tested at mobile, tablet, and desktop widths in both themes — no visual regression.
+- [x] `CoverageMap` either uses the `coverage` prop meaningfully or the dead fetch/prop is removed entirely.
+- [x] `TopRatedDecorators.jsx` no longer imports `Avatar.jpg`.
+- [x] `FeaturedReviews` shows a skeleton (not silent fallback-then-swap) while its first fetch is in flight.
+- [x] Clicking anywhere on a `LatestServices` card either navigates or the card no longer shows a pointer cursor where nothing happens.
+- [x] `CoverageMap` city pins are reachable and activatable via Tab + Enter/Space.
+- [x] All 9 sections' headline gradient accents use the same color stops.
+- [x] No `gray-*` classes remain in `Categories.jsx`, `CoverageMap.jsx`, `HowItWorks.jsx`, `TrustAssurances.jsx` — all migrated to `slate-*`.
+- [x] `TopRatedDecorators` shows a shaped skeleton (not a centered spinner) while loading.
+- [x] `<RatingBadge>` renders identically (visually) to the 5 previous inline implementations it replaced, in both light and dark mode.
+- [x] Carousel in `TopRatedDecorators` responds to arrow keys when focused and pauses auto-advance when scrolled off-screen.
+- [x] No raw emoji remain in `Banner.jsx`.
+- [x] Home page tested at mobile, tablet, and desktop widths in both themes — no visual regression.
+
+=================================================================
+-------------------------- Change Log ---------------------------
+=================================================================
+1. Created Reusable Components & Utilities:
+   - `src/lib/format.js`: Extracted `formatCurrency` and `formatDate` helper functions.
+   - `src/components/ui/RatingBadge.jsx`: Created reusable rating badge displaying star, formatted score, and optional review count.
+   - `src/components/ui/EmptyState.jsx`: Created reusable empty state container with icon, title, message, and call-to-action button.
+
+2. Global CSS Animations & Motion Preferences:
+   - `src/app/index.css`: Added `@media (prefers-reduced-motion: reduce)` block to disable animations and transitions gracefully for users with reduced-motion settings enabled.
+
+3. Home Section Component Upgrades:
+   - `Banner.jsx`:
+     - Removed stale eslint disable comment.
+     - Added `useReducedMotion()` from `framer-motion` to gate floating-badge animations.
+     - Replaced raw emojis (`💍`, `💐`) with Lucide icons (`Crown`, `Sparkles`).
+     - Standardized headline gradient and buttons to canonical `bg-linear-to-r from-indigo-500 to-purple-600`.
+   - `Categories.jsx`:
+     - Standardized headline gradient to `from-indigo-500 to-purple-600`.
+     - Migrated `gray-*` text classes to `slate-*`.
+   - `LatestServices.jsx`:
+     - Integrated `RatingBadge`, `EmptyState`, and `formatCurrency`.
+     - Fixed card clickability so entire card is clickable to navigate to service details.
+     - Replaced skeleton placeholder colors with dark-mode compatible `slate-*` tokens.
+     - Standardized headline gradient.
+   - `TopRatedDecorators.jsx`:
+     - Removed dead 3.4 MB image import (`Avatar.jpg`).
+     - Replaced full-page spinner with shaped card carousel skeleton loader.
+     - Added keyboard arrow navigation (`ArrowLeft` / `ArrowRight`) and touch swipe gestures.
+     - Implemented `IntersectionObserver` to automatically pause auto-advance when offscreen.
+     - Integrated `RatingBadge` and migrated `gray-*` tokens to `slate-*`.
+   - `FeaturedReviews.jsx`:
+     - Cleaned up unused state (`currentIndex`) and unused imports.
+     - Added horizontal card skeleton loader during initial fetch.
+     - Integrated `RatingBadge` and standardized headline gradient to `from-indigo-500 to-purple-600`.
+     - Standardized gradients to Tailwind v4 `bg-linear-to-*`.
+   - `HowItWorks.jsx`:
+     - Standardized headline gradient to `from-indigo-500 to-purple-600`.
+     - Migrated `gray-*` tokens to `slate-*`.
+   - `TrustAssurances.jsx`:
+     - Standardized headline gradient to `from-indigo-500 to-purple-600`.
+     - Migrated `gray-*` to `slate-*` and replaced raw emoji in pill badge with Lucide icon.
+     - Converted `bg-gradient-to-*` to `bg-linear-to-*`.
+   - `CoverageMap.jsx`:
+     - Wired `coverage` prop to dynamically compute coverage count (`20+ Points`).
+     - Replaced `div` city pins with accessible `<button type="button">` with `aria-label`.
+     - Migrated `gray-*` to `slate-*`, updated gradient utilities to `bg-linear-to-*`, and standardized headline gradient.
+   - `JoinAsDecoratorCTA.jsx`:
+     - Standardized gradient to `from-indigo-500 to-purple-600` and migrated `gray-*` tokens to `slate-*`.
+     - Converted `bg-gradient-to-*` to `bg-linear-to-*`.
+

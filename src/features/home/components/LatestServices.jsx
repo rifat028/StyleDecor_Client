@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  Star,
   ArrowRight,
   Sparkles,
   Tag,
   PackageOpen,
   CheckCircle2,
-  MapPin,
 } from "lucide-react";
 import useAxiosSecure from "../../../hooks/useAxiosSecure";
+import RatingBadge from "../../../components/ui/RatingBadge";
+import EmptyState from "../../../components/ui/EmptyState";
+import { formatCurrency } from "../../../lib/format";
 
 import img1 from "../../../assets/images/categories/img-01.png";
 import img2 from "../../../assets/images/categories/img-02.png";
@@ -17,6 +18,8 @@ import img3 from "../../../assets/images/categories/img-03.png";
 import img4 from "../../../assets/images/categories/img-04.png";
 import img5 from "../../../assets/images/categories/img-05.png";
 import img6 from "../../../assets/images/categories/img-06.png";
+
+const DEFAULT_SERVICE_PRICE = 20000;
 
 // Fallback Mock Data Configuration
 const fallbackServices = [
@@ -146,7 +149,7 @@ const LatestServices = () => {
           <h2 className="text-3xl md:text-5xl font-bold mb-4 flex items-center justify-center gap-3 text-base-content dark:text-white">
             <Sparkles className="w-8 h-8 text-amber-500" />
             Explore Our{" "}
-            <span className="text-transparent bg-clip-text bg-linear-to-r from-amber-500 to-purple-600">
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-indigo-500 to-purple-600">
               Trending Packages
             </span>
           </h2>
@@ -178,31 +181,25 @@ const LatestServices = () => {
             {[1, 2, 3, 4, 5, 6].map((idx) => (
               <div
                 key={idx}
-                className="bg-white dark:bg-base-200 rounded-3xl p-4 border border-base-300 animate-pulse space-y-4"
+                className="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-200 dark:border-slate-800 animate-pulse space-y-4 shadow-xs"
               >
-                <div className="h-48 bg-base-300 rounded-2xl w-full" />
-                <div className="h-5 bg-base-300 rounded-lg w-3/4" />
-                <div className="h-4 bg-base-300 rounded-lg w-1/2" />
-                <div className="h-10 bg-base-300 rounded-xl w-full" />
+                <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-2xl w-full" />
+                <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded-lg w-3/4" />
+                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/2" />
+                <div className="h-10 bg-slate-200 dark:bg-slate-800 rounded-xl w-full" />
               </div>
             ))}
           </div>
         ) : displayedServices.length === 0 ? (
-          <div className="bg-white dark:bg-base-200 rounded-3xl p-16 text-center border border-base-300 space-y-4">
-            <PackageOpen className="w-12 h-12 text-base-content/30 mx-auto" />
-            <h3 className="text-xl font-bold text-base-content">
-              No Packages Found
-            </h3>
-            <p className="text-sm text-base-content/70">
-              We couldn't find any packages under "{activeTab}".
-            </p>
-            <button
-              onClick={() => setActiveTab("All")}
-              className="px-6 py-2.5 rounded-xl bg-purple-600 text-white font-medium hover:bg-purple-700 transition-colors shadow-md cursor-pointer"
-            >
-              Show All Packages
-            </button>
-          </div>
+          <EmptyState
+            icon={PackageOpen}
+            title="No Packages Found"
+            message={`We couldn't find any packages under "${activeTab}".`}
+            action={{
+              label: "Show All Packages",
+              onClick: () => setActiveTab("All"),
+            }}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {displayedServices.map((service, index) => {
@@ -214,7 +211,7 @@ const LatestServices = () => {
 
               const title = service.title || service.serviceName || "Celebration Decor Package";
               const catName = typeof service.category === "string" ? service.category : (service.category?.name || service.serviceCategory || "Decor Package");
-              const price = service.pricing?.discountedPrice || service.pricing?.basePrice || service.cost || 20000;
+              const price = service.pricing?.discountedPrice || service.pricing?.basePrice || service.cost || DEFAULT_SERVICE_PRICE;
               const vendorName = service.decorator?.businessName || service.vendor || "StyleDecor Verified Agency";
               const rating = service.metrics?.rating || service.rating || 4.9;
               const reviewsCount = service.metrics?.reviewCount || service.totalReviews || 28;
@@ -223,6 +220,7 @@ const LatestServices = () => {
               return (
                 <div
                   key={service._id || index}
+                  onClick={() => navigate(`/services/${service._id}`)}
                   className="group bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 cursor-pointer"
                 >
                   {/* Banner Image & Floating Badges */}
@@ -240,7 +238,7 @@ const LatestServices = () => {
 
                     {/* Price Tag Badge */}
                     <div className="absolute top-3 right-3 bg-white/95 dark:bg-slate-900/95 text-purple-700 dark:text-purple-300 text-xs font-black px-3.5 py-1 rounded-full backdrop-blur-md shadow-md border border-purple-200 dark:border-purple-800">
-                      ৳{Number(price).toLocaleString()}
+                      {formatCurrency(price)}
                     </div>
                   </div>
 
@@ -263,18 +261,15 @@ const LatestServices = () => {
                         {vendorName}
                       </span>
 
-                      <div className="flex items-center gap-1">
-                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
-                        <span className="font-bold text-slate-800 dark:text-slate-200">
-                          {Number(rating).toFixed(1)}
-                        </span>
-                        <span className="text-[11px]">({reviewsCount})</span>
-                      </div>
+                      <RatingBadge value={rating} count={reviewsCount} />
                     </div>
 
                     {/* Action CTA Button */}
                     <button
-                      onClick={() => navigate(`/services/${service._id}`)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/services/${service._id}`);
+                      }}
                       className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-purple-600/25 transition-all duration-300 cursor-pointer"
                     >
                       Book Package
