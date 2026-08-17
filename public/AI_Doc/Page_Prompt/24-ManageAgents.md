@@ -1,60 +1,79 @@
-# Manage Agents (Admin) — Improvement Prompt
+# Manage Field Agents (Admin) — Improvement Prompt
 
-**Route(s):** `/dashboard/manage-agents`
-**File(s) in scope:** `src/features/admin/ManageAgents.page.jsx`. Cross-referenced: `src/features/decorators/JoinAsDecorator.page.jsx`/`ManageUser.page.jsx`/`ManageDecorator.page.jsx`/`TopDecorators.page.jsx` (shared Bangladesh city-list constant this file diverges from — see finding #2).
-**Related audit references:**
-- `00-Color-System.md` (canonical palette)
+> **File:** `src/features/admin/ManageAgents.page.jsx`  
+> **Route:** `/dashboard/manage-agents`  
+> **Access:** `Admin`
 
-## Findings
+---
 
-### Page-specific
+## 1. Page Overview & Purpose
+The Manage Field Agents page allows platform administrators to supervise field supervisors, monitor active site visits, and assign agents to service events.
 
-1. **`loadStats` uses a single `GET /agents/stats` request — a positive reference implementation, not a finding.** Line 52: one call returns `{totalAgents, availableCount, onAssignmentCount, totalCompletedEvents, avgRating}` in one round-trip. This is the correct pattern `ManageServices.page.jsx`, `ManageDecorator.page.jsx`, and `ManageBookings.page.jsx` should all be migrated to match (see their respective prompts) — noted here as the second confirmed working example alongside `ManageUser.page.jsx`.
-2. **City filter dropdown is a shorter, differently-spelled list than the shared convention used everywhere else in the app.** Lines 324-329 hardcode only 4 cities: `"Dhaka"`, `"Chittagong"`, `"Sylhet"`, `"Rajshahi"` — note `"Chittagong"` here, while every other city list in the app (`TOP_CITIES` in `JoinAsDecorator.page.jsx`/`TopDecorators.page.jsx`, `citiesList` in `ManageUser.page.jsx`, `TOP_CITIES` in `ManageDecorator.page.jsx`) consistently spells it `"Chattogram"` (the current official name) and includes 10 cities, not 4. An admin filtering agents by city here can't select 6 of the 10 cities the rest of the app supports, and the one overlapping city has a different spelling than everywhere else. — **Moderate** (a real functional gap — agents based in Khulna, Barishal, Rangpur, Mymensingh, Cumilla, or Gazipur can't be filtered by city at all on this page).
-3. **`renderStatusBadge` has no case for `"off_duty"`, despite it being a selectable filter option.** The status filter dropdown (line 309) offers `"off_duty"` as an option, but `renderStatusBadge` (lines 173-201) only handles `available`/`on_assignment`/`suspended` explicitly — an off-duty agent's badge falls through to the generic gray default showing the raw status string, unlike the other three statuses which get a distinct icon+color treatment. — **Polish**.
-4. **Legacy Tailwind gradient syntax.** Line 230: `bg-gradient-to-br` (should be `bg-linear-to-br` per the Tailwind v4 convention used elsewhere) — same recurring inconsistency flagged in `15-Transactions.md` finding #3 and `01-Home.md` finding #4. — **Polish**.
-5. **Pagination is the least capable of any page reviewed — no First/Last jump, no page-count-aware disabling beyond boundaries.** Lines 478-500: only Previous/Next buttons with a "Page X of Y" label, missing even the `ChevronsLeft`/`ChevronsRight` jump-to-first/last buttons present on every other admin table. — **Polish**.
-6. **File is 629 lines. Split points:** the table row (lines ~366-472) → a local `<AgentTableRow>`; the Agent Dossier modal body (lines ~522-612, once wrapped in the shared `<Modal>` shell) → `src/features/admin/components/ManageAgentsDossierModal.jsx`. — **Polish** (maintainability, not a functional bug).
+---
 
-### Generic checklist
+## 2. Architecture & Sub-Component Decomposition
+To maintain clean separation of concerns and eliminate monolithic code files, the page is decomposed into sub-components under `src/features/admin/components/`:
 
-- **Reusable components:** Applies — finding #2 (use the shared city-list constant proposed in `09-JoinAsDecorator.md`/`13-MyProfile.md`, extending it to cover agent-city filtering too). The Agent Dossier modal (lines 503-624) is one more hand-rolled instance for the shared `<Modal>` shell.
-- **Component decomposition / file size:** Applies — 629 lines; see finding #6 for concrete split points (table row, Agent Dossier modal).
-- **Skeleton/spinner loader:** Applies, minor — table loading (lines 336-339) and dossier-modal loading (lines 523-526) both use the shared `<Spinner />` in a padded box, same pattern noted elsewhere.
-- **Tooltip:** N/A — action buttons have `title` attributes.
-- **Responsiveness:** No issues found.
-- **Color consistency:** Applies, minor — finding #4.
-- **Design consistency:** N/A beyond the pagination-capability gap (finding #5).
-- **Correctness:** Applies — findings #2, #3.
-- **Improvement opportunity:** None beyond what's covered above.
-- **Coding standard:** N/A.
-- **Comments:** N/A.
-- **Accessibility:** N/A beyond the general Modal-focus-trap gap already covered elsewhere.
+- **Main Page:** `src/features/admin/ManageAgents.page.jsx`
+- **Sub-Components:**
+  1. `ManageAgentsStats.jsx` — Stat cards for Total Agents, Active on Field, Available, and Off-Duty with skeleton fallback.
+  2. `ManageAgentsFilters.jsx` — Search by agent name/phone with clear button; Coverage Area and Availability dropdowns on the right without redundant filter icons.
+  3. `AgentTableRow.jsx` — Table row with px-2 cell padding, canonical min-w-* constraints, assigned count badge, and centered bordered action buttons.
+  4. `ManageAgentViewModal.jsx` — View agent profile and assignment history modal using reusable Modal.
+  5. `ManageAgentFormModal.jsx` — Add/edit agent details modal using reusable Modal.
 
-## Implementation Prompt
+---
 
-Apply these changes to `src/features/admin/ManageAgents.page.jsx`:
+## 3. UI/UX & Layout Enhancements
 
-**1. Correctness fixes:**
-- Replace the hardcoded 4-city dropdown (lines 324-329) with the shared Bangladesh city-list constant (`BD_CITIES`, per `09-JoinAsDecorator.md`'s extraction plan — build it there if not already done, otherwise import it here), fixing both the missing 6 cities and the `"Chittagong"` → `"Chattogram"` spelling mismatch.
-- Add an explicit `"off_duty"` case to `renderStatusBadge` (lines 173-201) with its own distinct icon/color (e.g. a neutral `slate` badge, distinct from the `rose` "suspended" state, since off-duty isn't a disciplinary status).
+1. **Top Header Bar**:
+   - **Left:** Contextual icon badge in purple container, page title, and descriptive subtitle.
+   - **Right:** Primary action button(s) (e.g. "Refresh Data", "Add New") with clean styling.
 
-**2. Polish:**
-- Change `bg-gradient-to-br` (line 230) to `bg-linear-to-br`.
-- Add First/Last page-jump buttons to the pagination footer (lines 478-500), matching the fuller pattern used on other admin tables (`ChevronsLeft`/`ChevronsRight`), or build the shared `<Pagination>` component here directly if another page's pass has already started it.
+2. **Stat Cards Section**:
+   - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes.
+   - Sits directly below the header in its own section.
+   - Interactive click-to-filter support and pulse skeleton loader fallback state (`loading={true}`) when stats data is fetching or unavailable.
 
-**3. Reusable component extraction (coordinate with other admin pages, build once):**
-- Build the shared `<Modal>` shell and migrate the Agent Dossier modal (lines 503-624) onto it.
+3. **Search & Filters Bar Section**:
+   - Sits directly above the table in a rounded card container (`bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800`).
+   - **Left:** Search input with search icon, live debounce (350ms), and clear `(X)` button.
+   - **Right:** Clean dropdown selectors for filtering without redundant filter icons next to the dropdowns.
 
-**4. Component decomposition:**
-- Extract the table row into a local `<AgentTableRow>` and the Agent Dossier modal content into `src/features/admin/components/ManageAgentsDossierModal.jsx`.
+4. **Table Redesign**:
+   - **Container:** Crisp unrounded container (`rounded-none border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden`).
+   - **Header `<thead>`:** Distinct background color (`bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider`).
+   - **Cell Padding:** Standard cell padding capped at `px-2` (`py-3.5 px-2`).
+   - **Responsiveness & Min-Width:** Every column/cell (`<th>` and `<td>`) MUST have an explicit canonical `min-w-*` class wrapped in `overflow-x-auto` to prevent wrapping or breaking on mobile.
+   - **Action Buttons:** Small bordered icon buttons (`border border-slate-200 dark:border-slate-700 rounded-md p-1.5 transition-colors`) with hover background colors and centered header label (`text-center`).
+   - **Loading State:** Reusable `<TableSkeleton rows={5} columns={5} />` inside `<tbody>` when loading.
+   - **Empty State:** Reusable `<EmptyState ... />` when no items match criteria.
 
-Preserve all existing agent status-management, search/filter, and delete logic — none of the above requires restructuring the page's data flow.
+5. **Pagination Footer**:
+   - Built with the reusable `<Pagination>` component (`src/components/ui/Pagination.jsx`).
+   - Shares the **exact same background color** as the table header (`bg-slate-100 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800`).
+   - 3-part layout:
+     - **Left:** Range summary info ("Showing 1 to 10 of N items").
+     - **Middle:** Per-page dropdown limit selector ("Per page: [10 | 20 | 50]").
+     - **Right:** Streamlined `Prev` button, current page indicator (`Page X / Y`), and `Next` button (no redundant numeric buttons).
 
-## Verification Checklist
+6. **Modals & Dialogs**:
+   - Reusable `<Modal>` component (`src/components/ui/Modal.jsx`) mounted via `createPortal` with backdrop click close and Escape key dismiss.
 
-- [ ] City filter offers all 10 Bangladesh cities with the correct "Chattogram" spelling, matching every other city dropdown in the app.
-- [ ] An agent with `status: "off_duty"` shows a distinct badge, not the generic gray fallback.
-- [ ] Pagination supports jumping to first/last page, not just Previous/Next.
-- [ ] Page renders identically after extracting the table row and dossier modal into local sub-components.
-- [ ] Page tested at mobile, tablet, and desktop widths in both themes — no regression.
+7. **Coding Standards**:
+   - Single-line comments only (`// ...`) with light density.
+   - Strictly no block comments (`/* ... */`).
+
+---
+
+## 4. Verification Checklist
+- [ ] Sub-components live in `src/features/admin/components/`.
+- [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
+- [ ] Stat cards use `<StatCard>` with tone styling and skeleton loading fallback.
+- [ ] Search input has clear button and clean dropdowns without redundant filter icons.
+- [ ] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
+- [ ] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds.
+- [ ] Table loading renders reusable `<TableSkeleton>`.
+- [ ] Pagination has 3-part layout with limit dropdown in the middle and `Prev` / `Page X / Y` / `Next` on the right.
+- [ ] Single-line comments only (`// ...`) with light density.
+- [ ] `npm run build` compiles with 0 errors.

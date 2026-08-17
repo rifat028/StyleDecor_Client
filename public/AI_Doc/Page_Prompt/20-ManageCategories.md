@@ -1,57 +1,82 @@
 # Manage Categories (Admin) — Improvement Prompt
 
-**Route(s):** `/dashboard/manage-categories`
-**File(s) in scope:** `src/features/admin/ManageCategories.page.jsx` (includes a locally-defined `SwitchToggle` sub-component, lines 34-66).
-**Related audit references:**
-- `02-Reusable-Components.md` §3 (EmptyState), §6 (Modal shell — this file has 4 hand-rolled modals: Create Category, Edit Category, Add Subcategory, Edit Subcategory).
-- `00-Color-System.md` (canonical palette)
+> **File:** `src/features/admin/ManageCategories.page.jsx`  
+> **Route:** `/dashboard/manage-categories`  
+> **Access:** `Admin`
 
-## Findings
+---
 
-### Page-specific
+## 1. Page Overview & Purpose
+The Manage Categories page allows platform administrators to manage service categories, add and edit subcategories, and configure active/inactive statuses.
 
-1. **Page chrome uses `indigo-600` as if it were the primary color, throughout.** Banner icon background (line 498), "Add Category" button (line 543), all modal focus rings (`focus:ring-indigo-500`, e.g. lines 581, 598, 850, 868, 909, 950, 1001, 1019, 1037, 1099, 1115, 1133, 1194, 1209, 1227), the "Add Sub" button (line 675), category-icon backgrounds (line 640, 816, 1068), and two of the four modal submit buttons (Create, Add Subcategory — lines 952, 1148). This is the same drift already found in `ManageUser.page.jsx` (`19-ManageUser.md` finding #3) and `JoinAsDecorator.page.jsx` (`09-JoinAsDecorator.md` finding #5) — a recurring pattern specifically in account/catalog-management-flavored admin pages, as opposed to the marketplace-facing pages which correctly use `purple-600`. — **Moderate**.
-2. **File is 1255 lines — the largest admin page in the app — with 4 modals accounting for roughly 440 of those lines.** Concrete split points: `src/features/admin/components/ManageCategoriesCreateModal.jsx`, `EditCategoryModal.jsx`, `AddSubCategoryModal.jsx`, `EditSubCategoryModal.jsx` (one file each, matching the 4 modals at lines 811-960, 963-1060, 1063-1156, 1159-1250); the subcategory table drawer inside the accordion (lines 713-803) → a local `<SubCategoryTable categoryId={...} subCategories={...} onToggle={...} onEdit={...} onDelete={...} />`; the category header row itself (lines 634-711) → a local `<CategoryAccordionRow>`. The local `SwitchToggle` (lines 34-66) is already correctly isolated as its own component — no change needed there, it's a model example of what the other split points should look like. — **Polish** (maintainability, not a functional bug — but this file benefits the most of any page in the app from this fix).
-3. **Optimistic updates with rollback — a positive pattern worth preserving and citing elsewhere.** `handleToggleCategoryStatus` (lines 207-232) and `handleToggleSubCategoryStatus` (lines 235-275) update local state immediately, then roll back only if the API call fails. This is a better UX pattern than most other admin pages in this codebase, which simply refetch after every mutation. No fix needed — noted so it isn't accidentally "normalized" to the less responsive refetch-only pattern during a broader admin-page pass.
+---
 
-### Generic checklist
+## 2. Architecture & Sub-Component Decomposition
+To maintain clean separation of concerns and eliminate monolithic code files, the page is decomposed into sub-components under `src/features/admin/components/`:
 
-- **Reusable components:** Applies — this file has 4 hand-rolled modals (Create Category lines 811-960, Edit Category lines 963-1060, Add Subcategory lines 1063-1156, Edit Subcategory lines 1159-1250), all candidates for the shared `<Modal>` shell (§6). The empty state (lines 612-621) is another instance of §3's `<EmptyState>`. Also worth noting: the local `SwitchToggle` component (lines 34-66) is a clean, reusable active/inactive switch — not currently duplicated elsewhere (other admin pages use button-based or explicit-action toggles instead), but a good candidate to promote to `src/components/ui/Toggle.jsx` if a future page needs the same binary-switch pattern rather than button-based status actions.
-- **Component decomposition / file size:** Applies — 1255 lines, the largest admin page in the app; see finding #2 for concrete split points (4 modals, subcategory table drawer, category row).
-- **Skeleton/spinner loader:** Applies, minor — table loading (lines 608-611) uses the shared `<Spinner />` in a padded box, same pattern noted on several other pages.
-- **Tooltip:** N/A — action buttons have `title` attributes.
-- **Responsiveness:** No issues found.
-- **Color consistency:** Applies — finding #1.
-- **Design consistency:** N/A beyond the color chrome issue.
-- **Correctness:** N/A — no logic bugs found; all CRUD flows (create/edit/delete category and subcategory, status toggles) are implemented correctly and match the documented category/subcategory data model in `04-Business-Logic.md` §4.
-- **Improvement opportunity:** None beyond what's covered above.
-- **Coding standard:** N/A.
-- **Comments:** N/A.
-- **Accessibility:** N/A beyond the general Modal-focus-trap gap already covered under Reusable Components in other pages' prompts. Note: `SwitchToggle` itself is already correctly built with `role="switch"` and `aria-checked` (lines 49-50) — a good accessible pattern, worth using as the reference if/when a shared `<Toggle>` is extracted.
+- **Main Page:** `src/features/admin/ManageCategories.page.jsx`
+- **Sub-Components:**
+  1. `ManageCategoriesStats.jsx` — Stat cards for Total Categories, Active, Inactive, and Total Subcategories with skeleton loading fallback.
+  2. `ManageCategoriesFilters.jsx` — Search bar on the left with clear button; Status filter dropdown on the right without redundant filter icons.
+  3. `CategoryAccordionRow.jsx` — Category accordion row with px-2 cell padding, canonical min-w-* constraints, switch toggle, and bordered action buttons.
+  4. `SubCategoryTable.jsx` — Subcategory table with px-2 cell padding, min-w-* classes, and reusable TableSkeleton loader.
+  5. `ManageCategoriesCreateModal.jsx` — Create category modal using reusable Modal.
+  6. `EditCategoryModal.jsx` — Edit category modal using reusable Modal.
+  7. `AddSubCategoryModal.jsx` — Add subcategory modal using reusable Modal.
+  8. `EditSubCategoryModal.jsx` — Edit subcategory modal using reusable Modal.
 
-## Implementation Prompt
+---
 
-Apply these changes to `src/features/admin/ManageCategories.page.jsx`:
+## 3. UI/UX & Layout Enhancements
 
-**1. Color consistency:**
-- Replace `indigo-*` in the page's chrome (banner icon, Add Category/Add Sub buttons, all modal focus rings, icon backgrounds, 2 of the 4 modal submit buttons) with `purple-*` equivalents, matching the canonical primary from `00-Color-System.md`. (The other 2 modal submit buttons — Edit Category, Edit Subcategory — already correctly use `amber-600`, distinguishing "edit" actions from "create" actions; keep that distinction, just fix the create/primary-action buttons to purple instead of indigo.)
+1. **Top Header Bar**:
+   - **Left:** Contextual icon badge in purple container, page title, and descriptive subtitle.
+   - **Right:** Primary action button(s) (e.g. "Refresh Data", "Add New") with clean styling.
 
-**2. Reusable component extraction (coordinate with other admin pages, build once):**
-- Build the shared `<Modal>` shell (§6) and migrate all 4 modals in this file onto it.
-- Build/reuse `<EmptyState>` (§3) for the empty categories view (lines 612-621).
-- Optionally promote the local `SwitchToggle` (lines 34-66) to `src/components/ui/Toggle.jsx` if another page's pass needs the same binary switch pattern; otherwise leave as a well-built local component.
+2. **Stat Cards Section**:
+   - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes.
+   - Sits directly below the header in its own section.
+   - Interactive click-to-filter support and pulse skeleton loader fallback state (`loading={true}`) when stats data is fetching or unavailable.
 
-**3. Component decomposition:**
-- Extract the 4 modals into `src/features/admin/components/ManageCategoriesCreateModal.jsx`, `EditCategoryModal.jsx`, `AddSubCategoryModal.jsx`, and `EditSubCategoryModal.jsx`.
-- Extract the subcategory table drawer into a local `<SubCategoryTable>` component, and the category accordion row into a local `<CategoryAccordionRow>`.
+3. **Search & Filters Bar Section**:
+   - Sits directly above the table in a rounded card container (`bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800`).
+   - **Left:** Search input with search icon, live debounce (350ms), and clear `(X)` button.
+   - **Right:** Clean dropdown selectors for filtering without redundant filter icons next to the dropdowns.
 
-Preserve all existing category/subcategory CRUD logic, the optimistic-update-with-rollback pattern for status toggles, and the expand/collapse accordion behavior — none of the above requires restructuring the page's data flow.
+4. **Table Redesign**:
+   - **Container:** Crisp unrounded container (`rounded-none border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden`).
+   - **Header `<thead>`:** Distinct background color (`bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider`).
+   - **Cell Padding:** Standard cell padding capped at `px-2` (`py-3.5 px-2`).
+   - **Responsiveness & Min-Width:** Every column/cell (`<th>` and `<td>`) MUST have an explicit canonical `min-w-*` class wrapped in `overflow-x-auto` to prevent wrapping or breaking on mobile.
+   - **Action Buttons:** Small bordered icon buttons (`border border-slate-200 dark:border-slate-700 rounded-md p-1.5 transition-colors`) with hover background colors and centered header label (`text-center`).
+   - **Loading State:** Reusable `<TableSkeleton rows={5} columns={5} />` inside `<tbody>` when loading.
+   - **Empty State:** Reusable `<EmptyState ... />` when no items match criteria.
 
-## Verification Checklist
+5. **Pagination Footer**:
+   - Built with the reusable `<Pagination>` component (`src/components/ui/Pagination.jsx`).
+   - Shares the **exact same background color** as the table header (`bg-slate-100 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800`).
+   - 3-part layout:
+     - **Left:** Range summary info ("Showing 1 to 10 of N items").
+     - **Middle:** Per-page dropdown limit selector ("Per page: [10 | 20 | 50]").
+     - **Right:** Streamlined `Prev` button, current page indicator (`Page X / Y`), and `Next` button (no redundant numeric buttons).
 
-- [ ] Page chrome (banner, primary buttons, focus rings) uses purple, not indigo.
-- [ ] Edit actions still visually distinct (amber) from create/primary actions (purple).
-- [ ] All 4 modals close on Escape and backdrop click, and trap focus while open, if migrated to the shared `<Modal>`.
-- [ ] Status toggles still show the optimistic update immediately and roll back correctly on a simulated API failure.
-- [ ] Page renders and behaves identically after extracting the 4 modals, subcategory table, and category row into local sub-components.
-- [ ] Page tested at mobile, tablet, and desktop widths in both themes — no regression.
+6. **Modals & Dialogs**:
+   - Reusable `<Modal>` component (`src/components/ui/Modal.jsx`) mounted via `createPortal` with backdrop click close and Escape key dismiss.
+
+7. **Coding Standards**:
+   - Single-line comments only (`// ...`) with light density.
+   - Strictly no block comments (`/* ... */`).
+
+---
+
+## 4. Verification Checklist
+- [ ] Sub-components live in `src/features/admin/components/`.
+- [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
+- [ ] Stat cards use `<StatCard>` with tone styling and skeleton loading fallback.
+- [ ] Search input has clear button and clean dropdowns without redundant filter icons.
+- [ ] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
+- [ ] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds.
+- [ ] Table loading renders reusable `<TableSkeleton>`.
+- [ ] Pagination has 3-part layout with limit dropdown in the middle and `Prev` / `Page X / Y` / `Next` on the right.
+- [ ] Single-line comments only (`// ...`) with light density.
+- [ ] `npm run build` compiles with 0 errors.

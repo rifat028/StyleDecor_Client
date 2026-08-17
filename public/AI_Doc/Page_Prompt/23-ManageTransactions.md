@@ -1,59 +1,78 @@
-# Manage Transactions / Payments (Admin) — Improvement Prompt
+# Manage Transactions (Admin) — Improvement Prompt
 
-**Route(s):** `/dashboard/manage-transactions`, `/dashboard/manage-payments`
-**File(s) in scope:** `src/features/admin/ManageTransactions.page.jsx`.
-**Related audit references:**
-- `04-Business-Logic.md` §7 (commission/vendor-split fallback formula: gateway fee 1.5%, platform commission 10.0%, vendor receivable 88.5%) — confirmed present exactly as documented at lines 352-353 (table) and 590/594/598 (modal).
-- `04-Business-Logic.md` §8 (refunds: "No partial-refund guardrails or approval workflow... visible in the frontend") — this file is the exact site of that gap; see finding #1 for the precise mechanism.
-- `05-Upgrade-Ideas.md` B4 (centralize commission/deposit math server-side) — this file is one of the places doing client-side fallback math; infrastructure-level, out of scope for this pass, only flagged for awareness.
-- `00-Color-System.md` (canonical palette)
+> **File:** `src/features/admin/ManageTransactions.page.jsx`  
+> **Route:** `/dashboard/manage-transactions`  
+> **Access:** `Admin`
 
-## Findings
+---
 
-### Page-specific
+## 1. Page Overview & Purpose
+The Manage Transactions page allows platform administrators to audit financial transactions, review Stripe/SSLCommerz payments, handle refund requests, and track revenue.
 
-1. **Refund amount input has no upper-bound validation — an admin can refund more than the original payment amount.** Lines 650-655: `<input type="number" value={refundAmount} onChange={(e) => setRefundAmount(e.target.value)} .../>` has no `max` attribute tied to `refundPayment.amount`, and `handleProcessRefund` (lines 157-182) sends whatever numeric value is currently in the field straight to `POST /payments/:id/refund` with zero client-side bound-check. A typo (e.g. an extra zero) or a rushed admin action could submit a refund larger than the customer ever paid. This is the precise, previously-only-generally-described mechanism behind `04-Business-Logic.md` §8's "no partial-refund guardrails" note. — **Critical** (financial-correctness risk on a real money-movement action).
-2. **Platform Commission column/field uses `indigo-*` — likely a deliberate categorical choice, not primary-color drift.** Table column (line 402) and modal breakdown (line 592) both use `text-indigo-600 dark:text-indigo-400` for the commission figure, while the rest of the page's chrome correctly uses `purple-600` as primary. Given this sits alongside a `purple` reference-code column and an `emerald` vendor-share column in a 3-way financial breakdown, this reads as an intentional distinct data-visualization color for "platform's cut" rather than a stray primary-color mistake — different in kind from the `ManageUser.page.jsx`/`ManageCategories.page.jsx` indigo-as-primary drift. Flagging for a judgment call rather than a hard fix. — **Polish**.
-3. **Gradient utility syntax mismatch, same recurring issue found elsewhere.** N/A — this file doesn't use gradients on its own header (unlike `Transactions.page.jsx`'s customer-facing sibling and `ManageAgents.page.jsx`/`ManageReviews.page.jsx`, which do — see those files' findings).
-4. **File is 693 lines, with the two modals accounting for roughly 180 lines combined.** Concrete split points: the receipt/dossier modal body (lines ~526-601, once wrapped in the shared `<Modal>` shell) → `src/features/admin/components/ManageTransactionsReceiptModal.jsx`; the refund modal body (lines ~636-668) → `RefundModal.jsx`; the table row (lines ~345-437) → a local `<PaymentTableRow>`. — **Polish** (maintainability, not a functional bug).
+---
 
-### Generic checklist
+## 2. Architecture & Sub-Component Decomposition
+To maintain clean separation of concerns and eliminate monolithic code files, the page is decomposed into sub-components under `src/features/admin/components/`:
 
-- **Reusable components:** Applies, minor — the receipt/dossier modal (lines 507-615) and refund modal (lines 617-688) are two more hand-rolled instances for the shared `<Modal>` shell (`02-Reusable-Components.md` §6).
-- **Component decomposition / file size:** Applies — 693 lines; see finding #4 for concrete split points (both modals, table row).
-- **Skeleton/spinner loader:** Applies, minor — table loading (lines 307-310) and the receipt-modal loading state (lines 527-530) both use the shared `<Spinner />` in a padded box, same pattern noted on several other pages — the modal instance is a stronger case for a fix since it's nested inside an already-open modal (same layout-shift risk noted in `15-Transactions.md` finding #1).
-- **Tooltip:** N/A — action buttons have `title` attributes.
-- **Responsiveness:** No issues found.
-- **Color consistency:** Applies, minor — finding #2 (judgment call, not a clear violation).
-- **Design consistency:** N/A. Pagination uses the "Page X of Y" text-only format, same gap as other admin pages.
-- **Correctness:** Applies — finding #1, the clear priority.
-- **Improvement opportunity:** `05-Upgrade-Ideas.md` B4 applies at the infrastructure level (centralizing commission math) — out of scope for a single-page pass, noted only.
-- **Coding standard:** N/A.
-- **Comments:** N/A.
-- **Accessibility:** N/A beyond the general Modal-focus-trap gap already covered elsewhere.
+- **Main Page:** `src/features/admin/ManageTransactions.page.jsx`
+- **Sub-Components:**
+  1. `ManageTransactionsStats.jsx` — Stat cards for Gross Volume, Successful Payments, Pending Refunds, and Platform Fees with skeleton fallback.
+  2. `ManageTransactionsFilters.jsx` — Search by transaction ID or user with clear button; Payment Method, Status, and Date dropdowns on the right without redundant filter icons.
+  3. `TransactionTableRow.jsx` — Table row with px-2 cell padding, canonical min-w-* constraints, method badge, and centered bordered action buttons.
+  4. `TransactionDetailsModal.jsx` — View transaction invoice modal using reusable Modal.
 
-## Implementation Prompt
+---
 
-Apply these changes to `src/features/admin/ManageTransactions.page.jsx`:
+## 3. UI/UX & Layout Enhancements
 
-**1. Correctness fix (do first, highest value):**
-- Add `max={refundPayment.amount}` to the refund amount input (line 650-655), and add explicit client-side validation in `handleProcessRefund` rejecting (with a clear error message) any `refundAmount` greater than `refundPayment.amount` before the request is sent — don't rely on the `max` attribute alone, since it doesn't block a value typed in via keyboard on all browsers/input methods. Also reject `refundAmount <= 0`.
+1. **Top Header Bar**:
+   - **Left:** Contextual icon badge in purple container, page title, and descriptive subtitle.
+   - **Right:** Primary action button(s) (e.g. "Refresh Data", "Add New") with clean styling.
 
-**2. Reusable component extraction (coordinate with other admin pages, build once):**
-- Build the shared `<Modal>` shell and migrate both the receipt/dossier modal (lines 507-615) and refund modal (lines 617-688) onto it.
-- Replace the receipt-modal `<Spinner />` (lines 527-530) with a small inline loading indicator sized for the modal's content area, matching the fix already recommended in `15-Transactions.md` finding #1 for the equivalent customer-facing modal.
-- Build `<Pagination>` and replace the text-only pagination footer.
+2. **Stat Cards Section**:
+   - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes.
+   - Sits directly below the header in its own section.
+   - Interactive click-to-filter support and pulse skeleton loader fallback state (`loading={true}`) when stats data is fetching or unavailable.
 
-**3. Component decomposition:**
-- Extract the receipt modal into `src/features/admin/components/ManageTransactionsReceiptModal.jsx`, the refund modal into `RefundModal.jsx`, and the table row into a local `<PaymentTableRow>`.
+3. **Search & Filters Bar Section**:
+   - Sits directly above the table in a rounded card container (`bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800`).
+   - **Left:** Search input with search icon, live debounce (350ms), and clear `(X)` button.
+   - **Right:** Clean dropdown selectors for filtering without redundant filter icons next to the dropdowns.
 
-Preserve the platform-commission fallback math and all existing filtering/search logic exactly as-is — the commission percentages are a documented business rule (`04-Business-Logic.md` §7), not something to change in this pass.
+4. **Table Redesign**:
+   - **Container:** Crisp unrounded container (`rounded-none border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden`).
+   - **Header `<thead>`:** Distinct background color (`bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider`).
+   - **Cell Padding:** Standard cell padding capped at `px-2` (`py-3.5 px-2`).
+   - **Responsiveness & Min-Width:** Every column/cell (`<th>` and `<td>`) MUST have an explicit canonical `min-w-*` class wrapped in `overflow-x-auto` to prevent wrapping or breaking on mobile.
+   - **Action Buttons:** Small bordered icon buttons (`border border-slate-200 dark:border-slate-700 rounded-md p-1.5 transition-colors`) with hover background colors and centered header label (`text-center`).
+   - **Loading State:** Reusable `<TableSkeleton rows={5} columns={5} />` inside `<tbody>` when loading.
+   - **Empty State:** Reusable `<EmptyState ... />` when no items match criteria.
 
-## Verification Checklist
+5. **Pagination Footer**:
+   - Built with the reusable `<Pagination>` component (`src/components/ui/Pagination.jsx`).
+   - Shares the **exact same background color** as the table header (`bg-slate-100 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800`).
+   - 3-part layout:
+     - **Left:** Range summary info ("Showing 1 to 10 of N items").
+     - **Middle:** Per-page dropdown limit selector ("Per page: [10 | 20 | 50]").
+     - **Right:** Streamlined `Prev` button, current page indicator (`Page X / Y`), and `Next` button (no redundant numeric buttons).
 
-- [ ] Attempting to refund more than the original payment amount is blocked with a clear error, before any request is sent to the backend.
-- [ ] Attempting to refund a zero or negative amount is blocked.
-- [ ] A valid partial or full refund still processes successfully exactly as before.
-- [ ] Receipt modal loading state doesn't force a full-viewport-height spinner inside the modal.
-- [ ] Page renders and behaves identically after extracting both modals and the table row into local sub-components.
-- [ ] Page tested at mobile, tablet, and desktop widths in both themes — no regression.
+6. **Modals & Dialogs**:
+   - Reusable `<Modal>` component (`src/components/ui/Modal.jsx`) mounted via `createPortal` with backdrop click close and Escape key dismiss.
+
+7. **Coding Standards**:
+   - Single-line comments only (`// ...`) with light density.
+   - Strictly no block comments (`/* ... */`).
+
+---
+
+## 4. Verification Checklist
+- [ ] Sub-components live in `src/features/admin/components/`.
+- [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
+- [ ] Stat cards use `<StatCard>` with tone styling and skeleton loading fallback.
+- [ ] Search input has clear button and clean dropdowns without redundant filter icons.
+- [ ] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
+- [ ] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds.
+- [ ] Table loading renders reusable `<TableSkeleton>`.
+- [ ] Pagination has 3-part layout with limit dropdown in the middle and `Prev` / `Page X / Y` / `Next` on the right.
+- [ ] Single-line comments only (`// ...`) with light density.
+- [ ] `npm run build` compiles with 0 errors.

@@ -1,57 +1,78 @@
-# Manage Reviews (Admin) — Improvement Prompt
+# Manage Reviews & Ratings (Admin) — Improvement Prompt
 
-**Route(s):** `/dashboard/manage-reviews`
-**File(s) in scope:** `src/features/admin/ManageReviews.page.jsx`.
-**Related audit references:**
-- `04-Business-Logic.md` §9 (review moderation states: `published`/`hidden`/`flagged`/`archived`) — confirmed all 4 states are correctly rendered with distinct badges (lines 359-380), matching the documented model exactly.
-- `00-Color-System.md` (canonical palette)
+> **File:** `src/features/admin/ManageReviews.page.jsx`  
+> **Route:** `/dashboard/manage-reviews`  
+> **Access:** `Admin`
 
-## Findings
+---
 
-### Page-specific
+## 1. Page Overview & Purpose
+The Manage Reviews page allows platform administrators to moderate customer feedback, feature standout reviews on the homepage, and handle flagged reviews.
 
-1. **Row actions only support Publish ↔ Hide — there's no way to moderate a review into `flagged` or `archived` from this table.** Lines 405-422: the toggle button only offers `"published"` and `"hidden"` as targets via `handleUpdateStatus`. The filter tabs (lines 220-246) and badge rendering (lines 359-380) both fully support all 4 states, and reviews can clearly *arrive* in `flagged`/`archived` status (presumably via a customer-flagging flow or backend logic not visible from this file) — but an admin reviewing a flagged review has no direct action to archive it, or to flag a published one, only publish/hide. This may be an intentional design (flagging is system/customer-driven, admin only publishes or hides) — worth confirming with whoever owns the moderation workflow rather than assuming it's a gap. — **Moderate** (flag for confirmation, not a certain bug).
-2. **Legacy Tailwind gradient syntax.** Line 184: `bg-gradient-to-br` (should be `bg-linear-to-br`) — same recurring inconsistency found in `15-Transactions.md`, `24-ManageAgents.md`, and `01-Home.md`. — **Polish**.
-3. **Pagination is Previous/Next only, same minimal pattern as `ManageAgents.page.jsx`.** Lines 442-465. — **Polish**.
-4. **File is 578 lines. Split points:** the table row (lines ~310-436) → a local `<ReviewTableRow>`; the View Dossier modal body (lines ~485-560, once wrapped in the shared `<Modal>` shell) → `src/features/admin/components/ManageReviewsDossierModal.jsx`. — **Polish** (maintainability, not a functional bug).
+---
 
-### Generic checklist
+## 2. Architecture & Sub-Component Decomposition
+To maintain clean separation of concerns and eliminate monolithic code files, the page is decomposed into sub-components under `src/features/admin/components/`:
 
-- **Reusable components:** Applies, minor — the View Dossier modal (lines 468-573) is one more hand-rolled instance for the shared `<Modal>` shell (`02-Reusable-Components.md` §6).
-- **Component decomposition / file size:** Applies — 578 lines; see finding #4 for concrete split points (table row, View Dossier modal).
-- **Skeleton/spinner loader:** Applies, minor — table loading (lines 285-288) uses the shared `<Spinner />` in a padded box, same pattern noted elsewhere.
-- **Tooltip:** N/A — action buttons have `title` attributes.
-- **Responsiveness:** No issues found.
-- **Color consistency:** Applies, minor — finding #2. Otherwise this file is clean, correctly using canonical `purple`/`emerald`/`amber`/`rose`/`slate` for its 4 review-status badges with no deprecated hues.
-- **Design consistency:** N/A beyond the pagination-capability gap (finding #3).
-- **Correctness:** Applies — finding #1 (flag for confirmation).
-- **Improvement opportunity:** None found specific to this page.
-- **Coding standard:** N/A.
-- **Comments:** N/A.
-- **Accessibility:** N/A beyond the general Modal-focus-trap gap already covered elsewhere.
+- **Main Page:** `src/features/admin/ManageReviews.page.jsx`
+- **Sub-Components:**
+  1. `ManageReviewsStats.jsx` — Stat cards for Total Reviews, Average Rating, Featured, and Flagged with skeleton fallback.
+  2. `ManageReviewsFilters.jsx` — Search by reviewer or service with clear button; Rating (1-5 stars) and Featured dropdowns on the right without redundant filter icons.
+  3. `ReviewTableRow.jsx` — Table row with px-2 cell padding, canonical min-w-* constraints, star rating badge, and centered bordered action buttons.
+  4. `ManageReviewDetailsModal.jsx` — Inspect full review and customer details modal using reusable Modal.
 
-## Implementation Prompt
+---
 
-Apply these changes to `src/features/admin/ManageReviews.page.jsx`:
+## 3. UI/UX & Layout Enhancements
 
-**1. Correctness/UX fix (confirm intent first):**
-- Confirm with whoever owns the review-moderation workflow whether admins should be able to directly set a review to `flagged` or `archived` from this table. If yes, extend the row actions (currently Publish/Hide only, lines 405-422) with additional moderation options (e.g. a small dropdown or extra icon buttons for Flag/Archive) using the existing `handleUpdateStatus(reviewId, newStatus)` function, which already supports any status value. If the current publish/hide-only behavior is intentional, no change needed here — just confirm rather than assume.
+1. **Top Header Bar**:
+   - **Left:** Contextual icon badge in purple container, page title, and descriptive subtitle.
+   - **Right:** Primary action button(s) (e.g. "Refresh Data", "Add New") with clean styling.
 
-**2. Polish:**
-- Change `bg-gradient-to-br` (line 184) to `bg-linear-to-br`.
-- Add First/Last page-jump buttons to the pagination footer, or migrate to the shared `<Pagination>` component if built by another page's pass (per `18-ManageServices.md`).
+2. **Stat Cards Section**:
+   - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes.
+   - Sits directly below the header in its own section.
+   - Interactive click-to-filter support and pulse skeleton loader fallback state (`loading={true}`) when stats data is fetching or unavailable.
 
-**3. Reusable component extraction (coordinate with other admin pages, build once):**
-- Build the shared `<Modal>` shell and migrate the View Dossier modal (lines 468-573) onto it.
+3. **Search & Filters Bar Section**:
+   - Sits directly above the table in a rounded card container (`bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800`).
+   - **Left:** Search input with search icon, live debounce (350ms), and clear `(X)` button.
+   - **Right:** Clean dropdown selectors for filtering without redundant filter icons next to the dropdowns.
 
-**4. Component decomposition:**
-- Extract the table row into a local `<ReviewTableRow>` and the View Dossier modal content into `src/features/admin/components/ManageReviewsDossierModal.jsx`.
+4. **Table Redesign**:
+   - **Container:** Crisp unrounded container (`rounded-none border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden`).
+   - **Header `<thead>`:** Distinct background color (`bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider`).
+   - **Cell Padding:** Standard cell padding capped at `px-2` (`py-3.5 px-2`).
+   - **Responsiveness & Min-Width:** Every column/cell (`<th>` and `<td>`) MUST have an explicit canonical `min-w-*` class wrapped in `overflow-x-auto` to prevent wrapping or breaking on mobile.
+   - **Action Buttons:** Small bordered icon buttons (`border border-slate-200 dark:border-slate-700 rounded-md p-1.5 transition-colors`) with hover background colors and centered header label (`text-center`).
+   - **Loading State:** Reusable `<TableSkeleton rows={5} columns={5} />` inside `<tbody>` when loading.
+   - **Empty State:** Reusable `<EmptyState ... />` when no items match criteria.
 
-Preserve all existing filtering, search, and status-badge logic — none of the above requires restructuring the page's data flow.
+5. **Pagination Footer**:
+   - Built with the reusable `<Pagination>` component (`src/components/ui/Pagination.jsx`).
+   - Shares the **exact same background color** as the table header (`bg-slate-100 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800`).
+   - 3-part layout:
+     - **Left:** Range summary info ("Showing 1 to 10 of N items").
+     - **Middle:** Per-page dropdown limit selector ("Per page: [10 | 20 | 50]").
+     - **Right:** Streamlined `Prev` button, current page indicator (`Page X / Y`), and `Next` button (no redundant numeric buttons).
 
-## Verification Checklist
+6. **Modals & Dialogs**:
+   - Reusable `<Modal>` component (`src/components/ui/Modal.jsx`) mounted via `createPortal` with backdrop click close and Escape key dismiss.
 
-- [ ] If moderation actions are extended, an admin can set a review to any of the 4 states (published/hidden/flagged/archived) and the change persists correctly.
-- [ ] Pagination supports jumping to first/last page, or matches the shared `<Pagination>` component if migrated.
-- [ ] Page renders identically after extracting the table row and dossier modal into local sub-components.
-- [ ] Page tested at mobile, tablet, and desktop widths in both themes — no regression.
+7. **Coding Standards**:
+   - Single-line comments only (`// ...`) with light density.
+   - Strictly no block comments (`/* ... */`).
+
+---
+
+## 4. Verification Checklist
+- [ ] Sub-components live in `src/features/admin/components/`.
+- [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
+- [ ] Stat cards use `<StatCard>` with tone styling and skeleton loading fallback.
+- [ ] Search input has clear button and clean dropdowns without redundant filter icons.
+- [ ] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
+- [ ] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds.
+- [ ] Table loading renders reusable `<TableSkeleton>`.
+- [ ] Pagination has 3-part layout with limit dropdown in the middle and `Prev` / `Page X / Y` / `Next` on the right.
+- [ ] Single-line comments only (`// ...`) with light density.
+- [ ] `npm run build` compiles with 0 errors.

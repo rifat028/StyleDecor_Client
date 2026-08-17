@@ -1,64 +1,123 @@
-# Manage Users (Admin) — Improvement Prompt
+# User Management — Improvement Prompt
 
-**Route(s):** `/dashboard/manage-users`
-**File(s) in scope:** `src/features/admin/ManageUser.page.jsx`. Cross-referenced: `src/features/admin/ManageServices.page.jsx` (this file is the *better* reference for stats-endpoint and pagination patterns — see `18-ManageServices.md`), `src/features/profile/MyProfile.page.jsx` (role-badge color inconsistency — see finding #2).
-**Related audit references:**
-- `04-Business-Logic.md` §10 (hardcoded Super Admin email `admin.styledecor1@gmail.com`, described as "repeated 5+ times") — confirmed present **6** times in this file (see finding #1), one more than the audit's "5+" estimate.
-- `02-Reusable-Components.md` §1 (Pagination — this file's numbered-pill+ellipsis version is cited as the *more advanced* implementation, in contrast to `ManageServices.page.jsx`'s plainer version), §4 (StatCard — this file's clickable filter-toggling variant is cited by name), §6 (Modal shell — both View and Edit modals cited at these exact lines).
-- `00-Color-System.md` (canonical palette)
+> **File:** `src/features/admin/ManageUser.page.jsx`  
+> **Route:** `/dashboard/manage-users`  
+> **Access:** `Admin`
 
-## Findings
+---
 
-### Page-specific
+## 1. Page Overview & Purpose
+The User Management page serves as the administrative hub for managing all user accounts on StyleDecor. Administrators can inspect user profiles, assign and switch system roles (Admin, Decorator, Agent, Customer), modify contact addresses, and delete accounts while maintaining robust security safeguards for the Super Administrator account.
 
-1. **Super Admin email hardcoded as a magic string literal 6 times.** `"admin.styledecor1@gmail.com"` appears at lines 181 (role-change guard), 261 (delete guard), 552 (name badge), 589 (quick-switch dropdown disabled), 622 (delete button hidden), and 904 (edit-modal role select disabled) — one more occurrence than `04-Business-Logic.md` §10's "5+" estimate. This is a real business rule (protect the platform-owner account) implemented as repeated magic-string comparison instead of a single named constant or a backend-enforced `isSuperAdmin` flag. — **Moderate** (already on record in `04-Business-Logic.md`, re-confirmed with exact count and line numbers).
-2. **This file's admin role-badge color (`rose`) is correct; `MyProfile.page.jsx`'s equivalent badge (`red`) is not — a concrete cross-file inconsistency.** `getRoleBadge`'s admin case here (line 153) correctly uses `bg-rose-100 text-rose-700`, matching `00-Color-System.md`'s danger-color standard. `MyProfile.page.jsx`'s `roleBadgeStyles.admin` (flagged in `13-MyProfile.md` finding #2 as a judgment call) uses `red-100`/`red-700` instead — this file proves the canonical choice was already correctly made elsewhere in the codebase; `MyProfile.page.jsx` should be updated to match this file, not treated as an open question. — **Polish** (cross-reference only; the actual fix belongs to `MyProfile.page.jsx`, already flagged there — noting here since this file is the evidence that resolves that earlier judgment call).
-3. **Page chrome (not role badges) uses `indigo-600` as if it were the site's primary color, throughout.** Banner icon background (line 329), focus rings on every input/select (`focus:ring-indigo-500`, e.g. lines 445, 472, 489, 879, 893, 909, 927, 950, 966, 981, 1000), avatar rings (line 547, 754), the active numbered-pagination-pill color (line 705), and the modal Save button (line 1015) all use `indigo-*`. Per `00-Color-System.md`, indigo is reserved as the brand-gradient partner only — the canonical solid primary is `purple-600`, which every comparable admin page (`ManageServices.page.jsx`, `ManageDecorator.page.jsx` per its own likely pass) uses correctly. **Important distinction:** this is different from the `getRoleBadge`/`getPlaceholderAvatar` role-color mapping (rose/purple/amber/indigo per role, lines 149-176, 44-55) — that's a legitimate categorical palette for visually distinguishing 4 account types and should be **kept as-is**, including its own use of indigo for the "customer" role badge specifically. Only the page's own UI chrome (buttons, focus rings, pagination, banner) needs to migrate from indigo to purple. — **Moderate**.
+---
 
-4. **File is 1028 lines — the two modals alone account for nearly 30% of it.** Concrete split points: the View User Details modal body (lines ~757-831, once wrapped in the shared `<Modal>` shell) → `src/features/admin/components/ManageUserViewModal.jsx`; the Edit User form (lines ~866-1020, the largest single block in the file) → `src/features/admin/components/ManageUserEditModal.jsx`, taking `editFormData`/`setEditFormData`/`handleSaveEdit` as props; the table row (lines ~529-634) → a local `<UserTableRow>` component. `getPlaceholderAvatar` and `getRoleBadge` (lines 44-55, 149-176) are small enough to leave inline unless the shared role-theme util noted in `13-MyProfile.md` gets built, in which case they'd move there instead. — **Polish** (maintainability, not a functional bug).
+## 2. Architecture & Sub-Component Decomposition
+To eliminate the bloated monolithic file size (1000+ lines) and ensure maximum maintainability, the page is decomposed into dedicated sub-components under `src/components/pages/Admin/UserManagement/`:
 
-### Generic checklist
+- **Main Page:** [`src/features/admin/ManageUser.page.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/features/admin/ManageUser.page.jsx)
+- **Sub-Components Directory:** `src/components/pages/Admin/UserManagement/`
+  1. [`ManageUserStats.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/UserManagement/ManageUserStats.jsx) — Ultra-compact stat cards for Total Users, Administrators, Decorators, Field Agents, and Customers with click-to-filter support and pulse skeleton loading states.
+  2. [`ManageUserFilters.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/UserManagement/ManageUserFilters.jsx) — Search input on the left with clear button; Role and City dropdown filters on the right without superfluous filter icons.
+  3. [`UserTableRow.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/UserManagement/UserTableRow.jsx) — Table row with `px-2` cell padding, canonical `min-w-*` responsive constraints, quick role switch dropdown, and centered bordered action buttons.
+  4. [`ManageUserViewModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/UserManagement/ManageUserViewModal.jsx) — View full user profile modal utilizing the reusable `<Modal>` shell.
+  5. [`ManageUserEditModal.jsx`](file:///E:/Projects/Style%20Decore/StyleDecor_Client/src/components/pages/Admin/UserManagement/ManageUserEditModal.jsx) — Edit user profile and address modal utilizing the reusable `<Modal>` shell.
 
-- **Reusable components:** Applies — this file is cited in `02-Reusable-Components.md` for Pagination (§1, this file's numbered-pill version, lines 668-734, `pageNumbers` logic at 289-316 — confirmed as the more capable reference implementation `ManageServices.page.jsx` should be upgraded to match), StatCard (§4, clickable filter-toggling stat pills, lines 356-431), and Modal (§6, View modal lines 739-843 and Edit modal lines 846-1023 — both citations verified exact). Also worth noting positively: this file's `getPlaceholderAvatar` (lines 44-55) and `getRoleBadge` (lines 149-176) role-color mapping is a reasonable, already-correct categorical palette — use it as the canonical reference if/when a shared role-theme util is extracted (per the note in `13-MyProfile.md`).
-- **Component decomposition / file size:** Applies — 1028 lines; see finding #4 for concrete split points (both modals, table row).
-- **Skeleton/spinner loader:** Applies, minor — table loading (lines 502-505) uses the shared `<Spinner />` in a padded box, same pattern noted elsewhere; consider a table-row skeleton.
-- **Tooltip:** N/A — action buttons already have `title` attributes.
-- **Responsiveness:** No issues found.
-- **Color consistency:** Applies — findings #2 (cross-reference), #3.
-- **Design consistency:** N/A beyond the color chrome issue.
-- **Correctness:** N/A — no logic bugs found; the Super Admin protection logic (finding #1) works correctly, it's just implemented with repeated magic strings rather than a single source of truth.
-- **Improvement opportunity:** None beyond what's covered above. Worth noting positively: this file's **debounced search** (lines 89-95, 350ms) is already exactly the pattern recommended for `Services.page.jsx`'s un-debounced Min/Max Budget inputs in `04-Services.md` finding #1 — use this file's implementation as the reference when applying that fix. Also worth noting: this file's **single-request stats loading** (`GET /users/stats`, line 100) is the reference pattern `18-ManageServices.md` finding #1 recommends `ManageServices.page.jsx` adopt.
-- **Coding standard:** Applies — finding #1 (magic-string repetition).
-- **Comments:** N/A.
-- **Accessibility:** N/A beyond the general Modal-focus-trap gap already covered under Reusable Components in other pages' prompts.
+---
 
-## Implementation Prompt
+## 3. UI/UX & Layout Enhancements
 
-Apply these changes to `src/features/admin/ManageUser.page.jsx`:
+1. **Top Header Bar**:
+   - **Left:** `Users` icon badge in purple container, page title ("User Management"), and descriptive subtitle.
+   - **Right:** Primary action button ("Refresh Data") with rotating refresh icon.
 
-**1. Coding standard fix:**
-- Extract `"admin.styledecor1@gmail.com"` into a single named constant (e.g. `SUPER_ADMIN_EMAIL` at the top of the file, or ideally a shared `src/lib/constants.js` export if other files ever need it) and replace all 6 occurrences (lines 181, 261, 552, 589, 622, 904) with a reference to it. This doesn't change behavior, only removes the repeated magic string — if a backend-enforced `isSuperAdmin` flag exists or gets added later, this constant becomes the single place to swap the check.
+2. **Stat Cards Section**:
+   - Sits directly below the header in its own responsive grid section.
+   - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes:
+     - **Total Users:** Indigo tone (`indigo`), `Users` icon.
+     - **Administrators:** Rose tone (`rose`), `Shield` icon.
+     - **Decorators:** Purple tone (`purple`), `Palette` icon.
+     - **Field Agents:** Amber tone (`amber`), `Briefcase` icon.
+     - **Customers:** Emerald tone (`emerald`), `UserCheck` icon.
+   - Interactive click filtering: Clicking a stat card sets the corresponding role filter.
+   - Skeleton Loading: Displays pulse loading skeleton state (`loading={true}`) when stats data is fetching.
 
-**2. Color consistency — converge page chrome on `00-Color-System.md`, but preserve the categorical role palette:**
-- Replace `indigo-*` in the page's own UI chrome (banner icon background, all input/select focus rings, avatar rings, active pagination-pill color, modal Save button) with `purple-*` equivalents.
-- **Do not** change `getRoleBadge`'s or `getPlaceholderAvatar`'s indigo usage for the "customer" role — that's a legitimate categorical color, not primary-action chrome, and should stay as one of the 4 distinct role colors (rose/purple/amber/indigo).
+3. **Search & Filters Bar Section**:
+   - Sits directly above the table in a rounded card container (`bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800`).
+   - **Left:** Search input with search icon, live debounce (350ms), and clear `(X)` button.
+   - **Right:** Two clean dropdown selectors for **Role** and **City** (without redundant filter icons next to the dropdowns).
 
-**3. Reusable component extraction (coordinate with `18-ManageServices.md`, build once):**
-- If `<Pagination>` hasn't been built yet by another page's pass, build it here using this file's numbered-pill+ellipsis logic (lines 289-316, 668-734) as the reference shape — it's the more capable of the two variants found in the app. If it already exists, migrate this file onto it.
-- Build `<StatCard>` (§4) for the 5 clickable filter-toggling stat pills (lines 356-431), supporting the `onClick`/`active` variant.
-- Build the shared `<Modal>` shell and migrate both the View Details modal (lines 739-843) and Edit User modal (lines 846-1023) onto it.
+4. **Table Redesign**:
+   - **Container:** Crisp unrounded container (`rounded-none border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden`).
+   - **Header `<thead>`:** Distinct background color (`bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider`).
+   - **Cell Padding:** Standard cell padding capped at `px-2` (`py-3.5 px-2`).
+   - **Responsiveness & Min-Width:** Every column/cell (`<th>` and `<td>`) MUST have an explicit canonical `min-w-*` class wrapped in `overflow-x-auto` to prevent wrapping or breaking on mobile:
+     - *User Profile:* `min-w-55` (Avatar, name, email, super admin badge).
+     - *Contact & City:* `min-w-45` (Phone, area, city).
+     - *System Role:* `min-w-32.5` (Categorical role badge).
+     - *Quick Role Switch:* `min-w-35 text-center` (Inline role dropdown).
+     - *Actions:* `min-w-30 text-center` (Centered header label).
+   - **Action Buttons:** Small bordered icon buttons (`border border-slate-200 dark:border-slate-700 rounded-md p-1.5 transition-colors`) with hover background colors:
+     - View Profile: `hover:bg-purple-50 dark:hover:bg-purple-950/40 text-purple-600 dark:text-purple-400`.
+     - Edit User: `hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-600 dark:text-amber-400`.
+     - Delete User: `hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400`.
+   - **Loading State:** Reusable `<TableSkeleton rows={5} columns={5} />` inside `<tbody>` when loading.
+   - **Empty State:** Reusable `<EmptyState icon={Users} title="No Users Found" ... />` when no users match criteria.
 
-**4. Component decomposition:**
-- Extract the View modal's and Edit modal's content into `src/features/admin/components/ManageUserViewModal.jsx` and `ManageUserEditModal.jsx` respectively (local, page-specific, not `src/components/ui/`).
-- Extract the table row markup into a local `<UserTableRow>` component in the same `components/` folder.
+5. **Pagination Footer**:
+   - Built with the reusable `<Pagination>` component (`src/components/ui/Pagination.jsx`).
+   - Shares the **exact same background color** as the table header (`bg-slate-100 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800`).
+   - 3-part layout:
+     - **Left:** Range summary info ("Showing 1 to 10 of 48 users").
+     - **Middle:** Per-page dropdown limit selector ("Per page: [10 | 20 | 50]").
+     - **Right:** Streamlined `Prev` button, current page indicator (`Page X / Y`), and `Next` button (no redundant numeric buttons).
 
-Preserve all existing search/filter/role-management/delete logic — none of the above requires restructuring the page's data flow, only extracting shared presentation components and removing the magic-string repetition.
+6. **Modals & Dialogs**:
+   - Reusable `<Modal>` component (`src/components/ui/Modal.jsx`) mounted via `createPortal` with backdrop click close and Escape key dismiss.
 
-## Verification Checklist
+7. **Coding Standards & Super Admin Protection**:
+   - Protected Super Admin email extracted into a single named constant: `SUPER_ADMIN_EMAIL = "admin.styledecor1@gmail.com"`.
+   - Single-line comments only (`// ...`) with light density.
+   - Strictly no block comments (`/* ... */`).
 
-- [ ] Super Admin protection (role-change blocked, delete blocked, badge shown, dropdowns disabled) works identically after the constant extraction — test against the actual super-admin account.
-- [ ] Page chrome (banner, buttons, focus rings, active pagination pill) uses purple, not indigo.
-- [ ] The 4 role badges (admin/decorator/agent/customer) still show their original 4 distinct colors (rose/purple/amber/indigo) — unchanged.
-- [ ] Both modals close on Escape and backdrop click, and trap focus while open, if migrated to the shared `<Modal>`.
-- [ ] Page renders and behaves identically after extracting both modals and the table row into local sub-components.
-- [ ] Page tested at mobile, tablet, and desktop widths in both themes — no regression.
+---
+
+## 4. API Integrations & Data Flow
+- `GET /users?page=1&limit=10&role=all&city=all&search=...` — Fetch paginated users list with search & filters.
+- `GET /users/stats` — Fetch user role counts for stat cards.
+- `PATCH /users/role` — Update user role with confirmation modal.
+- `PATCH /users/admin/:id` — Update user profile details and address.
+- `DELETE /users/:id` — Permanently delete user with SweetAlert2 confirmation.
+
+---
+
+## 5. Verification Checklist
+- [x] Header has icon, title, and subtitle on top-left, and Refresh button on top-right.
+- [x] Sub-components live in `src/features/admin/components/`.
+- [x] Stat cards use `<StatCard>` with tone styling and skeleton loading fallback.
+- [x] Search input has clear button and clean dropdowns without redundant filter icons.
+- [x] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
+- [x] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds.
+- [x] Table loading renders reusable `<TableSkeleton>`.
+- [x] Pagination has 3-part layout with limit dropdown in the middle and `Prev` / `Page X / Y` / `Next` on the right.
+- [x] Super Admin protection enforced via `SUPER_ADMIN_EMAIL` constant.
+- [x] Single-line comments only (`// ...`) with light density.
+- [x] `npm run build` compiles with 0 errors.
+
+---
+
+```
+=================================================================
+-------------------------- Change Log ---------------------------
+=================================================================
+```
+- **Date**: 2026-08-17
+- **Target Page**: `src/features/admin/ManageUser.page.jsx`
+- **Actions Taken**:
+  - Split 1028+ lines monolithic file into 5 dedicated sub-components in `src/components/pages/Admin/UserManagement/` (`ManageUserStats.jsx`, `ManageUserFilters.jsx`, `UserTableRow.jsx`, `ManageUserViewModal.jsx`, `ManageUserEditModal.jsx`).
+  - Implemented top header with icon + title + subtitle on top-left, and Refresh button on top-right.
+  - Implemented ultra-compact `<StatCard>` section with minimal vertical height (~48px) and pulse skeleton fallback.
+  - Created search bar with 350ms debounce and clear button, paired with clean Role and City dropdowns (no redundant filter icons).
+  - Redesigned table to unrounded container (`rounded-none`), header/footer background `bg-slate-100 dark:bg-slate-800/80`, `px-2` cell padding, and canonical `min-w-*` classes (`min-w-55`, `min-w-45`, `min-w-32.5`, `min-w-35`, `min-w-30`).
+  - Added centered actions column header and bordered `rounded-md` action buttons with hover backgrounds.
+  - Implemented 3-part streamlined `<Pagination>` with middle limit dropdown and `<TableSkeleton>` loader.
+  - Extracted `SUPER_ADMIN_EMAIL` constant and applied single-line comments with light density.

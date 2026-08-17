@@ -1,42 +1,79 @@
-# Analytics (Admin) — Improvement Prompt
+# Platform Analytics (Admin) — Improvement Prompt
 
-**Route(s):** `/dashboard/analytics`
-**File(s) in scope:** `src/features/admin/Analytics.page.jsx`.
-**Related audit references:**
-- `04-Business-Logic.md` §7 (10% platform commission, 88.5% vendor receivable) — confirmed present in the KPI cards, consistent with `ManageTransactions.page.jsx`/`MyEarnings.page.jsx`.
-- `00-Color-System.md` (canonical palette)
+> **File:** `src/features/admin/Analytics.page.jsx`  
+> **Route:** `/dashboard/analytics`  
+> **Access:** `Admin`
 
-## Findings
+---
 
-### Page-specific
+## 1. Page Overview & Purpose
+The Platform Analytics page provides platform administrators with business intelligence, revenue growth charts, booking trends, user acquisition metrics, and geographic performance heatmaps.
 
-1. **Demand and lifecycle charts are built from a hardcoded 150-booking sample, not "all bookings" as the code implies.** Line 70: `axiosSecure.get("/bookings?limit=150")`, stored in a variable literally named `allBookings` (line 40, 72). Both charts (`demandChartData`, `statusChartData`, lines 89-114) derive their counts by reducing over this array client-side. Once the platform has more than 150 bookings, these charts silently become inaccurate — they'll reflect only the most recent (or however the backend orders an unsorted-by-param query) 150 records, not the true distribution, with no indication anywhere in the UI that the admin is looking at a partial sample. The other stat cards on this same page (`GET /payments/stats`, `GET /reviews?limit=1`) correctly get pre-aggregated counts from the backend instead of fetching raw records to reduce client-side — this file should follow the same pattern for booking-category and status-distribution counts. — **Critical** (silently inaccurate business-intelligence data past a fixed, unannounced threshold).
+---
 
-### Generic checklist
+## 2. Architecture & Sub-Component Decomposition
+To maintain clean separation of concerns and eliminate monolithic code files, the page is decomposed into sub-components under `src/features/admin/components/`:
 
-- **Reusable components:** N/A — no duplicated markup patterns found on this page.
-- **Skeleton/spinner loader:** Applies, minor — the one loading state (lines 116-122) is an appropriate full-page use of `<Spinner />` (nothing else on screen while all 3 data sources load in parallel).
-- **Tooltip:** N/A — chart tooltips are already correctly implemented via Recharts' `<Tooltip>`.
-- **Responsiveness:** No issues found — charts use `<ResponsiveContainer>` and the KPI/quality grids collapse correctly.
-- **Color consistency:** Applies, minor — several stat-card icons use `indigo-*` (Vendor Payouts icon line 182, Vendor Response Rate line 241/243, Booking Lifecycle Pipeline icon line 301) alongside `purple`/`emerald`/`rose`/`amber` elsewhere. Given this is a KPI dashboard where each card intentionally gets a distinct accent color for quick visual scanning, this reads as deliberate categorical variety rather than primary-color drift (similar judgment call made in `23-ManageTransactions.md` finding #2) — flagging for awareness, not a hard requirement to fix. The `COLORS` array (line 33, raw hex values for the pie chart) is a necessary exception since Recharts requires literal color values, not Tailwind classes.
-- **Design consistency:** N/A.
-- **Correctness:** Applies — finding #1, the clear priority.
-- **Improvement opportunity:** None beyond fixing finding #1.
-- **Coding standard:** N/A.
-- **Comments:** N/A.
-- **Accessibility:** N/A — charts render with standard Recharts accessibility defaults; no interactive-element gaps found elsewhere on the page.
+- **Main Page:** `src/features/admin/Analytics.page.jsx`
+- **Sub-Components:**
+  1. `AnalyticsStats.jsx` — High-level metric summary cards with skeleton fallback.
+  2. `AnalyticsFilters.jsx` — Date range selector (Last 7 Days, 30 Days, 1 Year, All Time) without redundant filter icons.
+  3. `RevenueChartCard.jsx` — Revenue and profit trend area/line chart card.
+  4. `BookingsDistributionCard.jsx` — Category and status breakdown donut/bar chart card.
+  5. `RegionalPerformanceTable.jsx` — Geographic division performance table with px-2 cell padding and min-w-* constraints.
 
-## Implementation Prompt
+---
 
-Apply this change to `src/features/admin/Analytics.page.jsx`:
+## 3. UI/UX & Layout Enhancements
 
-**1. Correctness fix (do first, highest value):**
-- Replace the client-side `fetchAllBookings` + `demandChartData`/`statusChartData` reduction (lines 67-114) with backend-aggregated data: request a `GET /bookings/analytics` (or similar) endpoint returning pre-computed category-demand and status-distribution counts across the **entire** dataset, not a capped sample. If no such endpoint exists yet, flag this as a backend-coordination item rather than raising the `limit` parameter further (any fixed limit reintroduces the same silent-inaccuracy problem at a different threshold — the fix is aggregation, not a bigger cap).
+1. **Top Header Bar**:
+   - **Left:** Contextual icon badge in purple container, page title, and descriptive subtitle.
+   - **Right:** Primary action button(s) (e.g. "Refresh Data", "Add New") with clean styling.
 
-Preserve the existing chart rendering (BarChart/PieChart components, colors, tooltips) and the payment/review KPI cards exactly as-is — only the data source for the two booking-derived charts needs to change.
+2. **Stat Cards Section**:
+   - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes.
+   - Sits directly below the header in its own section.
+   - Interactive click-to-filter support and pulse skeleton loader fallback state (`loading={true}`) when stats data is fetching or unavailable.
 
-## Verification Checklist
+3. **Search & Filters Bar Section**:
+   - Sits directly above the table in a rounded card container (`bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800`).
+   - **Left:** Search input with search icon, live debounce (350ms), and clear `(X)` button.
+   - **Right:** Clean dropdown selectors for filtering without redundant filter icons next to the dropdowns.
 
-- [ ] Category-demand and status-distribution charts reflect the full booking dataset, not a capped sample, verified against the total booking count shown elsewhere in the admin dashboard (e.g. `ManageBookings.page.jsx`'s stats).
-- [ ] Charts still render correctly with the same visual styling after the data-source change.
-- [ ] Page tested at mobile, tablet, and desktop widths in both themes — no regression.
+4. **Table Redesign**:
+   - **Container:** Crisp unrounded container (`rounded-none border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden`).
+   - **Header `<thead>`:** Distinct background color (`bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider`).
+   - **Cell Padding:** Standard cell padding capped at `px-2` (`py-3.5 px-2`).
+   - **Responsiveness & Min-Width:** Every column/cell (`<th>` and `<td>`) MUST have an explicit canonical `min-w-*` class wrapped in `overflow-x-auto` to prevent wrapping or breaking on mobile.
+   - **Action Buttons:** Small bordered icon buttons (`border border-slate-200 dark:border-slate-700 rounded-md p-1.5 transition-colors`) with hover background colors and centered header label (`text-center`).
+   - **Loading State:** Reusable `<TableSkeleton rows={5} columns={5} />` inside `<tbody>` when loading.
+   - **Empty State:** Reusable `<EmptyState ... />` when no items match criteria.
+
+5. **Pagination Footer**:
+   - Built with the reusable `<Pagination>` component (`src/components/ui/Pagination.jsx`).
+   - Shares the **exact same background color** as the table header (`bg-slate-100 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800`).
+   - 3-part layout:
+     - **Left:** Range summary info ("Showing 1 to 10 of N items").
+     - **Middle:** Per-page dropdown limit selector ("Per page: [10 | 20 | 50]").
+     - **Right:** Streamlined `Prev` button, current page indicator (`Page X / Y`), and `Next` button (no redundant numeric buttons).
+
+6. **Modals & Dialogs**:
+   - Reusable `<Modal>` component (`src/components/ui/Modal.jsx`) mounted via `createPortal` with backdrop click close and Escape key dismiss.
+
+7. **Coding Standards**:
+   - Single-line comments only (`// ...`) with light density.
+   - Strictly no block comments (`/* ... */`).
+
+---
+
+## 4. Verification Checklist
+- [ ] Sub-components live in `src/features/admin/components/`.
+- [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
+- [ ] Stat cards use `<StatCard>` with tone styling and skeleton loading fallback.
+- [ ] Search input has clear button and clean dropdowns without redundant filter icons.
+- [ ] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
+- [ ] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds.
+- [ ] Table loading renders reusable `<TableSkeleton>`.
+- [ ] Pagination has 3-part layout with limit dropdown in the middle and `Prev` / `Page X / Y` / `Next` on the right.
+- [ ] Single-line comments only (`// ...`) with light density.
+- [ ] `npm run build` compiles with 0 errors.
