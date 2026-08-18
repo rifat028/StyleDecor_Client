@@ -145,11 +145,13 @@ const MyBookingsTable = ({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
-                <th className="py-3.5 px-2 min-w-32.5">Booking Code</th>
+                <th className="py-3.5 px-2 min-w-40">Booking Code</th>
                 <th className="py-3.5 px-2 min-w-45">Service & Package</th>
                 <th className="py-3.5 px-2 min-w-35">Decorator Agency</th>
                 <th className="py-3.5 px-2 min-w-40">Schedule & Venue</th>
-                <th className="py-3.5 px-2 text-center min-w-27.5">Total (৳)</th>
+                <th className="py-3.5 px-2 text-center min-w-27.5">
+                  Total (৳)
+                </th>
                 <th className="py-3.5 px-2 text-center min-w-40">Status</th>
                 <th className="py-3.5 px-2 text-center min-w-25">Payment</th>
                 <th className="py-3.5 px-2 text-center min-w-35">Actions</th>
@@ -162,10 +164,10 @@ const MyBookingsTable = ({
         <EmptyState
           icon={Calendar}
           title="No Bookings Found"
-          message="You don't have any bookings matching this criteria. Browse our decoration packages and book your next celebration!"
+          message="You don't have any bookings matching this criteria. Try clearing your search and filters or explore decoration packages."
           action={{
-            label: "Explore Services",
-            onClick: () => (window.location.href = "/services"),
+            label: "Clear All Filters",
+            onClick: onResetFilters,
           }}
         />
       ) : (
@@ -173,11 +175,13 @@ const MyBookingsTable = ({
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
-                <th className="py-3.5 px-2 min-w-32.5">Booking Code</th>
+                <th className="py-3.5 px-2 min-w-40">Booking Code</th>
                 <th className="py-3.5 px-2 min-w-45">Service & Package</th>
                 <th className="py-3.5 px-2 min-w-35">Decorator Agency</th>
                 <th className="py-3.5 px-2 min-w-40">Schedule & Venue</th>
-                <th className="py-3.5 px-2 text-center min-w-27.5">Total (৳)</th>
+                <th className="py-3.5 px-2 text-center min-w-27.5">
+                  Total (৳)
+                </th>
                 <th className="py-3.5 px-2 text-center min-w-40">Status</th>
                 <th className="py-3.5 px-2 text-center min-w-25">Payment</th>
                 <th className="py-3.5 px-2 text-center min-w-35">Actions</th>
