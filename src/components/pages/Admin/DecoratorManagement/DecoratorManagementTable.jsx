@@ -75,7 +75,7 @@ const DecoratorManagementTable = ({
                 <th className="py-3.5 px-2 min-w-55">Agency Profile</th>
                 <th className="py-3.5 px-2 min-w-45">Contact & City</th>
                 <th className="py-3.5 px-2 text-center min-w-32.5">Performance</th>
-                <th className="py-3.5 px-2 text-center min-w-35">Status</th>
+                <th className="py-3.5 px-2 text-center min-w-40">Status</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
               </tr>
             </thead>
@@ -100,7 +100,7 @@ const DecoratorManagementTable = ({
                 <th className="py-3.5 px-2 min-w-55">Agency Profile</th>
                 <th className="py-3.5 px-2 min-w-45">Contact & City</th>
                 <th className="py-3.5 px-2 text-center min-w-32.5">Performance</th>
-                <th className="py-3.5 px-2 text-center min-w-35">Status</th>
+                <th className="py-3.5 px-2 text-center min-w-40">Status</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
               </tr>
             </thead>
@@ -189,7 +189,7 @@ const DecoratorManagementTable = ({
                     </td>
 
                     {/* Status Badge Cell */}
-                    <td className="py-3.5 px-2 text-center min-w-35">
+                    <td className="py-3.5 px-2 text-center min-w-40">
                       {renderStatusBadge(status, isVerified)}
                     </td>
 

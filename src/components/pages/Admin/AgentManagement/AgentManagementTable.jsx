@@ -77,7 +77,7 @@ const AgentManagementTable = ({
                 <th className="py-3.5 px-2 min-w-55">Specialist Profile</th>
                 <th className="py-3.5 px-2 min-w-45">Territory & Agency</th>
                 <th className="py-3.5 px-2 text-center min-w-32.5">Performance</th>
-                <th className="py-3.5 px-2 text-center min-w-35">Availability</th>
+                <th className="py-3.5 px-2 text-center min-w-40">Availability</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
               </tr>
             </thead>
@@ -102,7 +102,7 @@ const AgentManagementTable = ({
                 <th className="py-3.5 px-2 min-w-55">Specialist Profile</th>
                 <th className="py-3.5 px-2 min-w-45">Territory & Agency</th>
                 <th className="py-3.5 px-2 text-center min-w-32.5">Performance</th>
-                <th className="py-3.5 px-2 text-center min-w-35">Availability</th>
+                <th className="py-3.5 px-2 text-center min-w-40">Availability</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
               </tr>
             </thead>
@@ -169,7 +169,7 @@ const AgentManagementTable = ({
                   </td>
 
                   {/* Availability Badge Cell */}
-                  <td className="py-3.5 px-2 text-center min-w-35">
+                  <td className="py-3.5 px-2 text-center min-w-40">
                     {renderStatusBadge(agent.status)}
                   </td>
 

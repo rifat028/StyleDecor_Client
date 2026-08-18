@@ -46,7 +46,7 @@ const ServiceManagementTable = ({
                 <th className="py-3.5 px-2 min-w-55">Service Package</th>
                 <th className="py-3.5 px-2 min-w-40">Decorator Agency</th>
                 <th className="py-3.5 px-2 text-center min-w-32.5">Pricing</th>
-                <th className="py-3.5 px-2 text-center min-w-35">Status & Feature</th>
+                <th className="py-3.5 px-2 text-center min-w-40">Status & Feature</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
               </tr>
             </thead>
@@ -71,7 +71,7 @@ const ServiceManagementTable = ({
                 <th className="py-3.5 px-2 min-w-55">Service Package</th>
                 <th className="py-3.5 px-2 min-w-40">Decorator Agency</th>
                 <th className="py-3.5 px-2 text-center min-w-32.5">Pricing</th>
-                <th className="py-3.5 px-2 text-center min-w-35">Status & Feature</th>
+                <th className="py-3.5 px-2 text-center min-w-40">Status & Feature</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
               </tr>
             </thead>
@@ -159,7 +159,7 @@ const ServiceManagementTable = ({
                     </td>
 
                     {/* Status & Featured Cell */}
-                    <td className="py-3.5 px-2 text-center min-w-35">
+                    <td className="py-3.5 px-2 text-center min-w-40">
                       <div className="inline-flex flex-col items-center gap-1">
                         {isActive ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">

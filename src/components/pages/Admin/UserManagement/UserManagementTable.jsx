@@ -33,7 +33,7 @@ const UserManagementTable = ({
                 <th className="py-3.5 px-2 min-w-55">User Profile</th>
                 <th className="py-3.5 px-2 min-w-45">Contact & City</th>
                 <th className="py-3.5 px-2 min-w-32.5">System Role</th>
-                <th className="py-3.5 px-2 text-center min-w-35">Quick Role Switch</th>
+                <th className="py-3.5 px-2 text-center min-w-40">Quick Role Switch</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
               </tr>
             </thead>
@@ -58,7 +58,7 @@ const UserManagementTable = ({
                 <th className="py-3.5 px-2 min-w-55">User Profile</th>
                 <th className="py-3.5 px-2 min-w-45">Contact & City</th>
                 <th className="py-3.5 px-2 min-w-32.5">System Role</th>
-                <th className="py-3.5 px-2 text-center min-w-35">Quick Role Switch</th>
+                <th className="py-3.5 px-2 text-center min-w-40">Quick Role Switch</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
               </tr>
             </thead>
@@ -132,7 +132,7 @@ const UserManagementTable = ({
                     </td>
 
                     {/* Quick Role Switch Select Cell */}
-                    <td className="py-3.5 px-2 text-center min-w-35">
+                    <td className="py-3.5 px-2 text-center min-w-40">
                       <select
                         value={user.role}
                         disabled={isSuperAdmin}
