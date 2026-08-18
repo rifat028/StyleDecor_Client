@@ -18,8 +18,10 @@ import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
 
 // Canonical Status Badge Renderer for Projects
-export const renderProjectStatusBadge = (status) => {
-  const s = String(status || "").toLowerCase().replace(/[\s-]/g, "_");
+const renderProjectStatusBadge = (status) => {
+  const s = String(status || "")
+    .toLowerCase()
+    .replace(/[\s-]/g, "_");
   switch (s) {
     case "in_draft":
     case "draft":
@@ -114,12 +116,14 @@ const MyProjectsTable = ({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
-                <th className="py-3.5 px-2 min-w-32.5">Project Code</th>
+                <th className="py-3.5 px-2 min-w-40">Project Code</th>
                 <th className="py-3.5 px-2 min-w-50">Service & Package</th>
                 <th className="py-3.5 px-2 min-w-35">Client Contact</th>
                 <th className="py-3.5 px-2 min-w-35">Lead Specialist</th>
                 <th className="py-3.5 px-2 min-w-40">Schedule & Venue</th>
-                <th className="py-3.5 px-2 text-center min-w-27.5">Total (৳)</th>
+                <th className="py-3.5 px-2 text-center min-w-27.5">
+                  Total (৳)
+                </th>
                 <th className="py-3.5 px-2 text-center min-w-40">Status</th>
                 <th className="py-3.5 px-2 text-center min-w-32.5">Actions</th>
               </tr>
@@ -142,12 +146,14 @@ const MyProjectsTable = ({
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
-                <th className="py-3.5 px-2 min-w-32.5">Project Code</th>
+                <th className="py-3.5 px-2 min-w-40">Project Code</th>
                 <th className="py-3.5 px-2 min-w-50">Service & Package</th>
                 <th className="py-3.5 px-2 min-w-35">Client Contact</th>
                 <th className="py-3.5 px-2 min-w-35">Lead Specialist</th>
                 <th className="py-3.5 px-2 min-w-40">Schedule & Venue</th>
-                <th className="py-3.5 px-2 text-center min-w-27.5">Total (৳)</th>
+                <th className="py-3.5 px-2 text-center min-w-27.5">
+                  Total (৳)
+                </th>
                 <th className="py-3.5 px-2 text-center min-w-40">Status</th>
                 <th className="py-3.5 px-2 text-center min-w-32.5">Actions</th>
               </tr>
@@ -156,9 +162,12 @@ const MyProjectsTable = ({
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {bookings.map((b) => {
                 const code =
-                  b.bookingCode || `BK-${b._id?.slice(-6).toUpperCase() || "AUTO"}`;
+                  b.bookingCode ||
+                  `BK-${b._id?.slice(-6).toUpperCase() || "AUTO"}`;
                 const title =
-                  b.serviceSnapshot?.title || b.serviceName || "Decoration Setup";
+                  b.serviceSnapshot?.title ||
+                  b.serviceName ||
+                  "Decoration Setup";
                 const pkgTier =
                   b.serviceSnapshot?.selectedPackage ||
                   b.packageTier ||
@@ -249,7 +258,7 @@ const MyProjectsTable = ({
                           <Calendar className="w-3 h-3 text-purple-500 shrink-0" />
                           <span>{dateStr}</span>
                         </p>
-                        <p className="text-[11px] text-slate-400 truncate max-w-[150px]">
+                        <p className="text-[11px] text-slate-400 truncate max-w-37.5">
                           {venue}
                         </p>
                       </div>

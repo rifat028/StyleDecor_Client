@@ -1,15 +1,5 @@
 import React from "react";
-import {
-  Calendar,
-  CreditCard,
-  X,
-  Users,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  Phone,
-  MapPin,
-} from "lucide-react";
+import { CreditCard, Phone } from "lucide-react";
 import Modal from "../../../ui/Modal";
 
 // Project & Payment Audit Dossier Modal

@@ -67,7 +67,7 @@ const MyProjects = () => {
         try {
           const res = await axiosSecure.get("/decorators/me");
           dec = res.data?.data || res.data;
-        } catch (meErr) {
+        } catch {
           const res = await axiosSecure.get(
             `/decorators/${encodeURIComponent(user.email)}`
           );
