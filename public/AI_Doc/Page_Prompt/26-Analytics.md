@@ -70,13 +70,32 @@ All split sub-components for this page MUST reside in their dedicated directory 
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/components/pages/Admin/Analytics/` and adhere to the 100-350 lines sizing standard.
-- [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
-- [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
-- [ ] Search input has clear button and clean dropdowns without redundant filter icons.
-- [ ] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
-- [ ] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds, and inapplicable action buttons remain visible in disabled state.
-- [ ] Table loading renders reusable `<TableSkeleton>`.
-- [ ] Pagination has 3-part layout with limit dropdown in the middle and `Prev` / `Page X / Y` / `Next` on the right.
-- [ ] Single-line comments only (`// ...`) with light density.
-- [ ] `npm run build` compiles with 0 errors.
+- [x] Sub-components live in `src/components/pages/Admin/Analytics/` and adhere to the 100-350 lines sizing standard.
+- [x] Header has icon, title, and subtitle on top-left, and Action button on top-right.
+- [x] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
+- [x] Search input has clear button and clean dropdowns without redundant filter icons.
+- [x] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
+- [x] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds, and inapplicable action buttons remain visible in disabled state.
+- [x] Table loading renders reusable `<TableSkeleton>`.
+- [x] Pagination has 3-part layout with limit dropdown in the middle and `Prev` / `Page X / Y` / `Next` on the right.
+- [x] Single-line comments only (`// ...`) with light density.
+- [x] `npm run build` compiles with 0 errors.
+
+---
+
+```
+=================================================================
+-------------------------- Change Log ---------------------------
+=================================================================
+```
+- **Date**: 2026-08-18
+- **Target Page**: `src/features/admin/Analytics.page.jsx`
+- **Actions Taken**:
+  - Decomposed monolithic file into 4 cohesive 120-160 line components under `src/components/pages/Admin/Analytics/` (`AnalyticsToolbar.jsx`, `RevenueChartCard.jsx`, `BookingsDistributionCard.jsx`, `RegionalPerformanceTable.jsx`).
+  - Redesigned top header with contextual icon, title, subtitle, and Refresh button.
+  - Implemented ultra-compact `<StatCard>` section (~48px height) with skeleton loading fallback.
+  - Built interactive monthly revenue trend and marketplace commissions chart card.
+  - Built category demand and booking lifecycle status donut distribution charts card.
+  - Standardized division performance table with `rounded-none`, `px-2` cell padding, and canonical `min-w-*` classes (`min-w-40`, `min-w-30`, `min-w-35`, `min-w-30`, `min-w-40`).
+  - Set status column to `min-w-40` for both header and table cells.
+  - Applied single-line comments only (`// ...`) with light density.
