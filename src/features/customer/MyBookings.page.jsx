@@ -4,6 +4,7 @@ import useAxiosSecure from "../../hooks/useAxiosSecure";
 import { AuthContext } from "../auth/AuthContext";
 import Swal from "sweetalert2";
 import { Calendar, RefreshCw, Sparkles } from "lucide-react";
+import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
 import MyBookingsToolbar from "../../components/pages/Customer/MyBookings/MyBookingsToolbar";
 import MyBookingsTable from "../../components/pages/Customer/MyBookings/MyBookingsTable";
 import {
@@ -522,56 +523,27 @@ const MyBookings = () => {
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
-      {/* 1. Top Header Bar with Tapered Bottom Border */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="p-3 bg-purple-100 dark:bg-purple-950/60 rounded-xl text-purple-600 dark:text-purple-400 shrink-0 shadow-xs">
-              <Calendar className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                My Bookings
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                Track all your scheduled event setups, monitor assigned decorator agencies, and manage venue logistics.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 self-start sm:self-auto flex-wrap sm:flex-nowrap">
-            {/* Refresh Action Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setRefreshing(true);
-                loadBookings();
-              }}
-              disabled={isInitialLoading || refreshing}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
-            >
-              <RefreshCw
-                className={`w-4 h-4 text-purple-600 dark:text-purple-400 ${
-                  refreshing ? "animate-spin" : ""
-                }`}
-              />
-              <span>Refresh Data</span>
-            </button>
-
-            {/* Primary Explore & Book Action Button */}
-            <Link
-              to="/services"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold transition-all shadow-md shadow-purple-600/25 cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Book New Service</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Tapered bottom border line (Thicker & solid in the center, tapering & transparent at corners) */}
-        <div className="h-[3px] w-full rounded-full bg-linear-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent" />
-      </div>
+      {/* 1. Standardized Top Header Bar */}
+      <DashboardPageHeader
+        icon={Calendar}
+        title="My Bookings"
+        subtitle="Track all your scheduled event setups, monitor assigned decorator agencies, and manage venue logistics."
+        onRefresh={() => {
+          setRefreshing(true);
+          loadBookings();
+        }}
+        refreshing={refreshing}
+        refreshDisabled={isInitialLoading}
+        actions={
+          <Link
+            to="/services"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold transition-all shadow-md shadow-purple-600/25 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Book New Service</span>
+          </Link>
+        }
+      />
 
       {/* 2. Consolidated Toolbar: Stat Cards & Search/Filter Controls */}
       <MyBookingsToolbar

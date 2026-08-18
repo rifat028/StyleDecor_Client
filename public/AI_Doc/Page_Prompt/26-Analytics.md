@@ -30,8 +30,11 @@ All split sub-components for this page MUST reside in their dedicated directory 
 ## 3. UI/UX & Layout Enhancements
 
 1. **Top Header Bar**:
-   - **Left:** Contextual icon badge in purple container, page title, and descriptive subtitle.
-   - **Right:** Primary action button(s) (e.g. "Refresh Data", "Add New") with clean styling.
+   - Built using the standardized reusable `<DashboardPageHeader>` component (`src/components/ui/DashboardPageHeader.jsx`).
+   - Frameless structure with no background card, no outer border, and no vertical padding box.
+   - **Left:** Contextual icon badge in purple container (`p-3 bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 rounded-xl`), responsive title (`text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight`), and descriptive subtitle (`text-xs sm:text-sm text-slate-500 dark:text-slate-400`).
+   - **Right:** Standardized "Refresh Data" button (`onRefresh`, `refreshing`, `refreshDisabled`) alongside a custom action button slot (`actions` / `children`) for page-specific primary/secondary actions.
+   - **Bottom:** Tapered border line (`h-[3px] w-full rounded-full bg-linear-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent`).
 
 2. **Stat Cards Section**:
    - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes.

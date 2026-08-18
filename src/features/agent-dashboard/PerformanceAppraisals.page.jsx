@@ -1,7 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
-import { AuthContext } from "../auth/AuthContext";
 import Spinner from "../home/components/Spinner";
+import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
 import {
   Award,
   Star,
@@ -21,7 +21,6 @@ import {
 
 const PerformanceAppraisals = () => {
   const axiosSecure = useAxiosSecure();
-  const { user } = useContext(AuthContext);
 
   const [dossier, setDossier] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -72,34 +71,44 @@ const PerformanceAppraisals = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 animate-fade-in space-y-8">
-      {/* ================= Header Banner ================= */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <Award className="w-3.5 h-3.5" /> Recognition & Appraisal Dossier
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-            My Performance & Appraisals
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Audit your field execution ratings, earned specialist badges, and verified client event reviews.
-          </p>
-        </div>
-
-        {dossier?.agent && (
-          <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-950/40 rounded-2xl border border-purple-100 dark:border-purple-900/50">
-            <img
-              src={dossier.agent.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"}
-              alt={dossier.agent.name}
-              className="w-10 h-10 rounded-xl object-cover ring-2 ring-purple-500"
-            />
-            <div>
-              <p className="font-bold text-xs text-slate-900 dark:text-slate-100">{dossier.agent.name}</p>
-              <p className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">{dossier.agent.designation}</p>
+      {/* ================= 1. Standardized Top Header Bar ================= */}
+      <DashboardPageHeader
+        icon={Award}
+        title="My Performance & Appraisals"
+        subtitle="Audit your field execution ratings, earned specialist badges, and verified client event reviews."
+        onRefresh={() => {
+          setLoading(true);
+          axiosSecure
+            .get("/agents/my-performance")
+            .then((res) => {
+              if (res.data?.success) setDossier(res.data);
+            })
+            .finally(() => setLoading(false));
+        }}
+        refreshing={loading}
+        actions={
+          dossier?.agent && (
+            <div className="flex items-center gap-3 p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+              <img
+                src={
+                  dossier.agent.photoUrl ||
+                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"
+                }
+                alt={dossier.agent.name}
+                className="w-9 h-9 rounded-lg object-cover ring-2 ring-purple-500"
+              />
+              <div>
+                <p className="font-bold text-xs text-slate-900 dark:text-slate-100">
+                  {dossier.agent.name}
+                </p>
+                <p className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">
+                  {dossier.agent.designation}
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )
+        }
+      />
 
       {/* ================= KPI Cards ================= */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

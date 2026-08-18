@@ -1,8 +1,8 @@
-import React, { useContext, useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
-import { AuthContext } from "../auth/AuthContext";
-import Spinner from "../home/components/Spinner";
 import Swal from "sweetalert2";
+import Spinner from "../home/components/Spinner";
+import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
 import {
   MessageSquare,
   Star,
@@ -32,7 +32,6 @@ const QUICK_REPLY_PRESETS = [
 
 const AgencyReviews = () => {
   const axiosSecure = useAxiosSecure();
-  const { user } = useContext(AuthContext);
 
   const [reviewsData, setReviewsData] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -185,20 +184,16 @@ const AgencyReviews = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 animate-fade-in space-y-8">
-      {/* ================= Header Banner ================= */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <Building className="w-3.5 h-3.5" /> Agency Reputation & Feedback
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-            Agency Reviews & Appraisals
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Audit verified client ratings, celebrate on-site execution excellence, and publish official agency responses.
-          </p>
-        </div>
-      </div>
+      {/* ================= 1. Standardized Top Header Bar ================= */}
+      <DashboardPageHeader
+        icon={Building}
+        title="Agency Reviews & Appraisals"
+        subtitle="Audit verified client ratings, celebrate on-site execution excellence, and publish official agency responses."
+        onRefresh={() => {
+          loadAgencyReviews();
+        }}
+        refreshing={loading}
+      />
 
       {/* ================= KPI Cards ================= */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

@@ -1,8 +1,9 @@
 import React, { useContext, useEffect, useMemo, useState, useCallback } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import { AuthContext } from "../auth/AuthContext";
-import Spinner from "../home/components/Spinner";
 import Swal from "sweetalert2";
+import Spinner from "../home/components/Spinner";
+import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
 import {
   Users,
   UserPlus,
@@ -319,41 +320,42 @@ const MyAgents = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 animate-fade-in space-y-8">
-      {/* ================= Header Banner ================= */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <Users className="w-3.5 h-3.5" /> Agency Specialist Workforce
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-            My Field Agents & Specialists
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Manage your agency's on-site setup crew, assign operational zones, and conduct performance appraisals.
-          </p>
-        </div>
-
-        <button
-          onClick={() => {
-            setAgentForm({
-              name: "",
-              email: "",
-              phone: "",
-              designation: "Field Specialist",
-              specialization: "Stage Architecture & Floral Setup",
-              experienceYears: 2,
-              city: "Dhaka",
-              zones: "Dhanmondi, Gulshan",
-              photoUrl: "",
-              status: "available",
-            });
-            setIsAddModalOpen(true);
-          }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-600/30 cursor-pointer"
-        >
-          <UserPlus className="w-3.5 h-3.5" /> Hire New Agent
-        </button>
-      </div>
+      {/* ================= 1. Standardized Top Header Bar ================= */}
+      <DashboardPageHeader
+        icon={Users}
+        title="My Field Agents & Specialists"
+        subtitle="Manage your agency's on-site setup crew, assign operational zones, and conduct performance appraisals."
+        onRefresh={() => {
+          if (decoratorId) {
+            loadAgents(decoratorId);
+          }
+        }}
+        refreshing={loading}
+        actions={
+          <button
+            type="button"
+            onClick={() => {
+              setAgentForm({
+                name: "",
+                email: "",
+                phone: "",
+                designation: "Field Specialist",
+                specialization: "Stage Architecture & Floral Setup",
+                experienceYears: 2,
+                city: "Dhaka",
+                zones: "Dhanmondi, Gulshan",
+                photoUrl: "",
+                status: "available",
+              });
+              setIsAddModalOpen(true);
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold shadow-md shadow-purple-600/25 cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Hire New Agent</span>
+          </button>
+        }
+      />
 
       {/* ================= Search & Filters ================= */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">

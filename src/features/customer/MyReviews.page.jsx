@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
-import { AuthContext } from "../auth/AuthContext";
-import Spinner from "../home/components/Spinner";
 import Swal from "sweetalert2";
+import Spinner from "../home/components/Spinner";
+import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
 import {
   MessageSquare,
   Star,
@@ -26,7 +26,6 @@ import {
 
 const MyReviews = () => {
   const axiosSecure = useAxiosSecure();
-  const { user } = useContext(AuthContext);
 
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -179,28 +178,23 @@ const MyReviews = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 animate-fade-in space-y-8">
-      {/* ================= Header Banner ================= */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5" /> My Event Feedback & Appraisals
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-            My Submitted Reviews
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Manage ratings, feedback, and celebration memories you have shared for executed bookings.
-          </p>
-        </div>
-
-        <Link
-          to="/dashboard/my-bookings"
-          className="px-5 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-600/30 flex items-center gap-2 transition-all cursor-pointer"
-        >
-          <Calendar className="w-3.5 h-3.5" />
-          View Completed Bookings
-        </Link>
-      </div>
+      {/* ================= 1. Standardized Top Header Bar ================= */}
+      <DashboardPageHeader
+        icon={MessageSquare}
+        title="My Submitted Reviews"
+        subtitle="Manage ratings, feedback, and celebration memories you have shared for executed bookings."
+        onRefresh={loadMyReviews}
+        refreshing={loading}
+        actions={
+          <Link
+            to="/dashboard/my-bookings"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold transition-all shadow-md shadow-purple-600/25 cursor-pointer"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>View Completed Bookings</span>
+          </Link>
+        }
+      />
 
       {/* ================= KPI Counters ================= */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

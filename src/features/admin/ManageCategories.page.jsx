@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
-import { Layers, Plus, RefreshCw } from "lucide-react";
+import { Layers, Plus } from "lucide-react";
+import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
 import CategoryManagementToolbar from "../../components/pages/Admin/CategoryManagement/CategoryManagementToolbar";
 import CategoryAccordionList from "../../components/pages/Admin/CategoryManagement/CategoryAccordionList";
 import CategoryManagementModals from "../../components/pages/Admin/CategoryManagement/CategoryManagementModals";
@@ -468,34 +469,15 @@ const ManageCategories = () => {
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
-      {/* 1. Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-        <div className="flex items-center gap-3.5">
-          <div className="p-3 bg-purple-100 dark:bg-purple-950/60 rounded-xl text-purple-600 dark:text-purple-400 shrink-0 shadow-xs">
-            <Layers className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Manage Categories
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              Organize service categories, subcategory options, and catalog visibility.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
-          {/* Refresh Data Button */}
-          <button
-            type="button"
-            onClick={loadCategories}
-            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold transition-all shadow-xs cursor-pointer"
-          >
-            <RefreshCw className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <span>Refresh</span>
-          </button>
-
-          {/* Add Category Primary Button */}
+      {/* 1. Standardized Top Header Bar */}
+      <DashboardPageHeader
+        icon={Layers}
+        title="Manage Categories"
+        subtitle="Organize service categories, subcategory options, and catalog visibility."
+        onRefresh={loadCategories}
+        refreshing={loading && categories.length > 0}
+        refreshDisabled={loading}
+        actions={
           <button
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
@@ -504,8 +486,8 @@ const ManageCategories = () => {
             <Plus className="w-4 h-4" />
             <span>Add Category</span>
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* 2. Consolidated Toolbar (~130 lines) */}
       <CategoryManagementToolbar
