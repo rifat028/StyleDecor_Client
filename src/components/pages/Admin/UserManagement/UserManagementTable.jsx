@@ -171,17 +171,20 @@ const UserManagementTable = ({
                           <Edit2 className="w-4 h-4" />
                         </button>
 
-                        {/* Delete User */}
-                        {!isSuperAdmin && (
-                          <button
-                            type="button"
-                            onClick={() => onDelete(user)}
-                            title="Delete User"
-                            className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 transition-colors cursor-pointer"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
+                        {/* Delete User (Disabled for Super Admin) */}
+                        <button
+                          type="button"
+                          disabled={isSuperAdmin}
+                          onClick={() => onDelete(user)}
+                          title={
+                            isSuperAdmin
+                              ? "Super Admin Account Cannot Be Deleted"
+                              : "Delete User"
+                          }
+                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>

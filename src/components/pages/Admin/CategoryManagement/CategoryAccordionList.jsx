@@ -235,7 +235,7 @@ const CategoryAccordionList = ({
                           <th className="py-2.5 px-2 text-center min-w-25">
                             Sort Order
                           </th>
-                          <th className="py-2.5 px-2 text-center min-w-25">
+                          <th className="py-2.5 px-2 text-center min-w-40">
                             Status
                           </th>
                           <th className="py-2.5 px-2 text-center min-w-25">
@@ -258,7 +258,7 @@ const CategoryAccordionList = ({
                             <td className="py-2.5 px-2 text-center min-w-25 font-bold text-slate-600 dark:text-slate-300">
                               #{sub.order ?? 1}
                             </td>
-                            <td className="py-2.5 px-2 text-center min-w-25">
+                            <td className="py-2.5 px-2 text-center min-w-40">
                               <SwitchToggle
                                 checked={sub.status === "active"}
                                 onChange={() =>

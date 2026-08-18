@@ -48,6 +48,7 @@ These are the standing quality bars every page should be held to, per the user's
 | 9 | **Coding standard** | Prop drilling vs. sensible state placement, naming consistency, no dead state (cross-check the ESLint `no-unused-vars` findings in `03-Frontend-Issues-And-Solutions.md` §11 for this file), no `console.log` left in, no inline magic numbers/strings that should be named constants. |
 | 10 | **Comments** | Non-obvious logic (business rules, calculations, key state) should have a concise single-line comment (`// ...`). All comments MUST be single-line only (no `/* ... */`, `/** ... */`, or decorative ASCII banners). Comment density should remain light: annotate component purpose, complex functions/hooks, and sub-components if large, without cluttering the code. |
 | 11 | **Accessibility** | Keyboard reachability, `aria-label`s on icon-only controls, focus management on modals/dropdowns opened from this page — cross-check `01-UI-UX-Issues.md` and `06-UI-Upgrade-Guide.md` Phase 2 for patterns already identified elsewhere in the app. |
+| 12 | **Action column state persistence** | In table action columns, if any button is not applicable for a specific row (e.g. refund for an uncompleted transaction, delete for super admin, etc.), keep it visible in a disabled state (`disabled` with `disabled:opacity-30 disabled:cursor-not-allowed`) rather than hiding or vanishing it. |
 
 ---
 
