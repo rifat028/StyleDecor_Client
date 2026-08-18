@@ -26,7 +26,7 @@ const MyProfileHeader = ({ userData, isEditing, onToggleEdit }) => {
   const { name, email, photoUrl, role, createdAt } = userData;
 
   return (
-    <div className="relative rounded-3xl overflow-hidden bg-linear-to-r from-purple-950 via-purple-900 to-indigo-950 text-white p-6 sm:p-10 shadow-xl">
+    <div className="relative rounded-3xl overflow-hidden bg-linear-to-r from-purple-950 via-purple-900 to-indigo-950 text-white p-6 sm:p-10 shadow-xl transition-all duration-300 hover:shadow-2xl hover:shadow-purple-900/40">
       <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
@@ -66,10 +66,12 @@ const MyProfileHeader = ({ userData, isEditing, onToggleEdit }) => {
             <p className="text-purple-300/70 text-xs flex items-center justify-center sm:justify-start gap-1.5 pt-1">
               <Calendar className="w-3.5 h-3.5" />
               Member since{" "}
-              {new Date(createdAt || Date.now()).toLocaleDateString("en-US", {
-                month: "short",
-                year: "numeric",
-              })}
+              {createdAt
+                ? new Date(createdAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "numeric",
+                  })
+                : "Recently Joined"}
             </p>
           </div>
         </div>
@@ -83,7 +85,7 @@ const MyProfileHeader = ({ userData, isEditing, onToggleEdit }) => {
             className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-sm font-semibold transition-all duration-200 shadow-lg cursor-pointer text-white"
           >
             <Edit3 className="w-4 h-4" />
-            <span>{isEditing ? "Cancel Editing" : "Edit Personal Info"}</span>
+            <span>Edit Personal Info</span>
           </button>
 
           {/* Account Status Block (Moved directly below the Edit button) */}

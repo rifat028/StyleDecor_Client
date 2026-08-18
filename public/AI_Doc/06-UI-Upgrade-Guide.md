@@ -570,6 +570,35 @@ Add a real icon file, e.g. `public/favicon.svg` (reuse `src/assets/logos/*square
 
 ---
 
+## Phase 4 — Dashboard Layout Standard: `<DashboardPageHeader>`
+
+Every dashboard view across Admin, Decorator, Agent, and Customer panels must utilize the centralized `<DashboardPageHeader>` component (`src/components/ui/DashboardPageHeader.jsx`).
+
+**Key Architectural Rules:**
+1. **Frameless Header**: Never place the page header inside a white/dark card container with borders or internal padding.
+2. **Responsive Typography**: Title must be `text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight` with a purple rounded icon box (`p-3 bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400`).
+3. **Action Button Slots**: Standard Refresh Data button rendered via `onRefresh` prop; custom action buttons (e.g. "Create Service", "Add Project", "Book Service") passed via `actions` prop.
+4. **Tapered Bottom Border**: Uses `h-[3px] w-full rounded-full bg-linear-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent` to separate the header from the toolbar / data table below.
+
+```jsx
+<DashboardPageHeader
+  icon={Calendar}
+  title="My Bookings"
+  subtitle="Track all your scheduled event setups, monitor assigned decorator agencies, and manage venue logistics."
+  onRefresh={loadBookings}
+  refreshing={refreshing}
+  refreshDisabled={loading}
+  actions={
+    <Link to="/services" className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm shadow-md flex items-center gap-2">
+      <Sparkles className="w-4 h-4" />
+      <span>Book New Service</span>
+    </Link>
+  }
+/>
+```
+
+---
+
 ## Verification checklist
 
 After applying each phase, confirm:

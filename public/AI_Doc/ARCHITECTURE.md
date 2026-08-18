@@ -51,7 +51,14 @@ StyleDecor_Client/
 │   │   │   ├── Forbidden.jsx      # 403 Access denied
 │   │   │   └── Unauthorized.jsx   # 401 Session expired
 │   │   └── ui/
-│   │       └── LogoutModal.jsx    # Confirmation modal for session termination
+│   │       ├── DashboardPageHeader.jsx # Standardized frameless dashboard header with tapered border
+│   │       ├── EmptyState.jsx          # Canonical empty results illustration & action
+│   │       ├── LogoutModal.jsx         # Confirmation modal for session termination
+│   │       ├── Modal.jsx               # Universal portal modal shell with focus/ESC dismiss
+│   │       ├── Pagination.jsx          # Canonical 3-part pagination controls
+│   │       ├── RatingBadge.jsx         # Uniform rating star pill
+│   │       ├── StatCard.jsx            # Standardized metric cards with pulse skeleton
+│   │       └── TableSkeleton.jsx       # Standardized table skeleton rows
 │   ├── features/
 │   │   ├── about/                 # Public About, Values, Stats & How It Works
 │   │   ├── admin/                 # Administrator Dashboard Suite

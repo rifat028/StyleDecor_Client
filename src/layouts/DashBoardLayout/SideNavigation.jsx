@@ -127,8 +127,6 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
         </div>
 
         <ul className={`flex flex-col w-full flex-1 p-4 overflow-y-auto ${isCollapsed ? 'px-3' : ''}`}>
-          <NavItem to="/dashboard/my-profile" icon={UserCircle} label="My Profile" isCollapsed={isCollapsed} />
-
           {(role === "customer" || role === "client") && (
             <>
               <NavItem to="/dashboard/my-bookings" icon={Calendar} label="My Bookings" isCollapsed={isCollapsed} />
@@ -170,6 +168,9 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
               <NavItem to="/dashboard/agency-reviews" icon={MessageSquare} label="Agency Reviews" isCollapsed={isCollapsed} />
             </>
           )}
+
+          {/* My Profile menu placed at the bottom in each dashboard */}
+          <NavItem to="/dashboard/my-profile" icon={UserCircle} label="My Profile" isCollapsed={isCollapsed} />
         </ul>
         
         <div className={`p-4 border-t border-slate-200 dark:border-slate-800/80 ${isCollapsed ? 'px-3' : ''}`}>

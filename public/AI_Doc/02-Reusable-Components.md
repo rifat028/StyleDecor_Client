@@ -202,16 +202,46 @@ export const formatDate = (date) => new Date(date).toLocaleDateString("en-US", {
 
 ---
 
+## 11. `<DashboardPageHeader>` — Standardized Dashboard Page Header
+
+**Evidence:** Every dashboard page across Admin, Decorator, Agent, and Customer panels was hand-rolling its own header markup with varying padding, background cards, and border styles.
+
+**Standard Component (`src/components/ui/DashboardPageHeader.jsx`):**
+- **Frameless Design**: No card enclosure, no background color, no outer border, and no vertical padding box.
+- **Left**: Rounded purple icon badge (`p-3 bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 rounded-xl`), responsive title (`text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight`), and optional descriptive subtitle (`text-xs sm:text-sm text-slate-500 dark:text-slate-400`).
+- **Right**: Optional standardized Refresh Data button (`onRefresh`, `refreshing`, `refreshDisabled`) alongside a flexible custom action slot (`actions` / `children`) for page-specific buttons (e.g. "Book New Service", "Create Category", "Add Project", "Request Withdrawal").
+- **Bottom**: Tapered border line (`h-[3px] w-full rounded-full bg-linear-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent`).
+
+```jsx
+// src/components/ui/DashboardPageHeader.jsx
+<DashboardPageHeader
+  icon={Calendar}
+  title="My Bookings"
+  subtitle="Track all your scheduled event setups, monitor assigned decorator agencies, and manage venue logistics."
+  onRefresh={handleRefresh}
+  refreshing={refreshing}
+  refreshDisabled={loading}
+  actions={
+    <Link to="/services" className="...">
+      <Sparkles className="w-4 h-4" />
+      <span>Book New Service</span>
+    </Link>
+  }
+/>
+```
+
+---
+
 ## Suggested folder layout for the above
 
 ```
 src/components/ui/
+  DashboardPageHeader.jsx
   DataTable.jsx
   Pagination.jsx
   EmptyState.jsx
   StatCard.jsx
-  CardGridSkeleton.jsx
-  TableRowSkeleton.jsx
+  TableSkeleton.jsx
   Modal.jsx
   ThemeToggle.jsx
   UserMenu.jsx

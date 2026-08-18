@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState, useCallback } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
+import useRole from "../../hooks/useRole";
 import { AuthContext } from "../auth/AuthContext";
 import toast from "react-hot-toast";
 import { XCircle } from "lucide-react";
@@ -7,10 +8,14 @@ import MyProfileHeader from "../../components/pages/Customer/MyProfile/MyProfile
 import MyProfileAccountDetails from "../../components/pages/Customer/MyProfile/MyProfileAccountDetails";
 import MyProfileAddressSection from "../../components/pages/Customer/MyProfile/MyProfileAddressSection";
 import MyProfileDecoratorAgencySection from "../../components/pages/Customer/MyProfile/MyProfileDecoratorAgencySection";
+import MyProfileSkeleton from "../../components/pages/Customer/MyProfile/MyProfileSkeleton";
+import EditProfileModal from "../../components/pages/Customer/MyProfile/EditProfileModal";
+import EditDecoratorAgencyModal from "../../components/pages/Customer/MyProfile/EditDecoratorAgencyModal";
 
 // User & Agency Profile Management Page
 const MyProfile = () => {
   const { user } = useContext(AuthContext);
+  const { role } = useRole();
   const axiosSecure = useAxiosSecure();
 
   const [userData, setUserData] = useState(null);
@@ -201,14 +206,7 @@ const MyProfile = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-3">
-        <div className="w-10 h-10 border-3 border-purple-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 animate-pulse">
-          Loading profile data...
-        </p>
-      </div>
-    );
+    return <MyProfileSkeleton isDecorator={role === "decorator"} />;
   }
 
   if (!userData) {
@@ -234,42 +232,49 @@ const MyProfile = () => {
         onToggleEdit={() => setIsEditing(!isEditing)}
       />
 
-      {/* 2. Main Details Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+      {/* 2. Main Details Grid (Equal Width & Equal Height Cards) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-stretch">
         {/* Left Column: Account Credentials */}
-        <div className="space-y-6">
+        <div className="h-full flex flex-col">
           <MyProfileAccountDetails userData={userData} />
         </div>
 
-        {/* Right Column: Address Details & Profile Editor */}
-        <div className="lg:col-span-2 space-y-6">
-          <MyProfileAddressSection
-            address={userData.address}
-            isEditing={isEditing}
-            onCancelEdit={() => setIsEditing(false)}
-            formData={formData}
-            onInputChange={handleInputChange}
-            onSubmitProfile={handleUpdateProfile}
-            saving={saving}
-          />
-
-          {/* Decorator Agency Profile & Inline Editor (if role is decorator) */}
-          {userData.role === "decorator" && decoratorData && (
-            <MyProfileDecoratorAgencySection
-              decoratorData={decoratorData}
-              isEditingDecorator={isEditingDecorator}
-              onToggleEditingDecorator={() =>
-                setIsEditingDecorator(!isEditingDecorator)
-              }
-              decoratorForm={decoratorForm}
-              onDecoratorInputChange={handleDecoratorInputChange}
-              onToggleServiceArea={handleToggleServiceArea}
-              onSubmitDecoratorProfile={handleUpdateDecoratorProfile}
-              savingDecorator={savingDecorator}
-            />
-          )}
+        {/* Right Column: Address Details Card */}
+        <div className="h-full flex flex-col">
+          <MyProfileAddressSection address={userData.address} />
         </div>
       </div>
+
+      {/* 3. Decorator Agency Profile (if role is decorator) */}
+      {userData.role === "decorator" && decoratorData && (
+        <MyProfileDecoratorAgencySection
+          decoratorData={decoratorData}
+          onOpenEditModal={() => setIsEditingDecorator(true)}
+        />
+      )}
+
+      {/* 4. Edit Personal Profile Modal Dialog */}
+      <EditProfileModal
+        isOpen={isEditing}
+        onClose={() => setIsEditing(false)}
+        formData={formData}
+        onInputChange={handleInputChange}
+        onSubmitProfile={handleUpdateProfile}
+        saving={saving}
+      />
+
+      {/* 5. Edit Decorator Agency Profile Modal Dialog */}
+      {userData.role === "decorator" && (
+        <EditDecoratorAgencyModal
+          isOpen={isEditingDecorator}
+          onClose={() => setIsEditingDecorator(false)}
+          decoratorForm={decoratorForm}
+          onDecoratorInputChange={handleDecoratorInputChange}
+          onToggleServiceArea={handleToggleServiceArea}
+          onSubmitDecoratorProfile={handleUpdateDecoratorProfile}
+          savingDecorator={savingDecorator}
+        />
+      )}
     </div>
   );
 };
