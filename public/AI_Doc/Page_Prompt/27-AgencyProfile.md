@@ -54,10 +54,52 @@ Apply these changes to `src/features/decorator-dashboard/AgencyProfile.page.jsx`
 
 Preserve all existing profile-editing, zone/category-management, and social-link logic — none of the above requires restructuring the page beyond the two correctness fixes and the DRY extraction.
 
+---
+
+## Architecture & Sub-Component Sizing Standard
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Decorator/AgencyProfile/`.
+
+> [!IMPORTANT]
+> **Component Sizing Rule:** Each decomposed sub-component must contain **at least 100–150 lines to a maximum of 250–350 lines**. Avoid fragmenting code into tiny micro-files (< 100 lines); group related cohesive functionality (e.g. Toolbar/Stats+Filters, Table+Rows+Pagination, Modals/Forms) together.
+
+- **Sub-Components Directory:** `src/components/pages/Decorator/AgencyProfile/`
+
+---
+
+## UI/UX & Layout Enhancements
+
+1. **Top Header Bar**:
+   - **Left:** Contextual icon badge in purple container, page title, and descriptive subtitle.
+   - **Right:** Primary action button(s) (e.g. "Refresh Data", "Action") with clean styling.
+
+2. **Stat Cards Section (if applicable)**:
+   - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes.
+   - Ultra-compact horizontal layout with minimal height (~48px) and no captions/subtitles.
+   - Interactive click-to-filter support and pulse skeleton loader fallback state (`loading={true}`) when stats data is fetching or unavailable.
+
+3. **Search & Filters Bar Section (if applicable)**:
+   - Sits directly above the table/cards in a rounded card container (`bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800`).
+   - **Left:** Search input with search icon, live debounce (350ms), and clear `(X)` button.
+   - **Right:** Clean dropdown selectors for filtering without redundant filter icons next to the dropdowns.
+
+4. **Card / Form Grid Layout**:
+   - Organized into clean, responsive grid layout with proper card borders and dark mode tokens.
+   - Interactive elements have clear hover and focus states.
+
+6. **Modals & Dialogs (if applicable)**:
+   - Reusable `<Modal>` component (`src/components/ui/Modal.jsx`) mounted via `createPortal` with backdrop click close and Escape key dismiss.
+
+7. **Coding Standards**:
+   - Single-line comments only (`// ...`) with light density.
+   - Strictly no block comments (`/* ... */`).
+
+---
+
 ## Verification Checklist
 
-- [ ] A decorator whose agency is `pending`/unverified sees consistent status messaging everywhere on the page — no card claims "Approved" while another says "Pending."
-- [ ] Selecting a new operational status either shows a confirmation dialog (if it affects public visibility) or is confirmed to be a separate, non-conflicting field.
-- [ ] A decorator with no trade license entered sees an honest empty state, not a fabricated-looking license number.
-- [ ] Page renders and behaves identically after extracting the Edit/Create modal and its two sub-widgets into local components.
-- [ ] Page tested at mobile, tablet, and desktop widths in both themes — no regression.
+- [ ] Sub-components live in `src/components/pages/Decorator/AgencyProfile/` and adhere to the 100-350 lines sizing standard.
+- [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
+- [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
+- [ ] Interactive controls and form elements have proper disabled, hover, and focus states.
+- [ ] Single-line comments only (`// ...`) with light density.
+- [ ] `npm run build` compiles with 0 errors.

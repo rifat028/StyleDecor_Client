@@ -46,10 +46,52 @@ Apply these changes to `src/features/profile/MyProfile.page.jsx`:
 
 Preserve all existing profile-editing and decorator-agency-editing form logic — none of the above requires restructuring the page.
 
+---
+
+## Architecture & Sub-Component Sizing Standard
+All split sub-components for this page MUST reside in their dedicated directory under `src/components/pages/Customer/MyProfile/`.
+
+> [!IMPORTANT]
+> **Component Sizing Rule:** Each decomposed sub-component must contain **at least 100–150 lines to a maximum of 250–350 lines**. Avoid fragmenting code into tiny micro-files (< 100 lines); group related cohesive functionality (e.g. Toolbar/Stats+Filters, Table+Rows+Pagination, Modals/Forms) together.
+
+- **Sub-Components Directory:** `src/components/pages/Customer/MyProfile/`
+
+---
+
+## UI/UX & Layout Enhancements
+
+1. **Top Header Bar**:
+   - **Left:** Contextual icon badge in purple container, page title, and descriptive subtitle.
+   - **Right:** Primary action button(s) (e.g. "Refresh Data", "Action") with clean styling.
+
+2. **Stat Cards Section (if applicable)**:
+   - Built with the reusable `<StatCard>` component (`src/components/ui/StatCard.jsx`) supporting categorical tone themes.
+   - Ultra-compact horizontal layout with minimal height (~48px) and no captions/subtitles.
+   - Interactive click-to-filter support and pulse skeleton loader fallback state (`loading={true}`) when stats data is fetching or unavailable.
+
+3. **Search & Filters Bar Section (if applicable)**:
+   - Sits directly above the table/cards in a rounded card container (`bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800`).
+   - **Left:** Search input with search icon, live debounce (350ms), and clear `(X)` button.
+   - **Right:** Clean dropdown selectors for filtering without redundant filter icons next to the dropdowns.
+
+4. **Card / Form Grid Layout**:
+   - Organized into clean, responsive grid layout with proper card borders and dark mode tokens.
+   - Interactive elements have clear hover and focus states.
+
+6. **Modals & Dialogs (if applicable)**:
+   - Reusable `<Modal>` component (`src/components/ui/Modal.jsx`) mounted via `createPortal` with backdrop click close and Escape key dismiss.
+
+7. **Coding Standards**:
+   - Single-line comments only (`// ...`) with light density.
+   - Strictly no block comments (`/* ... */`).
+
+---
+
 ## Verification Checklist
 
-- [ ] The "Verified & Active Member" card either reflects real account-verification state or has been scoped/removed as a placeholder — confirmed with whoever owns the backend user-verification logic if uncertain.
-- [ ] Loading state fits within the dashboard's content area, not the full viewport, when navigating to this page inside the authenticated shell.
-- [ ] Personal-profile and decorator-agency sections use the same primary accent color throughout.
-- [ ] `BD_CITIES`/`topCitiesInBD` is defined in one shared location, matching `09-JoinAsDecorator.md`'s extraction.
-- [ ] Page tested at mobile, tablet, and desktop widths in both themes — no regression.
+- [ ] Sub-components live in `src/components/pages/Customer/MyProfile/` and adhere to the 100-350 lines sizing standard.
+- [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
+- [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
+- [ ] Interactive controls and form elements have proper disabled, hover, and focus states.
+- [ ] Single-line comments only (`// ...`) with light density.
+- [ ] `npm run build` compiles with 0 errors.
