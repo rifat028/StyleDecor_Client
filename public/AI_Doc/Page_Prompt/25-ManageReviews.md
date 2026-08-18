@@ -69,13 +69,34 @@ All split sub-components for this page MUST reside in their dedicated directory 
 ---
 
 ## 4. Verification Checklist
-- [ ] Sub-components live in `src/components/pages/Admin/ReviewManagement/` and adhere to the 100-350 lines sizing standard.
-- [ ] Header has icon, title, and subtitle on top-left, and Action button on top-right.
-- [ ] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
-- [ ] Search input has clear button and clean dropdowns without redundant filter icons.
-- [ ] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
-- [ ] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds, and inapplicable action buttons remain visible in disabled state.
-- [ ] Table loading renders reusable `<TableSkeleton>`.
-- [ ] Pagination has 3-part layout with limit dropdown in the middle and `Prev` / `Page X / Y` / `Next` on the right.
-- [ ] Single-line comments only (`// ...`) with light density.
-- [ ] `npm run build` compiles with 0 errors.
+- [x] Sub-components live in `src/components/pages/Admin/ReviewManagement/` and adhere to the 100-350 lines sizing standard.
+- [x] Header has icon, title, and subtitle on top-left, and Action button on top-right.
+- [x] Stat cards use `<StatCard>` with ultra-compact minimal height (~48px) and skeleton loading fallback.
+- [x] Search input has clear button and clean dropdowns without redundant filter icons.
+- [x] Table has `rounded-none`, header/footer matching background, `px-2` cell padding, and explicit `min-w-*` on all cells.
+- [x] Actions column header is center-aligned with bordered `rounded-md` buttons that show hover backgrounds, and inapplicable action buttons remain visible in disabled state.
+- [x] Table loading renders reusable `<TableSkeleton>`.
+- [x] Pagination has 3-part layout with limit dropdown in the middle and `Prev` / `Page X / Y` / `Next` on the right.
+- [x] Single-line comments only (`// ...`) with light density.
+- [x] `npm run build` compiles with 0 errors.
+
+---
+
+```
+=================================================================
+-------------------------- Change Log ---------------------------
+=================================================================
+```
+- **Date**: 2026-08-18
+- **Target Page**: `src/features/admin/ManageReviews.page.jsx`
+- **Actions Taken**:
+  - Decomposed 579-line monolithic file into 3 cohesive 100-240 line components under `src/components/pages/Admin/ReviewManagement/` (`ReviewManagementToolbar.jsx`, `ReviewManagementTable.jsx`, `ReviewManagementModals.jsx`).
+  - Redesigned top header with contextual icon, title, subtitle, and Refresh button.
+  - Implemented ultra-compact `<StatCard>` section (~48px height) with skeleton loading fallback.
+  - Created clean search input with 350ms debounce and clear button, paired with clean Status, Star Rating, and Sort dropdowns.
+  - Standardized table with `rounded-none`, `px-2` cell padding, and canonical `min-w-*` classes (`min-w-55`, `min-w-45`, `min-w-50`, `min-w-40`, `min-w-30`).
+  - Set status column to `min-w-40` for both header and table cells.
+  - Added centered actions column header and bordered `rounded-md` action buttons with hover backgrounds and disabled state support.
+  - Integrated 3-part streamlined `<Pagination>` matching table header background.
+  - Built comprehensive review dossier modal with user avatar, star breakdown, service package/decorator reference, commentary, and status moderation controls.
+  - Applied single-line comments only (`// ...`) with light density.
