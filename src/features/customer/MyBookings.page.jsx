@@ -3,46 +3,36 @@ import { Link } from "react-router";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import { AuthContext } from "../auth/AuthContext";
 import Swal from "sweetalert2";
-import Spinner from "../home/components/Spinner";
+import { Calendar, RefreshCw, Sparkles } from "lucide-react";
+import MyBookingsToolbar from "../../components/pages/Customer/MyBookings/MyBookingsToolbar";
+import MyBookingsTable from "../../components/pages/Customer/MyBookings/MyBookingsTable";
 import {
-  Calendar,
-  Clock,
-  MapPin,
-  Building,
-  User,
-  Phone,
-  Eye,
-  Edit3,
-  Trash2,
-  Search,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  Sparkles,
-  Layers,
-  ArrowRight,
-  X,
-  CreditCard,
-  Tag,
-  ShieldCheck,
-  Users,
-  Star,
-  MessageSquare,
-} from "lucide-react";
+  MyBookingsViewModal,
+  EditBookingModal,
+  PayModal,
+  ReviewModal,
+} from "../../components/pages/Customer/MyBookings/MyBookingsModals";
 
+// Main Customer Event Bookings Management Page
 const MyBookings = () => {
   const axiosSecure = useAxiosSecure();
   const { user } = useContext(AuthContext);
 
+  // Customer Profile & Data State
+  const [customerId, setCustomerId] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Filters & Search
   const [statusTab, setStatusTab] = useState("all");
   const [searchText, setSearchText] = useState("");
   const [sortBy, setSortBy] = useState("newest");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
-  // Modals
+  // Modals State
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -74,13 +64,12 @@ const MyBookings = () => {
     specialInstructions: "",
   });
 
-  const [customerId, setCustomerId] = useState(null);
-
   // 1. Load Customer Profile to resolve MongoDB ObjectId
   useEffect(() => {
     const loadProfile = async () => {
       if (!user?.email) return;
       try {
+        setProfileLoading(true);
         const res = await axiosSecure.get("/users/me");
         const profile = res.data?.data || res.data;
         if (profile?._id) {
@@ -88,6 +77,8 @@ const MyBookings = () => {
         }
       } catch (err) {
         console.error("Failed to load customer profile:", err);
+      } finally {
+        setProfileLoading(false);
       }
     };
     loadProfile();
@@ -95,7 +86,10 @@ const MyBookings = () => {
 
   // 2. Load Bookings by Customer ID
   const loadBookings = useCallback(async () => {
-    if (!customerId) return;
+    if (!customerId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const res = await axiosSecure.get(`/bookings/customer/${customerId}`);
@@ -106,22 +100,48 @@ const MyBookings = () => {
       setBookings([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [axiosSecure, customerId]);
 
   useEffect(() => {
     if (customerId) {
       loadBookings();
+    } else if (!profileLoading) {
+      setLoading(false);
     }
-  }, [customerId, loadBookings]);
+  }, [customerId, loadBookings, profileLoading]);
 
-  // Statistics
+  // Combined Loading State for Immediate Skeletons
+  const isInitialLoading = profileLoading || loading;
+
+  // Metric Statistics
   const stats = useMemo(() => {
     return {
       total: bookings.length,
-      confirmed: bookings.filter((b) => ["confirmed", "in_progress", "Assigned", "Planning", "Equipping", "On Way", "Setting up"].includes(b.status)).length,
-      completed: bookings.filter((b) => ["completed", "Completed"].includes(b.status)).length,
-      pending: bookings.filter((b) => ["pending", "unpaid"].includes(b.status) || b.paymentStatus === "unpaid").length,
+      confirmed: bookings.filter((b) =>
+        [
+          "confirmed",
+          "accepted",
+          "advance_paid",
+          "advance paid",
+          "preparing",
+          "on_the_way",
+          "on the way",
+          "in_progress",
+          "inprogress",
+        ].includes(String(b.status).toLowerCase())
+      ).length,
+      completed: bookings.filter((b) =>
+        ["completed", "fully_paid", "fully paid"].includes(
+          String(b.status).toLowerCase()
+        )
+      ).length,
+      pending: bookings.filter((b) =>
+        ["pending", "in_draft", "draft"].includes(
+          String(b.status).toLowerCase()
+        )
+      ).length,
     };
   }, [bookings]);
 
@@ -129,32 +149,69 @@ const MyBookings = () => {
   const filteredBookings = useMemo(() => {
     return bookings
       .filter((b) => {
-        // Status Filter
         if (statusTab !== "all") {
           const currentStatus = String(b.status || "").toLowerCase();
           if (statusTab === "confirmed") {
-            if (!["confirmed", "assigned", "planning", "equipping", "on way", "setting up"].includes(currentStatus)) return false;
+            if (
+              ![
+                "confirmed",
+                "accepted",
+                "advance_paid",
+                "advance paid",
+                "preparing",
+                "on_the_way",
+                "on the way",
+                "in_progress",
+                "inprogress",
+              ].includes(currentStatus)
+            )
+              return false;
           } else if (statusTab === "in_progress") {
-            if (!["in_progress", "planning", "equipping", "on way", "setting up"].includes(currentStatus)) return false;
+            if (
+              ![
+                "in_progress",
+                "inprogress",
+                "preparing",
+                "on_the_way",
+                "on the way",
+              ].includes(currentStatus)
+            )
+              return false;
           } else if (statusTab === "completed") {
-            if (currentStatus !== "completed") return false;
+            if (!["completed", "fully_paid", "fully paid"].includes(currentStatus))
+              return false;
           } else if (statusTab === "pending") {
-            if (currentStatus !== "pending") return false;
+            if (!["pending", "in_draft", "draft"].includes(currentStatus))
+              return false;
           } else if (statusTab === "cancelled") {
-            if (currentStatus !== "cancelled") return false;
+            if (!["cancelled", "rejected"].includes(currentStatus))
+              return false;
           }
         }
 
-        // Search Filter
         if (searchText.trim()) {
           const q = searchText.toLowerCase();
           const code = (b.bookingCode || "").toLowerCase();
-          const title = (b.serviceSnapshot?.title || b.serviceName || "").toLowerCase();
-          const venue = (b.eventDetails?.venueName || b.location || "").toLowerCase();
+          const title = (
+            b.serviceSnapshot?.title ||
+            b.serviceName ||
+            ""
+          ).toLowerCase();
+          const venue = (
+            b.eventDetails?.venueName ||
+            b.location ||
+            ""
+          ).toLowerCase();
           const address = (b.eventDetails?.venueAddress || "").toLowerCase();
           const decName = (b.decorator?.businessName || "").toLowerCase();
 
-          if (!code.includes(q) && !title.includes(q) && !venue.includes(q) && !address.includes(q) && !decName.includes(q)) {
+          if (
+            !code.includes(q) &&
+            !title.includes(q) &&
+            !venue.includes(q) &&
+            !address.includes(q) &&
+            !decName.includes(q)
+          ) {
             return false;
           }
         }
@@ -163,13 +220,21 @@ const MyBookings = () => {
       })
       .sort((a, b) => {
         if (sortBy === "eventDate_asc") {
-          const dateA = new Date(a.eventDetails?.eventDate || a.bookingDate || 0);
-          const dateB = new Date(b.eventDetails?.eventDate || b.bookingDate || 0);
+          const dateA = new Date(
+            a.eventDetails?.eventDate || a.bookingDate || 0
+          );
+          const dateB = new Date(
+            b.eventDetails?.eventDate || b.bookingDate || 0
+          );
           return dateA - dateB;
         }
         if (sortBy === "eventDate_desc") {
-          const dateA = new Date(a.eventDetails?.eventDate || a.bookingDate || 0);
-          const dateB = new Date(b.eventDetails?.eventDate || b.bookingDate || 0);
+          const dateA = new Date(
+            a.eventDetails?.eventDate || a.bookingDate || 0
+          );
+          const dateB = new Date(
+            b.eventDetails?.eventDate || b.bookingDate || 0
+          );
           return dateB - dateA;
         }
         if (sortBy === "amount_desc") {
@@ -185,6 +250,42 @@ const MyBookings = () => {
         return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
       });
   }, [bookings, statusTab, searchText, sortBy]);
+
+  // Paginated View Slice
+  const totalCount = filteredBookings.length;
+  const totalPages = Math.ceil(totalCount / limit) || 1;
+  const paginatedBookings = useMemo(() => {
+    const start = (page - 1) * limit;
+    return filteredBookings.slice(start, start + limit);
+  }, [filteredBookings, page, limit]);
+
+  // Filter Handlers
+  const handleSearchChange = (val) => {
+    setSearchText(val);
+    setPage(1);
+  };
+
+  const handleClearSearch = () => {
+    setSearchText("");
+    setPage(1);
+  };
+
+  const handleStatusTabChange = (val) => {
+    setStatusTab(val);
+    setPage(1);
+  };
+
+  const handleSortChange = (val) => {
+    setSortBy(val);
+    setPage(1);
+  };
+
+  const handleResetFilters = () => {
+    setSearchText("");
+    setStatusTab("all");
+    setSortBy("newest");
+    setPage(1);
+  };
 
   // Open View Modal
   const handleOpenView = (b) => {
@@ -242,7 +343,11 @@ const MyBookings = () => {
       loadBookings();
     } catch (err) {
       console.error("Failed to update booking:", err);
-      Swal.fire("Error", err.response?.data?.message || "Failed to update booking.", "error");
+      Swal.fire(
+        "Error",
+        err.response?.data?.message || "Failed to update booking.",
+        "error"
+      );
     }
   };
 
@@ -251,7 +356,9 @@ const MyBookings = () => {
     const isCompleted = ["completed", "Completed"].includes(b.status);
     const confirm = await Swal.fire({
       title: isCompleted ? "Remove Booking Record?" : "Cancel Event Booking?",
-      text: `Are you sure you want to ${isCompleted ? "remove this booking record" : "cancel this booking"} (${b.bookingCode || b.serviceName})?`,
+      text: `Are you sure you want to ${
+        isCompleted ? "remove this booking record" : "cancel this booking"
+      } (${b.bookingCode || b.serviceName})?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
@@ -272,7 +379,11 @@ const MyBookings = () => {
       loadBookings();
     } catch (err) {
       console.error("Failed to delete booking:", err);
-      Swal.fire("Error", "Failed to cancel booking. Please try again.", "error");
+      Swal.fire(
+        "Error",
+        "Failed to cancel booking. Please try again.",
+        "error"
+      );
     }
   };
 
@@ -281,9 +392,9 @@ const MyBookings = () => {
     setPayBooking(b);
     const paidAmt = Number(b.pricingBreakdown?.paidAmount || 0);
     if (paidAmt > 0) {
-      setPayType("full_payment"); // Already paid deposit, pay remainder
+      setPayType("full_payment");
     } else {
-      setPayType("advance_deposit"); // Pay initial 40% deposit
+      setPayType("advance_deposit");
     }
     setPayMethod("bkash");
     setIsPayModalOpen(true);
@@ -296,20 +407,33 @@ const MyBookings = () => {
 
     try {
       setIsProcessingPay(true);
-      const grandTotal = Number(payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0);
+      const grandTotal = Number(
+        payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0
+      );
       const existingPaid = Number(payBooking.pricingBreakdown?.paidAmount || 0);
       const remainingDue = grandTotal - existingPaid;
 
-      const calcAmount = payType === "advance_deposit" ? Math.round(grandTotal * 0.40) : (remainingDue > 0 ? remainingDue : grandTotal);
+      // Note: 40% advance deposit rate used per checkout business flow
+      const calcAmount =
+        payType === "advance_deposit"
+          ? Math.round(grandTotal * 0.4)
+          : remainingDue > 0
+          ? remainingDue
+          : grandTotal;
 
       if (payMethod === "stripe") {
-        // Stripe Hosted Checkout
-        const res = await axiosSecure.post("/payments/create-checkout-session", {
-          bookingId: payBooking._id,
-          serviceName: payBooking.serviceSnapshot?.title || payBooking.serviceName || "Event Decoration",
-          amount: calcAmount,
-          clientEmail: user?.email,
-        });
+        const res = await axiosSecure.post(
+          "/payments/create-checkout-session",
+          {
+            bookingId: payBooking._id,
+            serviceName:
+              payBooking.serviceSnapshot?.title ||
+              payBooking.serviceName ||
+              "Event Decoration",
+            amount: calcAmount,
+            clientEmail: user?.email,
+          }
+        );
 
         if (res.data?.url) {
           window.location.href = res.data.url;
@@ -317,7 +441,6 @@ const MyBookings = () => {
         }
       }
 
-      // Local / Instant Gateway Payment (bKash, Nagad, SSLCommerz, Bank Transfer)
       const res = await axiosSecure.post("/payments/initiate", {
         bookingId: payBooking._id,
         paymentType: payType,
@@ -337,7 +460,11 @@ const MyBookings = () => {
       }
     } catch (err) {
       console.error("Failed to process payment:", err);
-      Swal.fire("Payment Error", err.response?.data?.message || "Failed to process payment. Please try again.", "error");
+      Swal.fire(
+        "Payment Error",
+        err.response?.data?.message || "Failed to process payment.",
+        "error"
+      );
     } finally {
       setIsProcessingPay(false);
     }
@@ -352,7 +479,7 @@ const MyBookings = () => {
     setIsReviewModalOpen(true);
   };
 
-  // Submit Review (POST /reviews)
+  // Submit Review
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (!reviewBooking?._id || !reviewComment.trim()) return;
@@ -363,7 +490,8 @@ const MyBookings = () => {
         bookingId: reviewBooking._id,
         decoratorId: reviewBooking.decoratorId || reviewBooking.decorator?._id,
         serviceId: reviewBooking.serviceId,
-        agentId: reviewBooking.assignedAgentId || reviewBooking.assignedAgent?._id,
+        agentId:
+          reviewBooking.assignedAgentId || reviewBooking.assignedAgent?._id,
         rating: Number(reviewRating),
         comment: reviewComment.trim(),
       });
@@ -382,997 +510,142 @@ const MyBookings = () => {
       }
     } catch (err) {
       console.error("Failed to submit review:", err);
-      Swal.fire("Review Error", err.response?.data?.message || "Failed to submit review. Please try again.", "error");
+      Swal.fire(
+        "Review Error",
+        err.response?.data?.message || "Failed to submit review.",
+        "error"
+      );
     } finally {
       setIsSubmittingReview(false);
     }
   };
 
-  // Status Badge Helper supporting full lifecycle
-  const renderStatusBadge = (status) => {
-    const s = String(status || "").toLowerCase();
-    switch (s) {
-      case "in_draft":
-      case "draft":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 uppercase">
-            In Draft
-          </span>
-        );
-      case "pending":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 uppercase">
-            <AlertCircle className="w-3 h-3" /> Pending
-          </span>
-        );
-      case "accepted":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 uppercase">
-            <CheckCircle2 className="w-3 h-3" /> Accepted
-          </span>
-        );
-      case "rejected":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 uppercase">
-            <XCircle className="w-3 h-3" /> Rejected
-          </span>
-        );
-      case "advance paid":
-      case "advance_paid":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 uppercase">
-            <CreditCard className="w-3 h-3" /> Advance Paid
-          </span>
-        );
-      case "preparing":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 uppercase">
-            <Sparkles className="w-3 h-3" /> Preparing
-          </span>
-        );
-      case "on the way":
-      case "on_the_way":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 uppercase">
-            <Clock className="w-3 h-3" /> On The Way
-          </span>
-        );
-      case "inprogress":
-      case "in_progress":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 uppercase">
-            <Clock className="w-3 h-3" /> In Progress
-          </span>
-        );
-      case "completed":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase">
-            <CheckCircle2 className="w-3 h-3" /> Completed
-          </span>
-        );
-      case "fully paid":
-      case "fully_paid":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 uppercase">
-            <ShieldCheck className="w-3 h-3" /> Fully Paid
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase">
-            {status}
-          </span>
-        );
-    }
-  };
-
-  // Payment Badge Helper
-  const renderPaymentBadge = (b) => {
-    const pStatus = b.paymentStatus || (b.paid ? "paid" : "unpaid");
-    if (pStatus === "paid") {
-      return (
-        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 uppercase">
-          Paid
-        </span>
-      );
-    }
-    if (pStatus === "partially_paid") {
-      return (
-        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900 uppercase">
-          Partial
-        </span>
-      );
-    }
-    return (
-      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900 uppercase">
-        Unpaid
-      </span>
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 animate-fade-in space-y-8">
-      {/* ================= Header Banner ================= */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <Calendar className="w-3.5 h-3.5" /> Event Reservations
+    <div className="space-y-6 animate-fade-in pb-10">
+      {/* 1. Top Header Bar: Icon, Title, Subtitle & Action Buttons */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <div className="p-3 bg-purple-100 dark:bg-purple-950/60 rounded-xl text-purple-600 dark:text-purple-400 shrink-0 shadow-xs">
+            <Calendar className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-            My Bookings
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Track all your scheduled event setups, monitor assigned decorator agencies, and manage venue logistics.
-          </p>
-        </div>
-
-        <Link
-          to="/services"
-          className="px-5 py-3 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/25 transition-all cursor-pointer shrink-0"
-        >
-          <Sparkles className="w-4 h-4" /> Book New Service
-        </Link>
-      </div>
-
-      {/* ================= KPI Summary Metric Cards ================= */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-            Total Bookings
-          </span>
-          <p className="text-2xl font-black text-slate-900 dark:text-slate-100">
-            {stats.total}
-          </p>
-        </div>
-
-        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
-          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-            Confirmed / Active
-          </span>
-          <p className="text-2xl font-black text-blue-600 dark:text-blue-400">
-            {stats.confirmed}
-          </p>
-        </div>
-
-        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
-          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-            Completed Events
-          </span>
-          <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-            {stats.completed}
-          </p>
-        </div>
-
-        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
-          <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">
-            Pending / Awaiting
-          </span>
-          <p className="text-2xl font-black text-amber-500">
-            {stats.pending}
-          </p>
-        </div>
-      </div>
-
-      {/* ================= Filter Controls & Search ================= */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-5">
-        {/* Status Tabs */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
-          {[
-            { id: "all", label: "All Bookings", count: stats.total },
-            { id: "confirmed", label: "Confirmed", count: stats.confirmed },
-            { id: "completed", label: "Completed", count: stats.completed },
-            { id: "pending", label: "Pending", count: stats.pending },
-          ].map((tab) => {
-            const isSelected = statusTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setStatusTab(tab.id)}
-                className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                  isSelected
-                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
-                }`}
-              >
-                <span>{tab.label}</span>
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                    isSelected ? "bg-white/20 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Search & Sort Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative w-full sm:max-w-md">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search by code, service name, or venue..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-purple-500"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="text-xs font-semibold text-slate-400 shrink-0">Sort:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-purple-500 cursor-pointer"
-            >
-              <option value="newest">Newest First</option>
-              <option value="eventDate_asc">Event Date: Earliest First</option>
-              <option value="eventDate_desc">Event Date: Latest First</option>
-              <option value="amount_desc">Amount: High to Low</option>
-              <option value="amount_asc">Amount: Low to High</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* ================= Bookings Data Table ================= */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
-        {loading ? (
-          <div className="p-20 flex items-center justify-center">
-            <Spinner />
-          </div>
-        ) : filteredBookings.length === 0 ? (
-          <div className="p-16 text-center space-y-4">
-            <Calendar className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto" />
-            <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
-              No Bookings Found
-            </h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              You don't have any bookings matching this criteria. Browse our decoration packages and book your next celebration!
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              My Bookings
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+              Track all your scheduled event setups, monitor assigned decorator agencies, and manage venue logistics.
             </p>
-            <Link
-              to="/services"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 text-white text-xs font-bold hover:bg-purple-700 cursor-pointer shadow-md shadow-purple-600/25"
-            >
-              <Sparkles className="w-3.5 h-3.5" /> Explore Services
-            </Link>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-100/70 dark:bg-slate-800/70 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200 dark:border-slate-800">
-                  <th className="py-4 px-5">Booking Code</th>
-                  <th className="py-4 px-4">Service & Package</th>
-                  <th className="py-4 px-4">Decorator Agency</th>
-                  <th className="py-4 px-4">Event Date & Venue</th>
-                  <th className="py-4 px-4">Total (৳)</th>
-                  <th className="py-4 px-4">Status</th>
-                  <th className="py-4 px-4">Payment</th>
-                  <th className="py-4 px-5 text-right">Actions</th>
-                </tr>
-              </thead>
+        </div>
 
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {filteredBookings.map((b) => {
-                  const code = b.bookingCode || `BK-${b._id.slice(-6).toUpperCase()}`;
-                  const title = b.serviceSnapshot?.title || b.serviceName || "Decoration Setup";
-                  const pkgTier = b.serviceSnapshot?.selectedPackage || "Standard Package";
-                  const agencyName = b.decorator?.businessName || "StyleDecor Agency";
-                  const agencyCity = b.decorator?.contactInfo?.city || "Dhaka";
-                  const rawDate = b.eventDetails?.eventDate || b.bookingDate;
-                  const dateStr = rawDate
-                    ? new Date(rawDate).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })
-                    : "TBD";
-                  const venue = b.eventDetails?.venueName || b.location || "Venue TBD";
-                  const total = b.pricingBreakdown?.grandTotal || b.totalCost || 0;
+        <div className="flex items-center gap-3 self-start sm:self-auto flex-wrap sm:flex-nowrap">
+          {/* Refresh Action Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setRefreshing(true);
+              loadBookings();
+            }}
+            disabled={isInitialLoading || refreshing}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw
+              className={`w-4 h-4 text-purple-600 dark:text-purple-400 ${
+                refreshing ? "animate-spin" : ""
+              }`}
+            />
+            <span>Refresh Data</span>
+          </button>
 
-                  return (
-                    <tr
-                      key={b._id}
-                      className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
-                    >
-                      {/* Code */}
-                      <td className="py-3.5 px-5">
-                        <span className="font-mono font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 px-2.5 py-1 rounded-lg border border-purple-200 dark:border-purple-900/50">
-                          {code}
-                        </span>
-                      </td>
-
-                      {/* Service & Package */}
-                      <td className="py-3.5 px-4">
-                        <div className="space-y-0.5 max-w-xs">
-                          <p className="font-bold text-slate-900 dark:text-slate-100 line-clamp-1">
-                            {title}
-                          </p>
-                          <span className="text-[10px] text-slate-400">
-                            Tier: <span className="font-semibold text-purple-600 dark:text-purple-400">{pkgTier}</span>
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Decorator Agency */}
-                      <td className="py-3.5 px-4">
-                        <div className="space-y-0.5">
-                          <p className="font-bold text-slate-800 dark:text-slate-200 line-clamp-1 max-w-[140px]">
-                            {agencyName}
-                          </p>
-                          <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-purple-500" /> {agencyCity}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Event Date & Venue */}
-                      <td className="py-3.5 px-4">
-                        <div className="space-y-0.5">
-                          <p className="font-bold text-slate-800 dark:text-slate-200">
-                            {dateStr}
-                          </p>
-                          <span className="text-[10px] text-slate-400 line-clamp-1 max-w-[150px]">
-                            {venue}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Total Cost */}
-                      <td className="py-3.5 px-4 font-black text-slate-900 dark:text-slate-100 text-sm whitespace-nowrap">
-                        ৳{Number(total).toLocaleString()}
-                      </td>
-
-                      {/* Status */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        {renderStatusBadge(b.status)}
-                      </td>
-
-                      {/* Payment */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        {renderPaymentBadge(b)}
-                      </td>
-
-                      {/* Action Buttons: View, Edit, Delete */}
-                      <td className="py-3.5 px-5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {/* Pay Now Button (if not fully paid and not rejected) */}
-                          {b.paymentStatus !== "paid" && b.status !== "rejected" && b.status !== "fully_paid" && (
-                            <button
-                              onClick={() => handleOpenPayModal(b)}
-                              className="p-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white cursor-pointer shadow-sm shadow-purple-600/30"
-                              title="Make Payment / Deposit"
-                            >
-                              <CreditCard className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-
-                          {/* View Button */}
-                          <button
-                            onClick={() => handleOpenView(b)}
-                            className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 hover:text-purple-600 cursor-pointer"
-                            title="View Full Booking Dossier"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-
-                          {/* Edit Button */}
-                          <button
-                            onClick={() => handleOpenEdit(b)}
-                            className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer"
-                            title="Edit Event Details"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-
-                          {/* Rate & Review Button (if confirmed, advance paid, or completed) */}
-                          <button
-                            onClick={() => handleOpenReviewModal(b)}
-                            className="p-2 rounded-xl border border-amber-200 dark:border-amber-900/60 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-500 cursor-pointer"
-                            title="Rate & Review Celebration"
-                          >
-                            <Star className="w-3.5 h-3.5 fill-current" />
-                          </button>
-
-                          {/* Delete / Cancel Button */}
-                          <button
-                            onClick={() => handleDeleteBooking(b)}
-                            className="p-2 rounded-xl border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 cursor-pointer"
-                            title="Cancel / Remove Booking"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+          {/* Primary Explore & Book Action Button */}
+          <Link
+            to="/services"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold transition-all shadow-md shadow-purple-600/25 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Book New Service</span>
+          </Link>
+        </div>
       </div>
 
-      {/* ================= Full View Dossier Modal ================= */}
-      {isViewModalOpen && selectedBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
-              <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-purple-400" />
-                <div>
-                  <h3 className="text-base font-bold text-white">
-                    Booking Dossier: {selectedBooking.bookingCode || `BK-${selectedBooking._id.slice(-6).toUpperCase()}`}
-                  </h3>
-                  <p className="text-[11px] text-slate-400">
-                    Status: <span className="capitalize font-semibold text-purple-300">{selectedBooking.status}</span>
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsViewModalOpen(false)}
-                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+      {/* 2. Consolidated Toolbar: Stat Cards & Search/Filter Controls */}
+      <MyBookingsToolbar
+        stats={stats}
+        statusTab={statusTab}
+        onSelectStatusTab={handleStatusTabChange}
+        loadingStats={isInitialLoading}
+        searchText={searchText}
+        onSearchChange={handleSearchChange}
+        onClearSearch={handleClearSearch}
+        sortBy={sortBy}
+        onSortChange={handleSortChange}
+      />
 
-            <div className="p-6 overflow-y-auto space-y-6 text-xs text-slate-600 dark:text-slate-300">
-              {/* Service & Agency Card */}
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
-                    {selectedBooking.serviceSnapshot?.category || selectedBooking.serviceCategory || "Event Decor"}
-                  </span>
-                  <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                    {selectedBooking.serviceSnapshot?.title || selectedBooking.serviceName}
-                  </h4>
-                  <p className="text-xs text-slate-500">
-                    Package Tier: <span className="font-semibold text-purple-600">{selectedBooking.serviceSnapshot?.selectedPackage || "Standard"}</span>
-                  </p>
-                </div>
+      {/* 3. Bookings Table with Pagination & Skeletons */}
+      <MyBookingsTable
+        bookings={paginatedBookings}
+        loading={isInitialLoading}
+        onOpenPayModal={handleOpenPayModal}
+        onOpenViewModal={handleOpenView}
+        onOpenEditModal={handleOpenEdit}
+        onOpenReviewModal={handleOpenReviewModal}
+        onDeleteBooking={handleDeleteBooking}
+        onResetFilters={handleResetFilters}
+        page={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        limit={limit}
+        onPageChange={setPage}
+        onLimitChange={(newLimit) => {
+          setLimit(newLimit);
+          setPage(1);
+        }}
+      />
 
-                <div className="text-left sm:text-right space-y-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Providing Agency</span>
-                  <p className="font-bold text-slate-900 dark:text-slate-100">
-                    {selectedBooking.decorator?.businessName || "StyleDecor Verified Agency"}
-                  </p>
-                  <p className="text-[11px] text-slate-400">
-                    {selectedBooking.decorator?.contactInfo?.phone || "Support Available"}
-                  </p>
-                </div>
-              </div>
+      {/* 4. Full View Dossier Modal */}
+      <MyBookingsViewModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        selectedBooking={selectedBooking}
+      />
 
-              {/* Assigned Agent Card (if assigned) */}
-              {selectedBooking.assignedAgent && (
-                <div className="p-3.5 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-900/40 flex items-center gap-3">
-                  <img
-                    src={selectedBooking.assignedAgent.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"}
-                    alt={selectedBooking.assignedAgent.name}
-                    className="w-10 h-10 rounded-full object-cover ring-2 ring-purple-500"
-                  />
-                  <div>
-                    <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase">
-                      Dedicated Event Specialist Assigned
-                    </span>
-                    <p className="font-bold text-slate-900 dark:text-slate-100">
-                      {selectedBooking.assignedAgent.name} ({selectedBooking.assignedAgent.designation || "Lead Decorator"})
-                    </p>
-                    <p className="text-[11px] text-slate-500">
-                      Direct Contact: {selectedBooking.assignedAgent.phone}
-                    </p>
-                  </div>
-                </div>
-              )}
+      {/* 5. Edit Booking Logistics Modal */}
+      <EditBookingModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        selectedBooking={selectedBooking}
+        editFormData={editFormData}
+        setEditFormData={setEditFormData}
+        onSubmit={handleSaveEdit}
+      />
 
-              {/* Event Logistics Matrix */}
-              <div className="space-y-2">
-                <h5 className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px]">
-                  Event Logistics & Schedule
-                </h5>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 space-y-1">
-                    <span className="text-[10px] text-slate-400">Event Date & Timing</span>
-                    <p className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-purple-500" />
-                      {selectedBooking.eventDetails?.eventDate
-                        ? new Date(selectedBooking.eventDetails.eventDate).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })
-                        : selectedBooking.bookingDate || "TBD"}
-                    </p>
-                    <p className="text-[11px] text-slate-500">
-                      Hours: {selectedBooking.eventDetails?.startTime || "16:00"} - {selectedBooking.eventDetails?.endTime || "22:00"}
-                    </p>
-                  </div>
+      {/* 6. Pay Modal */}
+      <PayModal
+        isOpen={isPayModalOpen}
+        onClose={() => setIsPayModalOpen(false)}
+        payBooking={payBooking}
+        payType={payType}
+        setPayType={setPayType}
+        payMethod={payMethod}
+        setPayMethod={setPayMethod}
+        isProcessingPay={isProcessingPay}
+        onSubmit={handleProcessPayment}
+      />
 
-                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 space-y-1">
-                    <span className="text-[10px] text-slate-400">Venue & Location</span>
-                    <p className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-purple-500" />
-                      {selectedBooking.eventDetails?.venueName || selectedBooking.location || "Venue TBD"}
-                    </p>
-                    <p className="text-[11px] text-slate-500 line-clamp-1">
-                      {selectedBooking.eventDetails?.venueAddress || selectedBooking.location || "Dhaka"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Special Instructions */}
-              {selectedBooking.eventDetails?.specialInstructions && (
-                <div className="space-y-1">
-                  <h5 className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px]">
-                    Special Instructions
-                  </h5>
-                  <p className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 italic">
-                    "{selectedBooking.eventDetails.specialInstructions}"
-                  </p>
-                </div>
-              )}
-
-              {/* Pricing Breakdown Summary */}
-              <div className="p-4 rounded-2xl bg-purple-50/40 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40 space-y-2">
-                <h5 className="font-bold text-purple-950 dark:text-purple-200 uppercase tracking-wider text-[11px]">
-                  Financial Breakdown
-                </h5>
-                <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                  <span>Package Subtotal</span>
-                  <span className="font-semibold">
-                    ৳{Number(selectedBooking.pricingBreakdown?.subtotal || selectedBooking.totalCost || 0).toLocaleString()}
-                  </span>
-                </div>
-                {selectedBooking.pricingBreakdown?.serviceTax > 0 && (
-                  <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                    <span>Platform Service Tax</span>
-                    <span>৳{Number(selectedBooking.pricingBreakdown.serviceTax).toLocaleString()}</span>
-                  </div>
-                )}
-                <div className="pt-2 border-t border-purple-200/60 dark:border-purple-900/60 flex justify-between font-black text-sm text-slate-900 dark:text-slate-100">
-                  <span>Grand Total</span>
-                  <span className="text-purple-600 dark:text-purple-400">
-                    ৳{Number(selectedBooking.pricingBreakdown?.grandTotal || selectedBooking.totalCost || 0).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-700 flex justify-end">
-              <button
-                onClick={() => setIsViewModalOpen(false)}
-                className="px-5 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold cursor-pointer"
-              >
-                Close Dossier
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= Edit Booking Modal ================= */}
-      {isEditModalOpen && selectedBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
-              <div>
-                <h3 className="text-base font-bold text-white">
-                  Edit Event Logistics
-                </h3>
-                <p className="text-xs text-slate-400">
-                  {selectedBooking.bookingCode || selectedBooking.serviceName}
-                </p>
-              </div>
-              <button
-                onClick={() => setIsEditModalOpen(false)}
-                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveEdit} className="p-6 overflow-y-auto space-y-4 text-xs">
-              {/* Date & Contact */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700 dark:text-slate-300">
-                    Event Date *
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={editFormData.eventDate}
-                    onChange={(e) => setEditFormData({ ...editFormData, eventDate: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700 dark:text-slate-300">
-                    Contact Phone Number *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="+880 17XXXXXXXX"
-                    value={editFormData.contact}
-                    onChange={(e) => setEditFormData({ ...editFormData, contact: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
-                  />
-                </div>
-              </div>
-
-              {/* Start Time & End Time */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700 dark:text-slate-300">
-                    Event Start Time
-                  </label>
-                  <input
-                    type="time"
-                    value={editFormData.startTime}
-                    onChange={(e) => setEditFormData({ ...editFormData, startTime: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700 dark:text-slate-300">
-                    Event End Time
-                  </label>
-                  <input
-                    type="time"
-                    value={editFormData.endTime}
-                    onChange={(e) => setEditFormData({ ...editFormData, endTime: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
-                  />
-                </div>
-              </div>
-
-              {/* Venue Name & Address */}
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700 dark:text-slate-300">
-                  Venue / Banquet Hall Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Sena Kunja Grand Ballroom"
-                  value={editFormData.venueName}
-                  onChange={(e) => setEditFormData({ ...editFormData, venueName: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700 dark:text-slate-300">
-                  Venue Full Address *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Dhaka Cantonment, Dhaka"
-                  value={editFormData.venueAddress}
-                  onChange={(e) => setEditFormData({ ...editFormData, venueAddress: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
-                />
-              </div>
-
-              {/* Guest Count */}
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700 dark:text-slate-300">
-                  Estimated Guest Count
-                </label>
-                <input
-                  type="number"
-                  min="10"
-                  placeholder="100"
-                  value={editFormData.guestCountEstimate}
-                  onChange={(e) => setEditFormData({ ...editFormData, guestCountEstimate: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
-                />
-              </div>
-
-              {/* Special Instructions */}
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700 dark:text-slate-300">
-                  Special Instructions / Requests
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Stage lighting setup needs to be done before 3 PM..."
-                  value={editFormData.specialInstructions}
-                  onChange={(e) => setEditFormData({ ...editFormData, specialInstructions: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
-                />
-              </div>
-
-              {/* Modal Footer */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold cursor-pointer shadow-md shadow-purple-600/30"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ================= Pay Advance / Settle Balance Modal (POST /payments & POST /payments/create-checkout-session) ================= */}
-      {isPayModalOpen && payBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col">
-            <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <CreditCard className="w-5 h-5 text-purple-400" />
-                <h3 className="text-base font-bold text-white">
-                  Payment Checkout: {payBooking.bookingCode}
-                </h3>
-              </div>
-              <button
-                onClick={() => setIsPayModalOpen(false)}
-                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleProcessPayment} className="p-6 space-y-5 text-xs text-slate-700 dark:text-slate-200">
-              {/* Service & Total Banner */}
-              <div className="p-4 rounded-2xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/50 space-y-1">
-                <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase">
-                  Service Reservation
-                </span>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  {payBooking.serviceSnapshot?.title || payBooking.serviceName}
-                </h4>
-                <div className="pt-2 flex items-center justify-between text-xs font-semibold">
-                  <span>Grand Total: ৳{Number(payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0).toLocaleString()}</span>
-                  <span className="text-emerald-600">
-                    Paid: ৳{Number(payBooking.pricingBreakdown?.paidAmount || 0).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Payment Type Selection */}
-              <div className="space-y-2">
-                <label className="font-bold text-slate-800 dark:text-slate-100">
-                  Select Payment Stage:
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setPayType("advance_deposit")}
-                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
-                      payType === "advance_deposit"
-                        ? "border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold shadow-xs"
-                        : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
-                    }`}
-                  >
-                    <p className="font-bold">40% Advance Deposit</p>
-                    <p className="text-[11px] text-slate-500">
-                      ৳{Math.round(Number(payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0) * 0.40).toLocaleString()}
-                    </p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPayType("full_payment")}
-                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
-                      payType === "full_payment"
-                        ? "border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold shadow-xs"
-                        : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
-                    }`}
-                  >
-                    <p className="font-bold">Full Settlement</p>
-                    <p className="text-[11px] text-slate-500">
-                      ৳{Number(
-                        (payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0) -
-                        (payBooking.pricingBreakdown?.paidAmount || 0)
-                      ).toLocaleString()}
-                    </p>
-                  </button>
-                </div>
-              </div>
-
-              {/* Payment Method Gateway Selection */}
-              <div className="space-y-2">
-                <label className="font-bold text-slate-800 dark:text-slate-100">
-                  Choose Payment Gateway:
-                </label>
-                <div className="grid grid-cols-3 gap-2.5">
-                  {[
-                    { id: "bkash", name: "bKash" },
-                    { id: "nagad", name: "Nagad" },
-                    { id: "sslcommerz", name: "SSLCommerz" },
-                    { id: "bank_transfer", name: "Bank Transfer" },
-                    { id: "stripe", name: "Stripe Card" },
-                  ].map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setPayMethod(m.id)}
-                      className={`p-2.5 rounded-xl border text-center font-bold cursor-pointer transition-all ${
-                        payMethod === m.id
-                          ? "border-purple-600 bg-purple-600 text-white shadow-md shadow-purple-600/25"
-                          : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100"
-                      }`}
-                    >
-                      {m.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Escrow Assurance */}
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 text-[11px] text-slate-500 flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>Your funds are protected under StyleDecor Escrow until full event completion.</span>
-              </div>
-
-              {/* Modal Actions */}
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsPayModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isProcessingPay}
-                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold cursor-pointer shadow-md shadow-purple-600/30 disabled:opacity-50"
-                >
-                  {isProcessingPay ? "Processing..." : `Pay ৳${Number(payType === "advance_deposit" ? Math.round((payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0) * 0.40) : (payBooking.pricingBreakdown?.grandTotal || payBooking.totalCost || 0) - (payBooking.pricingBreakdown?.paidAmount || 0)).toLocaleString()}`}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ================= Submit Review Modal (POST /reviews) ================= */}
-      {isReviewModalOpen && reviewBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col">
-            <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
-              <div className="flex items-center gap-2">
-                <Star className="w-5 h-5 text-amber-400 fill-current" />
-                <div>
-                  <h3 className="text-base font-bold text-white">Rate Your Celebration Setup</h3>
-                  <p className="text-[11px] text-slate-400">Order: {reviewBooking.bookingCode || "Booking"}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsReviewModalOpen(false)}
-                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitReview} className="p-6 space-y-5 text-xs text-slate-700 dark:text-slate-300">
-              {/* Event Info Card */}
-              <div className="p-4 rounded-2xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/40 space-y-1">
-                <p className="font-extrabold text-sm text-purple-950 dark:text-purple-200">
-                  {reviewBooking.serviceSnapshot?.title || reviewBooking.serviceName}
-                </p>
-                <p className="text-[11px] text-slate-500 flex items-center gap-2">
-                  <span>Venue: {reviewBooking.eventDetails?.venueName || "Venue"}</span>
-                  {reviewBooking.assignedAgent?.name && (
-                    <span>• Specialist: <b className="text-purple-700 dark:text-purple-300">{reviewBooking.assignedAgent.name}</b></span>
-                  )}
-                </p>
-              </div>
-
-              {/* Star Selector */}
-              <div className="space-y-2 text-center py-2">
-                <label className="font-bold text-xs text-slate-800 dark:text-slate-200 block">
-                  How would you rate the decoration and execution?
-                </label>
-                <div className="flex items-center justify-center gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => {
-                    const isFilled = (hoverRating || reviewRating) >= star;
-                    return (
-                      <button
-                        key={star}
-                        type="button"
-                        onMouseEnter={() => setHoverRating(star)}
-                        onMouseLeave={() => setHoverRating(0)}
-                        onClick={() => setReviewRating(star)}
-                        className="p-1 transition-transform hover:scale-125 cursor-pointer focus:outline-none"
-                      >
-                        <Star
-                          className={`w-8 h-8 transition-colors ${
-                            isFilled ? "text-amber-400 fill-amber-400 drop-shadow-sm" : "text-slate-300 dark:text-slate-700"
-                          }`}
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
-                <span className="text-xs font-black text-amber-500">
-                  {reviewRating === 5 && "★★★★★ Outstanding & Flawless!"}
-                  {reviewRating === 4 && "★★★★☆ Great Setup & Execution"}
-                  {reviewRating === 3 && "★★★☆☆ Satisfactory"}
-                  {reviewRating === 2 && "★★☆☆☆ Needs Improvement"}
-                  {reviewRating === 1 && "★☆☆☆☆ Disappointed"}
-                </span>
-              </div>
-
-              {/* Quick Feedback Chips */}
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-700 dark:text-slate-300">Quick Comments:</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {[
-                    "Fairytale wedding stage setup!",
-                    "On-time delivery and friendly specialists.",
-                    "The lighting and flower canopy were breathtaking!",
-                    "Professional crew, zero stress execution.",
-                  ].map((chip, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setReviewComment((prev) => (prev ? `${prev} ${chip}` : chip))}
-                      className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 dark:hover:bg-purple-950/60 text-[10px] font-semibold text-slate-600 dark:text-slate-300 cursor-pointer transition-all border border-slate-200 dark:border-slate-700"
-                    >
-                      + {chip}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Comment Textarea */}
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-700 dark:text-slate-300">Detailed Feedback:</label>
-                <textarea
-                  rows={4}
-                  required
-                  placeholder="Share details about the stage styling, floral quality, lighting, and specialist coordination..."
-                  value={reviewComment}
-                  onChange={(e) => setReviewComment(e.target.value)}
-                  className="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
-                />
-              </div>
-
-              {/* Modal Actions */}
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsReviewModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingReview || !reviewComment.trim()}
-                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold cursor-pointer shadow-md shadow-purple-600/30 disabled:opacity-50 flex items-center gap-1.5"
-                >
-                  <Star className="w-3.5 h-3.5 fill-current" />
-                  {isSubmittingReview ? "Submitting..." : "Publish Review"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* 7. Rate & Review Celebration Modal */}
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        reviewBooking={reviewBooking}
+        reviewRating={reviewRating}
+        setReviewRating={setReviewRating}
+        hoverRating={hoverRating}
+        setHoverRating={setHoverRating}
+        reviewComment={reviewComment}
+        setReviewComment={setReviewComment}
+        isSubmittingReview={isSubmittingReview}
+        onSubmit={handleSubmitReview}
+      />
     </div>
   );
 };
