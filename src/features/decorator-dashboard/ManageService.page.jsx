@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
@@ -22,6 +23,7 @@ const CATEGORIES = [
 // Main Decorator Service Packages Management Page
 const ManageService = () => {
   const axiosSecure = useAxiosSecure();
+  const navigate = useNavigate();
 
   // Decorator Agency Profile State
   const [myDecorator, setMyDecorator] = useState(null);
@@ -103,7 +105,10 @@ const ManageService = () => {
 
   // Load all service packages for the logged-in decorator
   const loadMyServices = useCallback(async () => {
-    if (!myDecorator?._id) return;
+    if (!myDecorator?._id) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const res = await axiosSecure.get(
@@ -122,8 +127,12 @@ const ManageService = () => {
   }, [axiosSecure, myDecorator]);
 
   useEffect(() => {
-    loadMyServices();
-  }, [loadMyServices]);
+    if (myDecorator?._id) {
+      loadMyServices();
+    } else if (!profileLoading) {
+      setLoading(false);
+    }
+  }, [loadMyServices, myDecorator, profileLoading]);
 
   // Filter and Sort Services List
   const filteredServices = useMemo(() => {
@@ -185,6 +194,9 @@ const ManageService = () => {
     return { total, active, inactive };
   }, [services]);
 
+  // Combined Loading State for immediate skeleton presentation
+  const isInitialLoading = profileLoading || loading;
+
   // Reset pagination on filter change
   const handleSearchChange = (val) => {
     setSearchText(val);
@@ -216,6 +228,11 @@ const ManageService = () => {
 
   // Open Create Modal
   const openAddModal = () => {
+    if (!myDecorator) {
+      toast.error("Please complete agency registration first");
+      navigate("/join-as-decorator");
+      return;
+    }
     setEditingService(null);
     setFormData({
       title: "",
@@ -467,35 +484,6 @@ const ManageService = () => {
     }
   };
 
-  // Profile Loading State
-  if (profileLoading) {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center gap-3 animate-pulse">
-          <div className="w-6 h-6 rounded-full bg-purple-200 dark:bg-purple-900" />
-          <span className="text-xs font-semibold text-slate-500">
-            Loading agency profile...
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  // Missing Decorator Registration Fallback
-  if (!myDecorator) {
-    return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center space-y-4">
-        <Layers className="w-16 h-16 text-slate-300 dark:text-slate-700" />
-        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
-          Agency Profile Required
-        </h2>
-        <p className="text-xs text-slate-500 max-w-md">
-          Please complete your decorator agency registration before publishing decoration service packages.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6 animate-fade-in pb-10">
       {/* 1. Top Header Bar: Icon, Title, Subtitle & Action Buttons */}
@@ -509,7 +497,8 @@ const ManageService = () => {
               My Service Packages
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              Create, manage, and price all decoration packages offered by {myDecorator?.businessName || "your agency"}.
+              Create, manage, and price all decoration packages offered by{" "}
+              {myDecorator?.businessName || "your agency"}.
             </p>
           </div>
         </div>
@@ -522,7 +511,7 @@ const ManageService = () => {
               setRefreshing(true);
               loadMyServices();
             }}
-            disabled={loading || refreshing}
+            disabled={isInitialLoading || refreshing}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
           >
             <RefreshCw
@@ -545,13 +534,13 @@ const ManageService = () => {
         </div>
       </div>
 
-      {/* 2. Consolidated Toolbar: Stat Cards & Search/Filters */}
+      {/* 2. Consolidated Toolbar: Stat Cards & Search/Filters (renders skeleton cards when loading) */}
       <ManageServiceToolbar
         myDecorator={myDecorator}
         stats={stats}
         statusFilter={statusFilter}
         onSelectStatusFilter={handleStatusFilterChange}
-        loadingStats={loading}
+        loadingStats={isInitialLoading}
         searchText={searchText}
         onSearchChange={handleSearchChange}
         onClearSearch={handleClearSearch}
@@ -562,10 +551,11 @@ const ManageService = () => {
         onSortChange={setSortBy}
       />
 
-      {/* 3. Services Data Table with Pagination and Skeletons */}
+      {/* 3. Services Data Table (renders TableSkeleton directly when loading) */}
       <ManageServiceTable
         services={paginatedServices}
-        loading={loading}
+        loading={isInitialLoading}
+        hasRegisteredAgency={!profileLoading && !!myDecorator}
         onView={openViewModal}
         onEdit={openEditModal}
         onToggleStatus={handleToggleStatus}

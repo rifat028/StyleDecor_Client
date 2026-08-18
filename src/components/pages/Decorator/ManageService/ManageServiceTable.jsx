@@ -21,6 +21,7 @@ const getPlaceholderImage = () => {
 const ManageServiceTable = ({
   services,
   loading,
+  hasRegisteredAgency = true,
   onView,
   onEdit,
   onToggleStatus,
@@ -54,6 +55,16 @@ const ManageServiceTable = ({
             <TableSkeleton rows={5} columns={8} />
           </table>
         </div>
+      ) : !hasRegisteredAgency ? (
+        <EmptyState
+          icon={Layers}
+          title="Agency Profile Required"
+          message="Please complete your decorator agency registration before publishing decoration service packages."
+          action={{
+            label: "Register Agency",
+            onClick: onOpenAddModal,
+          }}
+        />
       ) : services.length === 0 ? (
         <EmptyState
           icon={Layers}
