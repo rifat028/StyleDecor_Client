@@ -232,6 +232,61 @@ export const formatDate = (date) => new Date(date).toLocaleDateString("en-US", {
 
 ---
 
+## 12. `<Tooltip>` — Animated Floating Tooltip Wrapper
+
+**Standard Component (`src/components/ui/Tooltip.jsx`):**
+- Lightweight, zero-dependency, CSS-driven tooltip wrapper using Tailwind micro-animations (`opacity-0 scale-95` → `opacity-100 scale-100`).
+- **Positions**: `top` (default), `bottom`, `left`, `right`, `top-left`, `top-right`, `bottom-left`, `bottom-right` with directional pointer arrows.
+- **Theme-Aware**: `bg-slate-900/95 dark:bg-slate-800 text-white dark:text-slate-100 border border-slate-700/50 dark:border-slate-600/50 shadow-md`.
+- Accessible: `role="tooltip"`, `aria-hidden` pointer arrow, active on hover and focus-within.
+
+```jsx
+// src/components/ui/Tooltip.jsx
+<Tooltip content="View Full Dossier" position="top">
+  <button type="button">...</button>
+</Tooltip>
+```
+
+---
+
+## 13. `<TableActionButton>` — Standardized Table Action Button with Tooltips
+
+**Evidence:** Across all dashboard tables (Admin, Decorator, Customer, Agent), action cells hand-rolled `<button title="...">` markup with native browser tooltips that suffered from slow 1-2s delays, no styling, and OS inconsistency.
+
+**Standard Component (`src/components/ui/TableActionButton.jsx`):**
+- **Semantic Tones**:
+  - `purple` / `view`: View details action (purple accent)
+  - `amber` / `edit`: Edit action (amber accent)
+  - `rose` / `delete` / `danger`: Destructive actions (rose accent)
+  - `emerald` / `success` / `approve`: Activation / verification (emerald accent)
+  - `warning` / `suspend`: Suspension / warning (amber border/text)
+  - `primary`: Solid purple CTA (e.g. Pay Now)
+  - `featured`: Gold highlight badge
+  - `slate` / `default`: Neutral border & subtle hover
+- **Disabled State Tooltips**: Displays tooltips even when a button is disabled (e.g., *“Super Admin Account Cannot Be Deleted”* via `disabledTooltip`).
+- **Trigger**: Supports `icon` (Lucide component), `children`, `size` (`xs`, `sm`, `md`), `to` (React Router Link), or standard `onClick`.
+
+```jsx
+// src/components/ui/TableActionButton.jsx
+<TableActionButton
+  icon={Eye}
+  onClick={() => onView(user)}
+  tooltip="View Full Profile"
+  tone="purple"
+/>
+
+<TableActionButton
+  icon={Trash2}
+  disabled={isSuperAdmin}
+  onClick={() => onDelete(user)}
+  tooltip="Delete User"
+  disabledTooltip="Super Admin Account Cannot Be Deleted"
+  tone="rose"
+/>
+```
+
+---
+
 ## Suggested folder layout for the above
 
 ```
@@ -242,6 +297,8 @@ src/components/ui/
   EmptyState.jsx
   StatCard.jsx
   TableSkeleton.jsx
+  TableActionButton.jsx
+  Tooltip.jsx
   Modal.jsx
   ThemeToggle.jsx
   UserMenu.jsx

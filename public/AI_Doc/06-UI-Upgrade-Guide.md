@@ -599,6 +599,43 @@ Every dashboard view across Admin, Decorator, Agent, and Customer panels must ut
 
 ---
 
+## Phase 5 — Table Actions Standard: `<TableActionButton>` & `<Tooltip>`
+
+All dashboard table action buttons across Admin, Decorator, Agent, and Customer panels must utilize `<TableActionButton>` (`src/components/ui/TableActionButton.jsx`) instead of raw `<button title="...">` tags.
+
+**Key Architectural Rules:**
+1. **Never use native browser `title` attributes** on icon buttons: they are slow (1-2s delay), unstyled, and OS-dependent.
+2. **Use semantic tone presets**:
+   - `tone="purple"` (or `"view"`) for viewing dossier/details.
+   - `tone="amber"` (or `"edit"`) for editing records.
+   - `tone="rose"` (or `"delete"`) for destructive/cancel actions.
+   - `tone="emerald"` (or `"success"`/`"approve"`) for activation/approval.
+   - `tone="warning"` (or `"suspend"`) for suspension/warnings.
+   - `tone="primary"` for solid high-emphasis actions (e.g. Pay Now).
+   - `tone="slate"` for neutral actions.
+3. **Disabled tooltips**: Always provide `disabledTooltip` when a button is conditionally disabled to explain why the action cannot be performed (e.g., `disabledTooltip="Super Admin Account Cannot Be Deleted"`).
+4. **General Tooltip Wrapper**: For non-standard buttons or toggle badges (e.g. status switches), wrap the element with `<Tooltip content="..." position="top">` (`src/components/ui/Tooltip.jsx`).
+
+```jsx
+<TableActionButton
+  icon={Eye}
+  onClick={() => handleView(record)}
+  tooltip="View Full Dossier"
+  tone="purple"
+/>
+
+<TableActionButton
+  icon={Trash2}
+  disabled={isLocked}
+  onClick={() => handleDelete(record)}
+  tooltip="Delete Record"
+  disabledTooltip="Record is locked and cannot be deleted"
+  tone="rose"
+/>
+```
+
+---
+
 ## Verification checklist
 
 After applying each phase, confirm:

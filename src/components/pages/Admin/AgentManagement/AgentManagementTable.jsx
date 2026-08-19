@@ -15,6 +15,7 @@ import {
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
+import TableActionButton from "../../../ui/TableActionButton";
 
 // Helper to render categorical status badge for field agents
 const renderStatusBadge = (status) => {
@@ -177,24 +178,20 @@ const AgentManagementTable = ({
                   <td className="py-3.5 px-2 text-center min-w-30">
                     <div className="flex items-center justify-center gap-2">
                       {/* View Dossier Button */}
-                      <button
-                        type="button"
+                      <TableActionButton
+                        icon={Eye}
                         onClick={() => onView(agent)}
-                        title="View Specialist Dossier"
-                        className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/50 dark:hover:text-purple-400 transition-colors cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
+                        tooltip="View Specialist Dossier"
+                        tone="purple"
+                      />
 
                       {/* Delete Agent Button */}
-                      <button
-                        type="button"
+                      <TableActionButton
+                        icon={Trash2}
                         onClick={() => onDelete(agent)}
-                        title="Delete Agent"
-                        className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 transition-colors cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                        tooltip="Delete Agent"
+                        tone="rose"
+                      />
                     </div>
                   </td>
                 </tr>

@@ -9,6 +9,7 @@ import {
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
+import TableActionButton from "../../../ui/TableActionButton";
 
 // Canonical Status Badge Component for Payment Records
 export const PaymentStatusBadge = ({ status }) => {
@@ -187,14 +188,12 @@ const MyEarningsTable = ({
 
                     {/* Action: Open Invoice Dossier */}
                     <td className="py-3.5 px-2 text-center min-w-27.5">
-                      <button
-                        type="button"
+                      <TableActionButton
+                        icon={Eye}
                         onClick={() => onOpenReceipt(p._id)}
-                        className="inline-flex items-center gap-1 p-1.5 rounded-md border border-purple-200 dark:border-purple-900/60 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/50 transition-colors cursor-pointer"
-                        title="View Official Invoice Dossier"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                      </button>
+                        tooltip="View Official Invoice Dossier"
+                        tone="purple"
+                      />
                     </td>
                   </tr>
                 );

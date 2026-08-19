@@ -3,6 +3,7 @@ import useAxiosSecure from "../../hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import Spinner from "../home/components/Spinner";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
+import TableActionButton from "../../components/ui/TableActionButton";
 import {
   MessageSquare,
   Star,
@@ -408,13 +409,13 @@ const AgencyReviews = () => {
                         </span>
                       </div>
 
-                      <button
+                      <TableActionButton
+                        icon={Trash2}
                         onClick={() => handleDeleteReply(r._id)}
-                        className="p-1 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
-                        title="Remove Response"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                        tooltip="Remove Response"
+                        tone="rose"
+                        size="xs"
+                      />
                     </div>
 
                     <p className="text-xs text-slate-700 dark:text-slate-300">

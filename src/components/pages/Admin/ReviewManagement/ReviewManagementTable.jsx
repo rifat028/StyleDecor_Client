@@ -15,6 +15,7 @@ import {
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
+import TableActionButton from "../../../ui/TableActionButton";
 
 // Helper for default placeholder avatar
 const getAvatarUrl = (name = "Customer") => {
@@ -210,51 +211,37 @@ const ReviewManagementTable = ({
                     <td className="py-3.5 px-2 text-center min-w-30">
                       <div className="flex items-center justify-center gap-2">
                         {/* View Full Review Dossier */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Eye}
                           onClick={() => onView(review)}
-                          title="View Review Dossier"
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/50 dark:hover:text-purple-400 transition-colors cursor-pointer"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                          tooltip="View Review Dossier"
+                          tone="purple"
+                        />
 
                         {/* Quick Toggle Status (Publish / Hide) */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={isPublished ? EyeOff : CheckCircle2}
                           onClick={() =>
                             onUpdateStatus(
                               review._id,
                               isPublished ? "hidden" : "published"
                             )
                           }
-                          title={
+                          tooltip={
                             isPublished
                               ? "Hide Review from Public"
                               : "Publish Review"
                           }
-                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
-                            isPublished
-                              ? "border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50"
-                              : "border-emerald-200 dark:border-emerald-800 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50"
-                          }`}
-                        >
-                          {isPublished ? (
-                            <EyeOff className="w-4 h-4" />
-                          ) : (
-                            <CheckCircle2 className="w-4 h-4" />
-                          )}
-                        </button>
+                          tone={isPublished ? "danger" : "success"}
+                        />
 
                         {/* Delete Review */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Trash2}
                           onClick={() => onDelete(review)}
-                          title="Delete Review"
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                          tooltip="Delete Review"
+                          tone="rose"
+                        />
                       </div>
                     </td>
                   </tr>

@@ -3,6 +3,7 @@ import { Users, Mail, Phone, MapPin, Eye, Edit2, Trash2 } from "lucide-react";
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
+import TableActionButton from "../../../ui/TableActionButton";
 
 // User management table with responsive min-widths, skeleton state, and integrated pagination (180-220 lines)
 const UserManagementTable = ({
@@ -152,39 +153,30 @@ const UserManagementTable = ({
                     <td className="py-3.5 px-2 text-center min-w-30">
                       <div className="flex items-center justify-center gap-2">
                         {/* View Profile */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Eye}
                           onClick={() => onView(user)}
-                          title="View Full Profile"
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/50 dark:hover:text-purple-400 transition-colors cursor-pointer"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                          tooltip="View Full Profile"
+                          tone="purple"
+                        />
 
                         {/* Edit User */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Edit2}
                           onClick={() => onEdit(user)}
-                          title="Edit User Details"
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/50 dark:hover:text-amber-400 transition-colors cursor-pointer"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
+                          tooltip="Edit User Details"
+                          tone="amber"
+                        />
 
                         {/* Delete User (Disabled for Super Admin) */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Trash2}
                           disabled={isSuperAdmin}
                           onClick={() => onDelete(user)}
-                          title={
-                            isSuperAdmin
-                              ? "Super Admin Account Cannot Be Deleted"
-                              : "Delete User"
-                          }
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                          tooltip="Delete User"
+                          disabledTooltip="Super Admin Account Cannot Be Deleted"
+                          tone="rose"
+                        />
                       </div>
                     </td>
                   </tr>

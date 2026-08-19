@@ -18,6 +18,7 @@ import {
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
+import TableActionButton from "../../../ui/TableActionButton";
 
 // Helper to render booking lifecycle status badge
 const renderStatusBadge = (status) => {
@@ -245,14 +246,12 @@ const BookingManagementTable = ({
                     {/* Centered Actions Cell */}
                     <td className="py-3.5 px-2 text-center min-w-25">
                       <div className="flex items-center justify-center">
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Eye}
                           onClick={() => onView(booking)}
-                          title="View Booking Dossier"
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/50 dark:hover:text-purple-400 transition-colors cursor-pointer"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                          tooltip="View Booking Dossier"
+                          tone="purple"
+                        />
                       </div>
                     </td>
                   </tr>

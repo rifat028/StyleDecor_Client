@@ -3,6 +3,7 @@ import { CreditCard, CheckCircle2, Clock, RotateCcw, Eye } from "lucide-react";
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
+import TableActionButton from "../../../ui/TableActionButton";
 
 // Canonical Status Badge Component for Customer Payments
 export const CustomerPaymentStatusBadge = ({ status }) => {
@@ -167,14 +168,12 @@ const CustomerTransactionsTable = ({
 
                     {/* Action: Open Official Receipt */}
                     <td className="py-3.5 px-2 text-center min-w-25">
-                      <button
-                        type="button"
+                      <TableActionButton
+                        icon={Eye}
                         onClick={() => onOpenReceipt(t._id)}
-                        className="inline-flex items-center gap-1 p-1.5 rounded-md border border-purple-200 dark:border-purple-900/60 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/50 transition-colors cursor-pointer"
-                        title="View Official Receipt Dossier"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                      </button>
+                        tooltip="View Official Receipt Dossier"
+                        tone="purple"
+                      />
                     </td>
                   </tr>
                 );

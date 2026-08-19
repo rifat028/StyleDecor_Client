@@ -15,6 +15,7 @@ import {
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
+import TableActionButton from "../../../ui/TableActionButton";
 
 // Helper to render categorical status badge
 const renderStatusBadge = (status, isVerified) => {
@@ -197,64 +198,54 @@ const DecoratorManagementTable = ({
                     <td className="py-3.5 px-2 text-center min-w-30">
                       <div className="flex items-center justify-center gap-2">
                         {/* View Full Dossier */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Eye}
                           onClick={() => onView(decorator)}
-                          title="View Agency Dossier"
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/50 dark:hover:text-purple-400 transition-colors cursor-pointer"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                          tooltip="View Agency Dossier"
+                          tone="purple"
+                        />
 
                         {/* Status Transition (Approve / Suspend / Reactivate) */}
                         {status === "pending" && (
-                          <button
-                            type="button"
+                          <TableActionButton
+                            icon={CheckCircle2}
                             onClick={() =>
                               onStatusTransition(decorator, "active")
                             }
-                            title="Approve Agency"
-                            className="p-1.5 rounded-md border border-emerald-200 dark:border-emerald-800 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 transition-colors cursor-pointer"
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                          </button>
+                            tooltip="Approve Agency"
+                            tone="emerald"
+                          />
                         )}
 
                         {status === "active" && (
-                          <button
-                            type="button"
+                          <TableActionButton
+                            icon={Ban}
                             onClick={() =>
                               onStatusTransition(decorator, "suspended")
                             }
-                            title="Suspend Agency"
-                            className="p-1.5 rounded-md border border-amber-200 dark:border-amber-800 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/50 transition-colors cursor-pointer"
-                          >
-                            <Ban className="w-4 h-4" />
-                          </button>
+                            tooltip="Suspend Agency"
+                            tone="warning"
+                          />
                         )}
 
                         {status === "suspended" && (
-                          <button
-                            type="button"
+                          <TableActionButton
+                            icon={CheckCircle2}
                             onClick={() =>
                               onStatusTransition(decorator, "active")
                             }
-                            title="Reactivate Agency"
-                            className="p-1.5 rounded-md border border-emerald-200 dark:border-emerald-800 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 transition-colors cursor-pointer"
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                          </button>
+                            tooltip="Reactivate Agency"
+                            tone="emerald"
+                          />
                         )}
 
                         {/* Delete Agency */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Trash2}
                           onClick={() => onDelete(decorator)}
-                          title="Delete Agency"
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                          tooltip="Delete Agency"
+                          tone="rose"
+                        />
                       </div>
                     </td>
                   </tr>

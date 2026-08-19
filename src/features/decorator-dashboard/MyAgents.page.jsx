@@ -4,6 +4,7 @@ import { AuthContext } from "../auth/AuthContext";
 import Swal from "sweetalert2";
 import Spinner from "../home/components/Spinner";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
+import TableActionButton from "../../components/ui/TableActionButton";
 import {
   Users,
   UserPlus,
@@ -477,20 +478,20 @@ const MyAgents = () => {
                 </button>
 
                 <div className="flex items-center gap-1">
-                  <button
+                  <TableActionButton
+                    icon={Edit}
                     onClick={() => handleOpenEdit(a)}
-                    className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                    title="Edit Specialist Details"
-                  >
-                    <Edit className="w-3.5 h-3.5" />
-                  </button>
-                  <button
+                    tooltip="Edit Specialist Details"
+                    tone="slate"
+                    size="md"
+                  />
+                  <TableActionButton
+                    icon={Trash2}
                     onClick={() => handleDeleteAgent(a)}
-                    className="p-2 rounded-xl border border-rose-200 dark:border-rose-900/60 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
-                    title="Remove from Roster"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                    tooltip="Remove from Roster"
+                    tone="rose"
+                    size="md"
+                  />
                 </div>
               </div>
             </div>

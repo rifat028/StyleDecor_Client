@@ -11,6 +11,8 @@ import {
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
+import Tooltip from "../../../ui/Tooltip";
+import TableActionButton from "../../../ui/TableActionButton";
 
 // Fallback image helper
 const getPlaceholderImage = () => {
@@ -187,57 +189,55 @@ const ManageServiceTable = ({
 
                     {/* Status Column with 1-Click Toggle */}
                     <td className="py-3.5 px-2 text-center min-w-40">
-                      <button
-                        type="button"
-                        onClick={() => onToggleStatus(srv)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase transition-all cursor-pointer ${
-                          isActive
-                            ? "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-200"
-                            : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:bg-slate-300"
-                        }`}
-                        title={`Click to ${isActive ? "pause" : "activate"}`}
+                      <Tooltip
+                        content={`Click to ${isActive ? "pause" : "activate"}`}
+                        position="top"
                       >
-                        {isActive ? (
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                        ) : (
-                          <XCircle className="w-3 h-3 text-slate-500" />
-                        )}
-                        <span>{srv.status || "active"}</span>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => onToggleStatus(srv)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase transition-all cursor-pointer ${
+                            isActive
+                              ? "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-200"
+                              : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:bg-slate-300"
+                          }`}
+                        >
+                          {isActive ? (
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          ) : (
+                            <XCircle className="w-3 h-3 text-slate-500" />
+                          )}
+                          <span>{srv.status || "active"}</span>
+                        </button>
+                      </Tooltip>
                     </td>
 
                     {/* Actions Column (Centered with bordered buttons) */}
                     <td className="py-3.5 px-2 text-center min-w-32.5">
                       <div className="flex items-center justify-center gap-1.5">
                         {/* Preview Dossier */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Eye}
                           onClick={() => onView(srv)}
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-purple-600 transition-colors cursor-pointer"
-                          title="Preview Package Details"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
+                          tooltip="Preview Package Details"
+                          tone="slate"
+                        />
 
                         {/* Edit Package */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Edit}
                           onClick={() => onEdit(srv)}
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/50 transition-colors cursor-pointer"
-                          title="Edit Package"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
+                          tooltip="Edit Package"
+                          tone="purple"
+                        />
 
                         {/* Delete Package */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Trash2}
                           onClick={() => onDelete(srv)}
-                          className="p-1.5 rounded-md border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
-                          title="Delete Package"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                          tooltip="Delete Package"
+                          tone="rose"
+                        />
                       </div>
                     </td>
                   </tr>

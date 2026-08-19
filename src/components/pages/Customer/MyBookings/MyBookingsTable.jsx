@@ -17,6 +17,7 @@ import {
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
+import TableActionButton from "../../../ui/TableActionButton";
 
 // Canonical Status Badge Component for Customer Bookings
 export const BookingStatusBadge = ({ status }) => {
@@ -318,81 +319,50 @@ const MyBookingsTable = ({
                     <td className="py-3.5 px-2 text-center min-w-35">
                       <div className="flex items-center justify-center gap-1.5">
                         {/* Pay Now Button */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={CreditCard}
                           onClick={() => onOpenPayModal(b)}
                           disabled={!canPay}
-                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
-                            canPay
-                              ? "bg-purple-600 hover:bg-purple-700 text-white border-purple-600 shadow-xs"
-                              : "border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-30"
-                          }`}
-                          title={
-                            canPay
-                              ? "Make Payment / Deposit"
-                              : "Payment Settled or Ineligible"
-                          }
-                        >
-                          <CreditCard className="w-3.5 h-3.5" />
-                        </button>
+                          tooltip="Make Payment / Deposit"
+                          disabledTooltip="Payment Settled or Ineligible"
+                          tone="primary"
+                        />
 
                         {/* View Dossier Button */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Eye}
                           onClick={() => onOpenViewModal(b)}
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition-colors cursor-pointer"
-                          title="View Full Booking Dossier"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
+                          tooltip="View Full Booking Dossier"
+                          tone="purple"
+                        />
 
                         {/* Edit Button (Gated to early lifecycle) */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Edit3}
                           onClick={() => onOpenEditModal(b)}
                           disabled={!canEdit}
-                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
-                            canEdit
-                              ? "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-purple-600"
-                              : "border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-30"
-                          }`}
-                          title={
-                            canEdit
-                              ? "Edit Event Details"
-                              : "Locked (In Progress or Completed)"
-                          }
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
+                          tooltip="Edit Event Details"
+                          disabledTooltip="Locked (In Progress or Completed)"
+                          tone="slate"
+                        />
 
                         {/* Rate & Review Button (Gated to rendered/in-flight events) */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Star}
                           onClick={() => onOpenReviewModal(b)}
                           disabled={!canReview}
-                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
-                            canReview
-                              ? "border-amber-200 dark:border-amber-900/60 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40"
-                              : "border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-30"
-                          }`}
-                          title={
-                            canReview
-                              ? "Rate & Review Celebration"
-                              : "Review Available After Confirmation"
-                          }
-                        >
-                          <Star className="w-3.5 h-3.5 fill-current" />
-                        </button>
+                          tooltip="Rate & Review Celebration"
+                          disabledTooltip="Review Available After Confirmation"
+                          tone="amber"
+                        />
 
                         {/* Delete / Cancel Button */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Trash2}
                           onClick={() => onDeleteBooking(b)}
-                          className="p-1.5 rounded-md border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
-                          title="Cancel / Remove Booking"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                          tooltip="Cancel / Remove Booking"
+                          tone="rose"
+                        />
                       </div>
                     </td>
                   </tr>

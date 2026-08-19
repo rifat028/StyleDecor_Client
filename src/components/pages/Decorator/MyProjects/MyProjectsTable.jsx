@@ -16,6 +16,7 @@ import {
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
+import TableActionButton from "../../../ui/TableActionButton";
 
 // Canonical Status Badge Renderer for Projects
 const renderProjectStatusBadge = (status) => {
@@ -278,34 +279,28 @@ const MyProjectsTable = ({
                     <td className="py-3.5 px-2 text-center min-w-32.5">
                       <div className="flex items-center justify-center gap-1.5">
                         {/* Assign Specialist */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Users}
                           onClick={() => onOpenAssignModal(b)}
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/50 transition-colors cursor-pointer"
-                          title="Assign Field Specialist"
-                        >
-                          <Users className="w-3.5 h-3.5" />
-                        </button>
+                          tooltip="Assign Field Specialist"
+                          tone="purple"
+                        />
 
                         {/* View Dossier & Payments */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Eye}
                           onClick={() => onOpenViewModal(b)}
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-purple-600 transition-colors cursor-pointer"
-                          title="View Project Dossier & Payments"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
+                          tooltip="View Project Dossier & Payments"
+                          tone="slate"
+                        />
 
                         {/* Advance Lifecycle Stage */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Edit}
                           onClick={() => onOpenStatusModal(b)}
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/50 hover:text-purple-600 transition-colors cursor-pointer"
-                          title="Update Progress Stage"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
+                          tooltip="Update Progress Stage"
+                          tone="purple"
+                        />
                       </div>
                     </td>
                   </tr>

@@ -13,6 +13,7 @@ import {
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
+import TableActionButton from "../../../ui/TableActionButton";
 
 // Helper to render categorical status badge
 const renderStatusBadge = (status) => {
@@ -167,31 +168,28 @@ const TransactionManagementTable = ({
                     <td className="py-3.5 px-2 text-center min-w-30">
                       <div className="flex items-center justify-center gap-2">
                         {/* View Invoice Dossier Button */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Eye}
                           onClick={() => onView(payment._id)}
-                          title="View Invoice Dossier"
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/50 dark:hover:text-purple-400 transition-colors cursor-pointer"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                          tooltip="View Invoice Dossier"
+                          tone="purple"
+                        />
 
                         {/* Process Refund Button (Disabled if not completed or already refunded) */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={RotateCcw}
                           disabled={!isCompleted || isRefunded}
                           onClick={() => onOpenRefund(payment)}
-                          title={
+                          tooltip="Process Dispute Refund"
+                          disabledTooltip={
                             isRefunded
                               ? "Already Refunded"
                               : !isCompleted
                               ? "Refund Not Applicable"
                               : "Process Dispute Refund"
                           }
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 dark:text-rose-400 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                        >
-                          <RotateCcw className="w-4 h-4" />
-                        </button>
+                          tone="rose"
+                        />
                       </div>
                     </td>
                   </tr>

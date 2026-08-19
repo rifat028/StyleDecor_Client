@@ -14,6 +14,7 @@ import {
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
+import TableActionButton from "../../../ui/TableActionButton";
 
 // Helper for default placeholder image
 const getPlaceholderImage = (title = "Service") => {
@@ -180,58 +181,46 @@ const ServiceManagementTable = ({
 
                     {/* Centered Actions Cell with Bordered Buttons */}
                     <td className="py-3.5 px-2 text-center min-w-30">
-                      <div className="flex items-center justify-center gap-1.5">
-                        {/* View Dossier Button */}
-                        <button
-                          type="button"
+                      <div className="flex items-center justify-center gap-2">
+                        {/* View Service Dossier Button */}
+                        <TableActionButton
+                          icon={Eye}
                           onClick={() => onView(service)}
-                          title="View Service Dossier"
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/50 dark:hover:text-purple-400 transition-colors cursor-pointer"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                          tooltip="View Service Dossier"
+                          tone="purple"
+                        />
 
                         {/* Toggle Featured Star Button */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Sparkles}
                           onClick={() => onToggleFeatured(service)}
-                          title={
+                          tooltip={
                             isFeatured
                               ? "Remove from Highlights"
                               : "Feature on Homepage"
                           }
-                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
-                            isFeatured
-                              ? "border-amber-300 bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-400"
-                              : "border-slate-200 dark:border-slate-700 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40"
-                          }`}
-                        >
-                          <Sparkles className="w-4 h-4" />
-                        </button>
+                          tone={isFeatured ? "featured" : "amber"}
+                        />
 
                         {/* Toggle Status Button */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={CheckCircle2}
                           onClick={() => onToggleStatus(service)}
-                          title={isActive ? "Deactivate Package" : "Activate Package"}
-                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
+                          tooltip={
                             isActive
-                              ? "border-emerald-200 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-800 dark:hover:bg-emerald-950/40"
-                              : "border-slate-200 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:border-slate-700"
-                          }`}
-                        >
-                          <CheckCircle2 className="w-4 h-4" />
-                        </button>
+                              ? "Deactivate Package"
+                              : "Activate Package"
+                          }
+                          tone={isActive ? "success" : "default"}
+                        />
 
                         {/* Delete Service Button */}
-                        <button
-                          type="button"
+                        <TableActionButton
+                          icon={Trash2}
                           onClick={() => onDelete(service)}
-                          title="Delete Service Package"
-                          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                          tooltip="Delete Service Package"
+                          tone="rose"
+                        />
                       </div>
                     </td>
                   </tr>

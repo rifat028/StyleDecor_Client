@@ -10,6 +10,7 @@ import {
   Plus,
 } from "lucide-react";
 import EmptyState from "../../../ui/EmptyState";
+import TableActionButton from "../../../ui/TableActionButton";
 
 // Switch toggle helper
 const SwitchToggle = ({ checked, onChange, label = true, disabled = false }) => (
@@ -152,47 +153,37 @@ const CategoryAccordionList = ({
                 {/* Action Buttons */}
                 <div className="flex items-center gap-1.5 border-l border-slate-200 dark:border-slate-800 pl-3">
                   {/* Add Subcategory */}
-                  <button
-                    type="button"
+                  <TableActionButton
+                    icon={FolderPlus}
                     onClick={() => onOpenAddSub(category)}
-                    title="Add Subcategory"
-                    className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/50 dark:hover:text-purple-400 transition-colors cursor-pointer"
-                  >
-                    <FolderPlus className="w-4 h-4" />
-                  </button>
+                    tooltip="Add Subcategory"
+                    tone="purple"
+                  />
 
                   {/* Edit Category */}
-                  <button
-                    type="button"
+                  <TableActionButton
+                    icon={Edit2}
                     onClick={() => onOpenEdit(category)}
-                    title="Edit Category Details"
-                    className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/50 dark:hover:text-amber-400 transition-colors cursor-pointer"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
+                    tooltip="Edit Category Details"
+                    tone="amber"
+                  />
 
                   {/* Delete Category */}
-                  <button
-                    type="button"
+                  <TableActionButton
+                    icon={Trash2}
                     onClick={() => onDeleteCategory(category)}
-                    title="Delete Category"
-                    className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 transition-colors cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                    tooltip="Delete Category"
+                    tone="rose"
+                  />
 
                   {/* Expand / Collapse Indicator */}
-                  <button
-                    type="button"
+                  <TableActionButton
+                    icon={isExpanded ? ChevronUp : ChevronDown}
                     onClick={() => onToggleExpand(category._id)}
-                    className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer ml-1"
-                  >
-                    {isExpanded ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    )}
-                  </button>
+                    tooltip={isExpanded ? "Collapse Subcategories" : "Expand Subcategories"}
+                    tone="slate"
+                    className="ml-1"
+                  />
                 </div>
               </div>
             </div>
@@ -269,22 +260,20 @@ const CategoryAccordionList = ({
                             </td>
                             <td className="py-2.5 px-2 text-center min-w-25">
                               <div className="flex items-center justify-center gap-1.5">
-                                <button
-                                  type="button"
+                                <TableActionButton
+                                  icon={Edit2}
                                   onClick={() => onOpenEditSub(category, sub)}
-                                  title="Edit Subcategory"
-                                  className="p-1 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 dark:hover:text-amber-400 transition-colors cursor-pointer"
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  type="button"
+                                  tooltip="Edit Subcategory"
+                                  tone="amber"
+                                  size="xs"
+                                />
+                                <TableActionButton
+                                  icon={Trash2}
                                   onClick={() => onDeleteSub(category._id, sub)}
-                                  title="Delete Subcategory"
-                                  className="p-1 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 transition-colors cursor-pointer"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
+                                  tooltip="Delete Subcategory"
+                                  tone="rose"
+                                  size="xs"
+                                />
                               </div>
                             </td>
                           </tr>

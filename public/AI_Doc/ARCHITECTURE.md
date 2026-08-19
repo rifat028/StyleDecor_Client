@@ -58,7 +58,9 @@ StyleDecor_Client/
 │   │       ├── Pagination.jsx          # Canonical 3-part pagination controls
 │   │       ├── RatingBadge.jsx         # Uniform rating star pill
 │   │       ├── StatCard.jsx            # Standardized metric cards with pulse skeleton
-│   │       └── TableSkeleton.jsx       # Standardized table skeleton rows
+│   │       ├── TableActionButton.jsx   # Standardized table action button with integrated tooltip & semantic tones
+│   │       ├── TableSkeleton.jsx       # Standardized table skeleton rows
+│   │       └── Tooltip.jsx             # CSS-driven animated floating tooltip wrapper
 │   ├── features/
 │   │   ├── about/                 # Public About, Values, Stats & How It Works
 │   │   ├── admin/                 # Administrator Dashboard Suite

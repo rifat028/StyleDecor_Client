@@ -4,6 +4,7 @@ import useAxiosSecure from "../../hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import Spinner from "../home/components/Spinner";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
+import TableActionButton from "../../components/ui/TableActionButton";
 import {
   Calendar,
   Clock,
@@ -360,20 +361,20 @@ const MySchedule = () => {
                       {/* Actions */}
                       <td className="py-3.5 px-5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          <button
+                          <TableActionButton
+                            icon={Eye}
                             onClick={() => handleOpenView(b)}
-                            className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-purple-600 cursor-pointer"
-                            title="View Full Event Dossier"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          <button
+                            tooltip="View Full Event Dossier"
+                            tone="purple"
+                            size="md"
+                          />
+                          <TableActionButton
+                            icon={Edit}
                             onClick={() => handleOpenStageModal(b)}
-                            className="p-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white cursor-pointer shadow-sm"
-                            title="Update Execution Milestone"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
+                            tooltip="Update Execution Milestone"
+                            tone="primary"
+                            size="md"
+                          />
                         </div>
                       </td>
                     </tr>

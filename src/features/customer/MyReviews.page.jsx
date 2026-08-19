@@ -4,6 +4,7 @@ import useAxiosSecure from "../../hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import Spinner from "../home/components/Spinner";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
+import TableActionButton from "../../components/ui/TableActionButton";
 import {
   MessageSquare,
   Star,
@@ -362,13 +363,13 @@ const MyReviews = () => {
                       <Edit3 className="w-3.5 h-3.5" />
                       Edit Review
                     </button>
-                    <button
+                    <TableActionButton
+                      icon={Trash2}
                       onClick={() => handleDeleteReview(r)}
-                      className="p-2 rounded-xl border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 cursor-pointer transition-all"
-                      title="Delete Review"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                      tooltip="Delete Review"
+                      tone="rose"
+                      size="md"
+                    />
                   </div>
                 </div>
 
