@@ -323,7 +323,6 @@ const ManageService = () => {
   // Open View Details Preview Modal
   const openViewModal = (srv) => {
     setViewingService(srv);
-    setIsViewModalOpen(true);
   };
 
   // Package Tier Handlers with Immutable Object Update
@@ -551,9 +550,9 @@ const ManageService = () => {
       {/* 4. View Service Preview Modal */}
       <ManageServiceViewModal
         viewingService={viewingService}
-        onClose={() => setIsViewModalOpen(false)}
+        onClose={() => setViewingService(null)}
         onEdit={(srv) => {
-          setIsViewModalOpen(false);
+          setViewingService(null);
           openEditModal(srv);
         }}
         onDelete={handleDelete}
