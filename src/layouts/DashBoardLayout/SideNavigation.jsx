@@ -66,7 +66,7 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
     return (
       <div className="flex flex-col flex-1 w-full h-full min-h-0">
         {/* Skeleton Header */}
-        <div className={`relative h-20 shrink-0 border-b border-slate-200 dark:border-slate-800/80 dark:bg-black flex items-center ${isCollapsed ? 'justify-center gap-2 px-2' : 'pl-8 pr-4 justify-between'}`}>
+        <div className={`relative h-20 shrink-0 border-b border-slate-200 dark:border-slate-800/80 dark:bg-black flex items-center ${isCollapsed ? 'justify-center gap-2 px-2' : 'pl-5 pr-3 justify-between'}`}>
           {isCollapsed ? (
             <div className="skeleton h-10 w-10 rounded-lg dark:bg-slate-800/50"></div>
           ) : (
@@ -103,7 +103,7 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
   return (
     <>
       <div className="flex flex-col flex-1 w-full h-full min-h-0">
-        <div className={`relative h-20 shrink-0 border-b border-slate-200 dark:border-slate-800/80 dark:bg-black flex items-center ${isCollapsed ? 'justify-center gap-2 px-2' : 'pl-8 pr-4 justify-between'}`}>
+        <div className={`relative h-20 shrink-0 border-b border-slate-200 dark:border-slate-800/80 dark:bg-black flex items-center ${isCollapsed ? 'justify-center gap-2 px-2' : 'pl-5 pr-3 justify-between'}`}>
           <a href="/" className="inline-flex items-center hover:opacity-90 transition-opacity">
             {isCollapsed ? (
               <>
@@ -146,14 +146,14 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
 
           {role === "admin" && (
             <>
-              <NavItem to="/dashboard/manage-users" icon={UserCog} label="Manage Users" isCollapsed={isCollapsed} />
-              <NavItem to="/dashboard/manage-categories" icon={Layers} label="Manage Categories" isCollapsed={isCollapsed} />
-              <NavItem to="/dashboard/manage-decorators" icon={Users} label="Manage Decorators" isCollapsed={isCollapsed} />
-              <NavItem to="/dashboard/manage-agents" icon={Users} label="Manage Agents" isCollapsed={isCollapsed} />
-              <NavItem to="/dashboard/manage-services" icon={Briefcase} label="Manage Services" isCollapsed={isCollapsed} />
-              <NavItem to="/dashboard/manage-bookings" icon={Calendar} label="Manage Bookings" isCollapsed={isCollapsed} />
-              <NavItem to="/dashboard/manage-transactions" icon={CreditCard} label="Manage Payments" isCollapsed={isCollapsed} />
-              <NavItem to="/dashboard/manage-reviews" icon={MessageSquare} label="Manage Reviews" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-users" icon={UserCog} label="Users" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-categories" icon={Layers} label="Categories" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-decorators" icon={Users} label="Decorators" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-agents" icon={Users} label="Agents" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-services" icon={Briefcase} label="Services" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-bookings" icon={Calendar} label="Bookings" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-transactions" icon={CreditCard} label="Payments" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-reviews" icon={MessageSquare} label="Reviews" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/analytics" icon={BarChart3} label="Analytics" isCollapsed={isCollapsed} />
             </>
           )}

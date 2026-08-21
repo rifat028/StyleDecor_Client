@@ -16,7 +16,7 @@ const DashboardLayout = () => {
           <DashboardTopBar />
           
           {/* Outlet Canvas */}
-          <div className="flex-1 w-full p-4 sm:p-6 lg:p-8 overflow-y-auto">
+          <div className="flex-1 w-full p-4 sm:p-6 overflow-y-auto">
             <div className="mx-auto max-w-7xl">
               <Outlet />
             </div>
@@ -30,7 +30,7 @@ const DashboardLayout = () => {
             aria-label="close sidebar"
             className="drawer-overlay"
           ></label>
-          <div className={`bg-white dark:bg-black h-full ${isCollapsed ? 'w-24' : 'w-64 md:w-72'} border-r border-slate-200 dark:border-slate-800/80 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-none flex flex-col transition-all duration-300 overflow-hidden`}>
+          <div className={`bg-white dark:bg-black h-full ${isCollapsed ? 'w-20' : 'w-56 md:w-60'} border-r border-slate-200 dark:border-slate-800/80 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-none flex flex-col transition-all duration-300 overflow-hidden`}>
             <SideNavigation isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
           </div>
         </div>

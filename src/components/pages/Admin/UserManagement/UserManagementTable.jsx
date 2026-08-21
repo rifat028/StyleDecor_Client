@@ -109,14 +109,23 @@ const UserManagementTable = ({
 
                     {/* Contact & City Cell */}
                     <td className="py-3.5 px-2 min-w-45">
-                      <div className="space-y-1">
-                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                      <div className="space-y-1 min-w-0">
+                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 min-w-0">
                           <Phone className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span>{user.phone || "No phone"}</span>
+                          <span className="truncate">{user.phone || "No phone"}</span>
                         </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 min-w-0">
                           <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span>
+                          <span
+                            className="line-clamp-1"
+                            title={
+                              user.address?.area
+                                ? `${user.address.area}, ${
+                                    user.address.city || "Dhaka"
+                                  }`
+                                : `${user.address?.city || "Dhaka"}`
+                            }
+                          >
                             {user.address?.area
                               ? `${user.address.area}, ${
                                   user.address.city || "Dhaka"

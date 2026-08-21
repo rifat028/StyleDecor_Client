@@ -24,7 +24,7 @@ const DashboardPageHeader = ({
   children,
 }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         {/* Left Side: Icon Box & Title/Subtitle */}
         <div className="flex items-center gap-3.5">
