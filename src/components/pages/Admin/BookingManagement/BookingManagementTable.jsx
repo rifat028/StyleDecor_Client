@@ -128,16 +128,24 @@ const BookingManagementTable = ({
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
               {bookings.map((booking) => {
                 const totalAmount =
+                  booking.pricingBreakdown?.grandTotal ||
+                  booking.financials?.totalAmount ||
                   booking.totalPrice ||
                   booking.amount ||
-                  booking.pricing?.totalPrice ||
+                  booking.totalCost ||
                   0;
                 const paidAmount =
+                  booking.pricingBreakdown?.paidAmount ||
+                  booking.financials?.advancePaid ||
                   booking.paidAmount ||
                   booking.advancePaid ||
-                  booking.pricing?.paidAmount ||
+                  (booking.paid ? totalAmount : 0) ||
                   0;
                 const isPaid = paidAmount >= totalAmount && totalAmount > 0;
+                const eventDateVal =
+                  booking.eventDetails?.eventDate ||
+                  booking.eventDate ||
+                  booking.bookingDate;
 
                 return (
                   <tr
@@ -149,7 +157,8 @@ const BookingManagementTable = ({
                       <div className="space-y-1">
                         <p className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 truncate">
                           <span>
-                            {booking.serviceTitle ||
+                            {booking.serviceSnapshot?.title ||
+                              booking.serviceTitle ||
                               booking.service?.title ||
                               booking.serviceName ||
                               "Event Booking"}
@@ -158,10 +167,8 @@ const BookingManagementTable = ({
                         <div className="flex items-center gap-2 text-xs text-slate-400">
                           <span className="flex items-center gap-1 font-medium text-purple-600 dark:text-purple-400">
                             <Calendar className="w-3 h-3" />
-                            {booking.eventDate
-                              ? new Date(
-                                  booking.eventDate
-                                ).toLocaleDateString()
+                            {eventDateVal
+                              ? new Date(eventDateVal).toLocaleDateString()
                               : "TBD"}
                           </span>
                           <span>•</span>
@@ -178,16 +185,18 @@ const BookingManagementTable = ({
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 truncate">
                           <User className="w-3 h-3 text-slate-400 shrink-0" />
                           <span>
-                            {booking.customerName ||
-                              booking.user?.name ||
+                            {booking.customer?.name ||
+                              booking.clientName ||
+                              booking.customerName ||
                               "Customer"}
                           </span>
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 truncate">
                           <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                           <span>
-                            {booking.venueAddress ||
-                              booking.address?.city ||
+                            {booking.eventDetails?.venueName ||
+                              booking.eventDetails?.venueAddress ||
+                              booking.venueAddress ||
                               "Dhaka Venue"}
                           </span>
                         </p>
@@ -200,15 +209,15 @@ const BookingManagementTable = ({
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 truncate">
                           <Building className="w-3 h-3 text-slate-400 shrink-0" />
                           <span>
-                            {booking.decoratorName ||
-                              booking.decorator?.businessName ||
+                            {booking.decorator?.businessName ||
+                              booking.decoratorName ||
                               "Decorator Agency"}
                           </span>
                         </p>
-                        {booking.assignedAgentName && (
+                        {(booking.assignedAgent?.name || booking.assignedAgentName) && (
                           <p className="text-xs text-purple-600 dark:text-purple-400 font-medium flex items-center gap-1 truncate">
                             <UserCheck className="w-3 h-3 shrink-0" />
-                            <span>{booking.assignedAgentName}</span>
+                            <span>{booking.assignedAgent?.name || booking.assignedAgentName}</span>
                           </p>
                         )}
                       </div>

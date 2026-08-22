@@ -100,21 +100,16 @@ const ManageBookings = () => {
   // Load Summary Counters
   const loadStats = useCallback(async () => {
     try {
-      const [allRes, accRes, progRes, compRes, pendRes] = await Promise.all([
-        axiosSecure.get("/bookings?limit=1"),
-        axiosSecure.get("/bookings?status=accepted&limit=1"),
-        axiosSecure.get("/bookings?status=in_progress&limit=1"),
-        axiosSecure.get("/bookings?status=completed&limit=1"),
-        axiosSecure.get("/bookings?status=pending&limit=1"),
-      ]);
-
-      setStats({
-        total: allRes.data?.totalCount || 0,
-        accepted: accRes.data?.totalCount || 0,
-        inProgress: progRes.data?.totalCount || 0,
-        completed: compRes.data?.totalCount || 0,
-        pending: pendRes.data?.totalCount || 0,
-      });
+      const res = await axiosSecure.get("/bookings/stats");
+      if (res.data?.success && res.data?.stats) {
+        setStats({
+          total: res.data.stats.total || 0,
+          accepted: res.data.stats.accepted || 0,
+          inProgress: res.data.stats.inProgress || 0,
+          completed: res.data.stats.completed || 0,
+          pending: res.data.stats.pending || 0,
+        });
+      }
     } catch (err) {
       console.warn("Failed to load stats:", err);
     }
