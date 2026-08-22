@@ -101,19 +101,15 @@ const ManageDecorator = () => {
   // Fetch Global Counter Stats
   const fetchStats = useCallback(async () => {
     try {
-      const [allRes, activeRes, pendingRes, suspendedRes] = await Promise.all([
-        axiosSecure.get("/decorators?status=all&limit=1"),
-        axiosSecure.get("/decorators?status=active&limit=1"),
-        axiosSecure.get("/decorators?status=pending&limit=1"),
-        axiosSecure.get("/decorators?status=suspended&limit=1"),
-      ]);
-
-      setStats({
-        total: allRes.data?.totalCount || 0,
-        active: activeRes.data?.totalCount || 0,
-        pending: pendingRes.data?.totalCount || 0,
-        suspended: suspendedRes.data?.totalCount || 0,
-      });
+      const res = await axiosSecure.get("/decorators/stats");
+      if (res.data?.success && res.data?.data) {
+        setStats({
+          total: res.data.data.total || 0,
+          active: res.data.data.active || 0,
+          pending: res.data.data.pending || 0,
+          suspended: res.data.data.suspended || 0,
+        });
+      }
     } catch (err) {
       console.warn("Failed to load decorator stats:", err);
     }

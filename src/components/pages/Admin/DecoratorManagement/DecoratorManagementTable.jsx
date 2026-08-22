@@ -157,16 +157,16 @@ const DecoratorManagementTable = ({
                       <div className="space-y-1">
                         <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                           <Phone className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span>{decorator.contact?.phone || "No phone"}</span>
+                          <span>{decorator.contactInfo?.phone || decorator.contact?.phone || "No phone"}</span>
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                           <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                           <span>
-                            {decorator.location?.area
-                              ? `${decorator.location.area}, ${
-                                  decorator.location?.city || "Dhaka"
-                                }`
-                              : `${decorator.location?.city || "Dhaka"}`}
+                            {decorator.contactInfo?.district
+                              ? `${decorator.contactInfo.district}, ${decorator.contactInfo.division || "Dhaka"}`
+                              : (decorator.location?.area
+                                  ? `${decorator.location.area}, ${decorator.location?.city || "Dhaka"}`
+                                  : `${decorator.contactInfo?.division || decorator.location?.city || "Dhaka"}`)}
                           </span>
                         </p>
                       </div>
@@ -179,12 +179,14 @@ const DecoratorManagementTable = ({
                           <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                           <span>
                             {Number(
-                              decorator.rating?.average || 5.0
+                              decorator.metrics?.rating ||
+                              decorator.rating?.average ||
+                              5.0
                             ).toFixed(1)}
                           </span>
                         </span>
                         <span className="text-[11px] text-slate-400 mt-1">
-                          {decorator.projectsCompleted || 0} projects
+                          {decorator.metrics?.completedEvents ?? decorator.projectsCompleted ?? 0} events
                         </span>
                       </div>
                     </td>

@@ -73,13 +73,13 @@ const DecoratorManagementModals = ({
               <span className="inline-flex items-center gap-1 font-bold text-amber-600 dark:text-amber-400">
                 <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                 <span>
-                  {Number(viewDecorator.rating?.average || 5.0).toFixed(1)} (
-                  {viewDecorator.rating?.count || 0} reviews)
+                  {Number(viewDecorator.metrics?.rating || viewDecorator.rating?.average || 5.0).toFixed(1)} (
+                  {viewDecorator.metrics?.reviewCount || viewDecorator.rating?.count || 0} reviews)
                 </span>
               </span>
               <span className="text-slate-300 dark:text-slate-700">•</span>
               <span className="text-slate-500 dark:text-slate-400 font-medium">
-                {viewDecorator.projectsCompleted || 0} Projects Completed
+                {viewDecorator.metrics?.completedEvents ?? viewDecorator.projectsCompleted ?? 0} Events Completed
               </span>
             </div>
           </div>
@@ -93,7 +93,7 @@ const DecoratorManagementModals = ({
               <Phone className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> Phone Contact
             </p>
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-              {viewDecorator.contact?.phone || "Not provided"}
+              {viewDecorator.contactInfo?.phone || viewDecorator.contact?.phone || "Not provided"}
             </p>
           </div>
 
@@ -103,7 +103,7 @@ const DecoratorManagementModals = ({
               <Mail className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> Official Email
             </p>
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
-              {viewDecorator.contact?.email || "Not provided"}
+              {viewDecorator.contactInfo?.email || viewDecorator.contact?.email || "Not provided"}
             </p>
           </div>
 
@@ -114,23 +114,24 @@ const DecoratorManagementModals = ({
             </p>
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
               {[
-                viewDecorator.location?.address,
-                viewDecorator.location?.area,
-                viewDecorator.location?.city || "Dhaka",
+                viewDecorator.contactInfo?.address || viewDecorator.location?.address,
+                viewDecorator.contactInfo?.district || viewDecorator.location?.area,
+                viewDecorator.contactInfo?.division || viewDecorator.location?.city || "Dhaka",
               ]
                 .filter(Boolean)
                 .join(", ")}
             </p>
           </div>
 
-          {/* Experience & Team */}
+          {/* Experience & Scale */}
           <div className="p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-              <Award className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> Experience & Scale
+              <Award className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> Service Coverage
             </p>
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-              {viewDecorator.experienceYears || 1}+ Years in Industry •{" "}
-              {viewDecorator.teamSize || 5} Crew Members
+              {Array.isArray(viewDecorator.serviceAreas) && viewDecorator.serviceAreas.length > 0
+                ? viewDecorator.serviceAreas.join(", ")
+                : `${viewDecorator.contactInfo?.district || "Dhaka"} Division`}
             </p>
           </div>
 
