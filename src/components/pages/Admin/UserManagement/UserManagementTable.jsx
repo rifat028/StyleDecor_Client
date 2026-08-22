@@ -32,7 +32,7 @@ const UserManagementTable = ({
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
                 <th className="py-3.5 px-2 min-w-55">User Profile</th>
-                <th className="py-3.5 px-2 min-w-45">Contact & City</th>
+                <th className="py-3.5 px-2 min-w-45">Contact & Location</th>
                 <th className="py-3.5 px-2 min-w-32.5">System Role</th>
                 <th className="py-3.5 px-2 text-center min-w-40">Quick Role Switch</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
@@ -57,7 +57,7 @@ const UserManagementTable = ({
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
                 <th className="py-3.5 px-2 min-w-55">User Profile</th>
-                <th className="py-3.5 px-2 min-w-45">Contact & City</th>
+                <th className="py-3.5 px-2 min-w-45">Contact & Location</th>
                 <th className="py-3.5 px-2 min-w-32.5">System Role</th>
                 <th className="py-3.5 px-2 text-center min-w-40">Quick Role Switch</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
@@ -66,6 +66,9 @@ const UserManagementTable = ({
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
               {users.map((user) => {
                 const isSuperAdmin = user.email === superAdminEmail;
+                const locDistrict = user.address?.district || user.address?.area;
+                const locDivision = user.address?.division || user.address?.city || "Dhaka";
+                const locationText = locDistrict ? `${locDistrict}, ${locDivision}` : locDivision;
 
                 return (
                   <tr
@@ -107,7 +110,7 @@ const UserManagementTable = ({
                       </div>
                     </td>
 
-                    {/* Contact & City Cell */}
+                    {/* Contact & Location Cell */}
                     <td className="py-3.5 px-2 min-w-45">
                       <div className="space-y-1 min-w-0">
                         <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 min-w-0">
@@ -118,19 +121,9 @@ const UserManagementTable = ({
                           <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                           <span
                             className="line-clamp-1"
-                            title={
-                              user.address?.area
-                                ? `${user.address.area}, ${
-                                    user.address.city || "Dhaka"
-                                  }`
-                                : `${user.address?.city || "Dhaka"}`
-                            }
+                            title={locationText}
                           >
-                            {user.address?.area
-                              ? `${user.address.area}, ${
-                                  user.address.city || "Dhaka"
-                                }`
-                              : `${user.address?.city || "Dhaka"}`}
+                            {locationText}
                           </span>
                         </p>
                       </div>

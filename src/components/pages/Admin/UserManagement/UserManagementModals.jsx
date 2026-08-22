@@ -9,6 +9,7 @@ import {
   Image,
 } from "lucide-react";
 import Modal from "../../../ui/Modal";
+import { DIVISION_DISTRICTS_MAP, ALL_BANGLADESH_DISTRICTS } from "../../../../lib/constants";
 
 // Consolidated View and Edit Modals for User Management (250-300 lines)
 const UserManagementModals = ({
@@ -20,7 +21,7 @@ const UserManagementModals = ({
   setEditFormData,
   onSaveEdit,
   submittingEdit,
-  citiesList,
+  divisionsList,
   superAdminEmail,
   getPlaceholderAvatar,
   getRoleBadge,
@@ -79,13 +80,13 @@ const UserManagementModals = ({
                 </p>
               </div>
 
-              {/* City */}
+              {/* Division */}
               <div className="p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" /> Primary City
+                  <MapPin className="w-3.5 h-3.5" /> Division
                 </p>
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                  {viewingUser.address?.city || "Dhaka"}
+                  {viewingUser.address?.division || viewingUser.address?.city || "Dhaka"}
                 </p>
               </div>
 
@@ -96,9 +97,9 @@ const UserManagementModals = ({
                 </p>
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   {[
-                    viewingUser.address?.street,
-                    viewingUser.address?.area,
-                    viewingUser.address?.city,
+                    viewingUser.address?.home || viewingUser.address?.street,
+                    viewingUser.address?.district || viewingUser.address?.area,
+                    viewingUser.address?.division || viewingUser.address?.city,
                     viewingUser.address?.postalCode &&
                       `Postal Code: ${viewingUser.address.postalCode}`,
                   ]
@@ -237,49 +238,62 @@ const UserManagementModals = ({
                 </select>
               </div>
 
-              {/* City */}
+              {/* Division */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                  City
+                  Division
                 </label>
                 <select
-                  value={editFormData.city}
-                  onChange={(e) =>
+                  value={editFormData.division}
+                  onChange={(e) => {
+                    const newDivision = e.target.value;
+                    const districtsInNewDivision = DIVISION_DISTRICTS_MAP[newDivision] || [];
+                    const isDistrictStillValid = districtsInNewDivision.includes(editFormData.district);
                     setEditFormData({
                       ...editFormData,
-                      city: e.target.value,
-                    })
-                  }
+                      division: newDivision,
+                      district: isDistrictStillValid ? editFormData.district : (districtsInNewDivision[0] || ""),
+                    });
+                  }}
                   className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 cursor-pointer transition-all"
                 >
-                  {citiesList
-                    .filter((c) => c !== "all")
-                    .map((c) => (
-                      <option key={c} value={c}>
-                        {c}
+                  {divisionsList
+                    .filter((d) => d !== "all")
+                    .map((d) => (
+                      <option key={d} value={d}>
+                        {d}
                       </option>
                     ))}
                 </select>
               </div>
 
-              {/* Area */}
+              {/* District */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Area / Thana
+                  District
                 </label>
-                <input
-                  type="text"
-                  value={editFormData.area}
+                <select
+                  value={editFormData.district}
                   onChange={(e) =>
                     setEditFormData({
                       ...editFormData,
-                      area: e.target.value,
+                      district: e.target.value,
                     })
                   }
-                  placeholder="e.g. Gulshan, Dhanmondi"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
-                />
+                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 cursor-pointer transition-all"
+                >
+                  <option value="">Select District</option>
+                  {(DIVISION_DISTRICTS_MAP[editFormData.division] || ALL_BANGLADESH_DISTRICTS).map((dist) => (
+                    <option key={dist} value={dist}>
+                      {dist}
+                    </option>
+                  ))}
+                  {editFormData.district &&
+                    !(DIVISION_DISTRICTS_MAP[editFormData.division] || []).includes(editFormData.district) && (
+                      <option value={editFormData.district}>{editFormData.district}</option>
+                    )}
+                </select>
               </div>
 
               {/* Postal Code */}
@@ -296,26 +310,26 @@ const UserManagementModals = ({
                       postalCode: e.target.value,
                     })
                   }
-                  placeholder="e.g. 1212"
+                  placeholder="e.g. 1702"
                   className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                 />
               </div>
 
-              {/* Street Address */}
+              {/* Home / Street Address */}
               <div className="space-y-1.5 sm:col-span-2">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Street Address
+                  Home / Street Address
                 </label>
                 <input
                   type="text"
-                  value={editFormData.street}
+                  value={editFormData.home}
                   onChange={(e) =>
                     setEditFormData({
                       ...editFormData,
-                      street: e.target.value,
+                      home: e.target.value,
                     })
                   }
-                  placeholder="House, Road, Block details"
+                  placeholder="e.g. H.No 34/5, Nawapara"
                   className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                 />
               </div>

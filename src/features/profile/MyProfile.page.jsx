@@ -31,9 +31,9 @@ const MyProfile = () => {
     name: "",
     phone: "",
     photoUrl: "",
-    street: "",
-    area: "",
-    city: "Dhaka",
+    home: "",
+    district: "",
+    division: "Dhaka",
     postalCode: "",
   });
 
@@ -62,9 +62,9 @@ const MyProfile = () => {
           name: u.name || "",
           phone: u.phone || "",
           photoUrl: u.photoUrl || "",
-          street: u.address?.street || "",
-          area: u.address?.area || "",
-          city: u.address?.city || "Dhaka",
+          home: u.address?.home || u.address?.street || "",
+          district: u.address?.district || u.address?.area || "",
+          division: u.address?.division || u.address?.city || "Dhaka",
           postalCode: u.address?.postalCode || "",
         });
 
@@ -143,10 +143,10 @@ const MyProfile = () => {
         phone: formData.phone.trim(),
         photoUrl: formData.photoUrl.trim(),
         address: {
-          street: formData.street.trim(),
-          area: formData.area.trim(),
-          city: formData.city,
-          postalCode: formData.postalCode.trim(),
+          home: (formData.home || formData.street || "").trim(),
+          district: (formData.district || formData.area || "").trim(),
+          division: formData.division || formData.city || "Dhaka",
+          postalCode: (formData.postalCode || "").trim(),
         },
       };
 

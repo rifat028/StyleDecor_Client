@@ -12,16 +12,16 @@ const MyProfileAddressSection = ({ address }) => {
             <span>Primary Event & Residential Address</span>
           </h3>
           <span className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold border border-slate-200 dark:border-slate-700">
-            {address?.city || "Dhaka"} Division
+            {address?.division || address?.city || "Dhaka"} Division
           </span>
         </div>
 
         {/* 4 Fields in 4 Vertical Rows */}
         <div className="space-y-4">
-          {/* Row 1: Street & Holding */}
+          {/* Row 1: Home & Street */}
           <div className="space-y-1">
             <label className="block text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-              Street / Holding
+              Home / Holding / Street
             </label>
             <div className="relative">
               <Building className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -29,16 +29,16 @@ const MyProfileAddressSection = ({ address }) => {
                 type="text"
                 disabled
                 readOnly
-                value={address?.street || "No street address configured"}
+                value={address?.home || address?.street || "No address configured"}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/70 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-medium cursor-default outline-hidden"
               />
             </div>
           </div>
 
-          {/* Row 2: Area & Neighborhood */}
+          {/* Row 2: District & Area */}
           <div className="space-y-1">
             <label className="block text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-              Area / Neighborhood
+              District / Area
             </label>
             <div className="relative">
               <Navigation className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -46,16 +46,16 @@ const MyProfileAddressSection = ({ address }) => {
                 type="text"
                 disabled
                 readOnly
-                value={address?.area || "Not specified"}
+                value={address?.district || address?.area || "Not specified"}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/70 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-medium cursor-default outline-hidden"
               />
             </div>
           </div>
 
-          {/* Row 3: City */}
+          {/* Row 3: Division */}
           <div className="space-y-1">
             <label className="block text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-              City / Division
+              Division
             </label>
             <div className="relative">
               <MapPin className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -63,7 +63,7 @@ const MyProfileAddressSection = ({ address }) => {
                 type="text"
                 disabled
                 readOnly
-                value={`${address?.city || "Dhaka"}, Bangladesh`}
+                value={`${address?.division || address?.city || "Dhaka"}, Bangladesh`}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/70 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-medium cursor-default outline-hidden"
               />
             </div>

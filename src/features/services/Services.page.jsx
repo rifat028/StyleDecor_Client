@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "react-router";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import ServiceCard from "./components/ServiceCard";
 import TopSection from "./components/TopSection";
@@ -15,18 +16,23 @@ import {
   ChevronsRight,
 } from "lucide-react";
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   { value: "all", label: "All Categories" },
   { value: "Wedding & Pre-Wedding", label: "Wedding & Pre-Wedding" },
+  { value: "Corporate & Gala", label: "Corporate & Gala" },
   { value: "Birthday & Milestone", label: "Birthday & Milestone" },
-  { value: "Corporate & Commercial", label: "Corporate & Commercial" },
-  { value: "Home & Rooftop Gatherings", label: "Home & Rooftop Gatherings" },
-  { value: "Cultural & Religious Festivals", label: "Cultural & Religious" },
-  { value: "Lighting & Special FX", label: "Lighting & Special FX" },
+  { value: "Cultural & Religious", label: "Cultural & Religious" },
+  { value: "Home & Rooftop Intimate Setups", label: "Home & Rooftop Intimate Setups" },
+  { value: "Lighting, FX & Rentals", label: "Lighting, FX & Rentals" },
 ];
 
 const Services = () => {
   const axiosSecure = useAxiosSecure();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialCategory = searchParams.get("category") || "all";
+
+  // Categories list from API
+  const [categoryOptions, setCategoryOptions] = useState(DEFAULT_CATEGORIES);
 
   // Services Data States
   const [services, setServices] = useState([]);
@@ -37,12 +43,39 @@ const Services = () => {
   // Filter States
   const [searchText, setSearchText] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [category, setCategory] = useState("all");
+  const [category, setCategory] = useState(initialCategory);
   const [minCost, setMinCost] = useState("");
   const [maxCost, setMaxCost] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [page, setPage] = useState(1);
   const limit = 12;
+
+  // Load Categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axiosSecure.get("/categories?status=active");
+        const list = res.data?.data || res.data || [];
+        if (Array.isArray(list) && list.length > 0) {
+          setCategoryOptions([
+            { value: "all", label: "All Categories" },
+            ...list.map((c) => ({ value: c.name, label: c.name })),
+          ]);
+        }
+      } catch (err) {
+        console.error("Failed to load categories:", err);
+      }
+    };
+    fetchCategories();
+  }, [axiosSecure]);
+
+  // Sync category state when URL changes
+  useEffect(() => {
+    const urlCategory = searchParams.get("category");
+    if (urlCategory) {
+      setCategory(urlCategory);
+    }
+  }, [searchParams]);
 
   // Load Services from Backend API
   const loadServices = useCallback(async () => {
@@ -161,7 +194,7 @@ const Services = () => {
                 }}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
               >
-                {CATEGORIES.map((c) => (
+                {categoryOptions.map((c) => (
                   <option key={c.value} value={c.value}>
                     {c.label}
                   </option>

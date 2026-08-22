@@ -1,7 +1,7 @@
 import React from "react";
 import { Save } from "lucide-react";
 import Modal from "../../../ui/Modal";
-import { TOP_CITIES_BD } from "../../../../lib/constants";
+import { BANGLADESH_DIVISIONS } from "../../../../lib/constants";
 
 // Modal dialog for editing personal profile info and address settings
 const EditProfileModal = ({
@@ -31,7 +31,7 @@ const EditProfileModal = ({
             <input
               type="text"
               name="name"
-              value={formData.name}
+              value={formData.name || ""}
               onChange={onInputChange}
               required
               placeholder="e.g. Tanvir Ahmed"
@@ -46,7 +46,7 @@ const EditProfileModal = ({
             <input
               type="text"
               name="phone"
-              value={formData.phone}
+              value={formData.phone || ""}
               onChange={onInputChange}
               placeholder="e.g. +880 1700-000000"
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
@@ -62,7 +62,7 @@ const EditProfileModal = ({
           <input
             type="text"
             name="photoUrl"
-            value={formData.photoUrl}
+            value={formData.photoUrl || ""}
             onChange={onInputChange}
             placeholder="https://images.unsplash.com/..."
             className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
@@ -78,28 +78,28 @@ const EditProfileModal = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
-                Street / Holding
+                Home / Street Address
               </label>
               <input
                 type="text"
-                name="street"
-                value={formData.street}
+                name="home"
+                value={formData.home || formData.street || ""}
                 onChange={onInputChange}
-                placeholder="House 12, Road 5"
+                placeholder="e.g. H.No 34/5, Nawapara"
                 className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
               />
             </div>
 
             <div>
               <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
-                Area / Neighborhood
+                District
               </label>
               <input
                 type="text"
-                name="area"
-                value={formData.area}
+                name="district"
+                value={formData.district || formData.area || ""}
                 onChange={onInputChange}
-                placeholder="Dhanmondi"
+                placeholder="e.g. Jamalpur, Dhaka, Cumilla"
                 className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
               />
             </div>
@@ -108,17 +108,17 @@ const EditProfileModal = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
-                City / Division
+                Division
               </label>
               <select
-                name="city"
-                value={formData.city}
+                name="division"
+                value={formData.division || formData.city || "Dhaka"}
                 onChange={onInputChange}
                 className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 cursor-pointer transition-all"
               >
-                {TOP_CITIES_BD.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {BANGLADESH_DIVISIONS.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
                   </option>
                 ))}
               </select>
@@ -131,9 +131,9 @@ const EditProfileModal = ({
               <input
                 type="text"
                 name="postalCode"
-                value={formData.postalCode}
+                value={formData.postalCode || ""}
                 onChange={onInputChange}
-                placeholder="1209"
+                placeholder="1702"
                 className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
               />
             </div>

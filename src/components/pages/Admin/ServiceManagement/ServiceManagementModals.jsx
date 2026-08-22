@@ -60,6 +60,7 @@ const ServiceManagementModals = ({
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-600 text-white shadow-xs">
                 {viewingService.category || "General Decor"}
+                {viewingService.subCategory?.name ? ` • ${viewingService.subCategory.name}` : ""}
               </span>
               {isFeatured && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-xs">

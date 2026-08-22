@@ -7,25 +7,14 @@ import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
 import UserManagementToolbar from "../../components/pages/Admin/UserManagement/UserManagementToolbar";
 import UserManagementTable from "../../components/pages/Admin/UserManagement/UserManagementTable";
 import UserManagementModals from "../../components/pages/Admin/UserManagement/UserManagementModals";
+import { BANGLADESH_DIVISIONS } from "../../lib/constants";
 
 // Protected super admin email constant
 const SUPER_ADMIN_EMAIL = "admin.styledecor1@gmail.com";
 
 const allowedRoles = ["all", "admin", "decorator", "agent", "customer"];
 
-const citiesList = [
-  "all",
-  "Dhaka",
-  "Chattogram",
-  "Sylhet",
-  "Rajshahi",
-  "Khulna",
-  "Barishal",
-  "Rangpur",
-  "Mymensingh",
-  "Cumilla",
-  "Gazipur",
-];
+const divisionsList = ["all", ...BANGLADESH_DIVISIONS];
 
 // Helper to generate consistent placeholder avatar with role-specific colors
 const getPlaceholderAvatar = (name = "User", role = "customer") => {
@@ -82,7 +71,8 @@ const ManageUser = () => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [cityFilter, setCityFilter] = useState("all");
+  const [divisionFilter, setDivisionFilter] = useState("all");
+  const [districtFilter, setDistrictFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -96,9 +86,9 @@ const ManageUser = () => {
     phone: "",
     photoUrl: "",
     role: "customer",
-    street: "",
-    area: "",
-    city: "Dhaka",
+    home: "",
+    district: "",
+    division: "Dhaka",
     postalCode: "",
   });
   const [submittingEdit, setSubmittingEdit] = useState(false);
@@ -133,7 +123,8 @@ const ManageUser = () => {
         page,
         limit,
         role: roleFilter,
-        city: cityFilter,
+        division: divisionFilter,
+        district: districtFilter,
         search: debouncedSearch,
       });
 
@@ -155,7 +146,7 @@ const ManageUser = () => {
     } finally {
       setLoading(false);
     }
-  }, [axiosSecure, page, limit, roleFilter, cityFilter, debouncedSearch]);
+  }, [axiosSecure, page, limit, roleFilter, divisionFilter, districtFilter, debouncedSearch]);
 
   useEffect(() => {
     loadStats();
@@ -170,7 +161,8 @@ const ManageUser = () => {
     setSearch("");
     setDebouncedSearch("");
     setRoleFilter("all");
-    setCityFilter("all");
+    setDivisionFilter("all");
+    setDistrictFilter("all");
     setPage(1);
   };
 
@@ -216,9 +208,9 @@ const ManageUser = () => {
       phone: user.phone || "",
       photoUrl: user.photoUrl || "",
       role: user.role || "customer",
-      street: user.address?.street || "",
-      area: user.address?.area || "",
-      city: user.address?.city || "Dhaka",
+      home: user.address?.home || user.address?.street || "",
+      district: user.address?.district || user.address?.area || "",
+      division: user.address?.division || user.address?.city || "Dhaka",
       postalCode: user.address?.postalCode || "",
     });
   };
@@ -236,9 +228,9 @@ const ManageUser = () => {
         photoUrl: editFormData.photoUrl,
         role: editFormData.role,
         address: {
-          street: editFormData.street,
-          area: editFormData.area,
-          city: editFormData.city,
+          home: editFormData.home,
+          district: editFormData.district,
+          division: editFormData.division,
           postalCode: editFormData.postalCode,
         },
       };
@@ -317,13 +309,19 @@ const ManageUser = () => {
           setDebouncedSearch("");
           setPage(1);
         }}
-        cityFilter={cityFilter}
-        onCityFilterChange={(val) => {
-          setCityFilter(val);
+        divisionFilter={divisionFilter}
+        onDivisionFilterChange={(val) => {
+          setDivisionFilter(val);
+          setDistrictFilter("all");
+          setPage(1);
+        }}
+        districtFilter={districtFilter}
+        onDistrictFilterChange={(val) => {
+          setDistrictFilter(val);
           setPage(1);
         }}
         allowedRoles={allowedRoles}
-        citiesList={citiesList}
+        divisionsList={divisionsList}
       />
 
       {/* 3. Consolidated Table Component (~200 lines) */}
@@ -359,7 +357,7 @@ const ManageUser = () => {
         setEditFormData={setEditFormData}
         onSaveEdit={handleSaveEdit}
         submittingEdit={submittingEdit}
-        citiesList={citiesList}
+        divisionsList={divisionsList}
         superAdminEmail={SUPER_ADMIN_EMAIL}
         getPlaceholderAvatar={getPlaceholderAvatar}
         getRoleBadge={getRoleBadge}

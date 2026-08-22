@@ -12,6 +12,18 @@ import {
 import EmptyState from "../../../ui/EmptyState";
 import TableActionButton from "../../../ui/TableActionButton";
 
+// Helper to generate URL-friendly slugs
+const generateSlug = (text) => {
+  if (!text) return "";
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "")
+    .replace(/--+/g, "-");
+};
+
 // Switch toggle helper
 const SwitchToggle = ({ checked, onChange, label = true, disabled = false }) => (
   <div className="flex flex-col items-center select-none">
@@ -123,12 +135,17 @@ const CategoryAccordionList = ({
                     <h3 className="font-bold text-slate-900 dark:text-white text-base truncate">
                       {category.name}
                     </h3>
+                    {category.feature && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                        Featured
+                      </span>
+                    )}
                     <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                       {subCount}{" "}
                       {subCount === 1 ? "Subcategory" : "Subcategories"}
                     </span>
                     <span className="text-xs font-mono text-slate-400">
-                      /{category.slug}
+                      /{category.slug || generateSlug(category.name)}
                     </span>
                   </div>
                   {category.description && (
@@ -244,7 +261,7 @@ const CategoryAccordionList = ({
                               {sub.name}
                             </td>
                             <td className="py-2.5 px-2 min-w-40 font-mono text-slate-500 dark:text-slate-400">
-                              {sub.slug}
+                              {sub.slug || generateSlug(sub.name)}
                             </td>
                             <td className="py-2.5 px-2 text-center min-w-25 font-bold text-slate-600 dark:text-slate-300">
                               #{sub.order ?? 1}

@@ -20,39 +20,39 @@ import cat3_b from "../../../assets/images/categories/img-06.png";
 const categories = [
   {
     id: 1,
-    title: "Wedding & Reception",
-    subtitle: "Royal floral & lighting setup",
+    title: "Wedding & Pre-Wedding",
+    subtitle: "Royal floral stages & grand entryways",
     icon: HeartHandshake,
   },
   {
     id: 2,
-    title: "Pre-Wedding & Haldi", // cspell:disable-line
-    subtitle: "Traditional & colorful themes",
-    icon: PartyPopper,
+    title: "Corporate & Gala",
+    subtitle: "Executive LED backdrops & award nights",
+    icon: Building2,
   },
   {
     id: 3,
-    title: "Birthday & Anniversary",
-    subtitle: "Custom 3D & minimalist designs",
+    title: "Birthday & Milestone",
+    subtitle: "Themed balloon arches & dessert styling",
     icon: Cake,
   },
   {
     id: 4,
-    title: "Corporate Events",
-    subtitle: "Professional stages & galas",
-    icon: Building2,
+    title: "Cultural & Religious",
+    subtitle: "Pohela Boishakh folk & traditional decors",
+    icon: Tent,
   },
   {
     id: 5,
-    title: "Baby Shower",
-    subtitle: "Pastel themes & photo booths",
-    icon: Baby,
+    title: "Home & Rooftop Intimate Setups",
+    subtitle: "Bohemian canopies & candlelit dinners",
+    icon: PartyPopper,
   },
   {
     id: 6,
-    title: "Cultural & Religious",
-    subtitle: "Festive home & event decors",
-    icon: Tent,
+    title: "Lighting, FX & Rentals",
+    subtitle: "Custom neon signs, pyros & VIP lounges",
+    icon: Baby,
   },
 ];
 
@@ -91,11 +91,17 @@ const SingleImageSwapCard = ({ images }) => {
   );
 };
 
+import { useNavigate } from "react-router";
+
 // Card displaying category title, subtitle, and icon inside marquee
 const CategoryCard = ({ data }) => {
+  const navigate = useNavigate();
   const Icon = data.icon;
   return (
-    <div className="bg-white/80 dark:bg-base-200/80 backdrop-blur-md rounded-2xl p-4 md:p-6 shadow-lg border border-purple-100 dark:border-purple-900/30 flex items-center gap-4 group hover:scale-105 hover:shadow-purple-500/20 transition-all duration-300 cursor-pointer relative overflow-hidden">
+    <div
+      onClick={() => navigate(`/services?category=${encodeURIComponent(data.title)}`)}
+      className="bg-white/80 dark:bg-base-200/80 backdrop-blur-md rounded-2xl p-4 md:p-6 shadow-lg border border-purple-100 dark:border-purple-900/30 flex items-center gap-4 group hover:scale-105 hover:shadow-purple-500/20 transition-all duration-300 cursor-pointer relative overflow-hidden"
+    >
       <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300 z-10 shrink-0">
         <Icon className="w-6 h-6" />
       </div>
