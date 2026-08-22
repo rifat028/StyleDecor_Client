@@ -79,8 +79,8 @@ const ServiceManagementTable = ({
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
               {services.map((service) => {
                 const isFeatured = !!service.featured;
-                const isActive = service.status === "active";
-                const price = service.price || service.pricing?.basePrice || 0;
+                const isActive = service.status === "active" || !service.status;
+                const price = service.pricing?.discountedPrice || service.pricing?.basePrice || service.price || service.cost || 0;
                 const title = service.title || service.serviceName || "Decoration Package";
 
                 return (
@@ -93,6 +93,8 @@ const ServiceManagementTable = ({
                       <div className="flex items-center gap-3">
                         <img
                           src={
+                            service.coverImage ||
+                            service.primaryImage ||
                             service.images?.[0] ||
                             service.image ||
                             getPlaceholderImage(title)
@@ -116,7 +118,10 @@ const ServiceManagementTable = ({
                           </p>
                           <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold truncate flex items-center gap-1">
                             <Tag className="w-3 h-3 shrink-0" />
-                            <span>{service.category || "General Decor"}</span>
+                            <span>
+                              {service.category || "General Decor"}
+                              {service.subCategory?.name ? ` • ${service.subCategory.name}` : ""}
+                            </span>
                           </p>
                         </div>
                       </div>
@@ -137,9 +142,10 @@ const ServiceManagementTable = ({
                           <Star className="w-3 h-3 text-amber-500 fill-amber-400 shrink-0" />
                           <span>
                             {Number(
+                              service.metrics?.rating ||
                               service.rating?.average ||
-                                service.decorator?.rating?.average ||
-                                4.9
+                              service.decorator?.metrics?.rating ||
+                              4.9
                             ).toFixed(1)}
                           </span>
                         </p>
@@ -152,10 +158,11 @@ const ServiceManagementTable = ({
                         <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
                           ৳{Number(price).toLocaleString()}
                         </span>
-                        <span className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
-                          <Clock className="w-3 h-3 shrink-0" />
-                          <span>{service.duration || "Full Day"}</span>
-                        </span>
+                        {service.pricing?.basePrice && service.pricing?.discountedPrice && service.pricing.basePrice > service.pricing.discountedPrice && (
+                          <span className="text-[10px] line-through text-slate-400">
+                            ৳{Number(service.pricing.basePrice).toLocaleString()}
+                          </span>
+                        )}
                       </div>
                     </td>
 

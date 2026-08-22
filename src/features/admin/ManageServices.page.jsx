@@ -10,11 +10,11 @@ import ServiceManagementModals from "../../components/pages/Admin/ServiceManagem
 
 const CATEGORIES = [
   "Wedding & Pre-Wedding",
+  "Corporate & Gala",
   "Birthday & Milestone",
-  "Corporate & Commercial",
-  "Home & Rooftop Gatherings",
-  "Cultural & Religious Festivals",
-  "Lighting & Special FX",
+  "Cultural & Religious",
+  "Home & Rooftop Intimate Setups",
+  "Lighting, FX & Rentals",
 ];
 
 // Admin service packages management page
@@ -119,19 +119,15 @@ const ManageServices = () => {
   // Load Stats Overview
   const loadStats = useCallback(async () => {
     try {
-      const [allRes, actRes, inactRes, featRes] = await Promise.all([
-        axiosSecure.get("/services?status=all&limit=1"),
-        axiosSecure.get("/services?status=active&limit=1"),
-        axiosSecure.get("/services?status=inactive&limit=1"),
-        axiosSecure.get("/services?featured=true&status=all&limit=1"),
-      ]);
-
-      setStats({
-        total: allRes.data?.totalCount || 0,
-        active: actRes.data?.totalCount || 0,
-        inactive: inactRes.data?.totalCount || 0,
-        featured: featRes.data?.totalCount || 0,
-      });
+      const res = await axiosSecure.get("/services/stats");
+      if (res.data?.success && res.data?.data) {
+        setStats({
+          total: res.data.data.total || 0,
+          active: res.data.data.active || 0,
+          inactive: res.data.data.inactive || 0,
+          featured: res.data.data.featured || 0,
+        });
+      }
     } catch (err) {
       console.warn("Failed to load stats:", err);
     }
