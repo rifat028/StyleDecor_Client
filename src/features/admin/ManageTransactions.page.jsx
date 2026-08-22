@@ -111,22 +111,15 @@ const ManageTransactions = () => {
   // Load Statistics Counters
   const loadStats = useCallback(async () => {
     try {
-      const [allRes, compRes, refRes] = await Promise.all([
-        axiosSecure.get("/payments?limit=1"),
-        axiosSecure.get("/payments?status=completed&limit=1"),
-        axiosSecure.get("/payments?status=refunded&limit=1"),
-      ]);
-
-      const total = allRes.data?.totalCount || 0;
-      const completed = compRes.data?.totalCount || 0;
-      const refunded = refRes.data?.totalCount || 0;
-
-      setStats({
-        total,
-        completed,
-        refunded,
-        volume: (allRes.data?.data || []).reduce((acc, p) => acc + (p.amount || 0), 0) || 1250000,
-      });
+      const res = await axiosSecure.get("/payments/stats");
+      if (res.data?.success && res.data?.stats) {
+        setStats({
+          total: res.data.stats.totalTransactionsCount || 0,
+          completed: res.data.stats.completedTransactionsCount || 0,
+          refunded: res.data.stats.refundedTransactionsCount || 0,
+          volume: res.data.stats.totalVolume || 0,
+        });
+      }
     } catch (err) {
       console.warn("Failed to load transaction stats:", err);
     }

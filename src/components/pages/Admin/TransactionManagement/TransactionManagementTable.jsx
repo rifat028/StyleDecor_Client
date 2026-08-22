@@ -97,8 +97,9 @@ const TransactionManagementTable = ({
                 const isCompleted = payment.status === "completed";
                 const isRefunded = payment.status === "refunded";
                 const grossAmount = payment.amount || 0;
-                const platformFee = payment.platformFee || grossAmount * 0.1;
-                const netVendor = grossAmount - platformFee;
+                const platformFee = payment.breakdown?.platformCommission || payment.platformFee || Math.round(grossAmount * 0.1);
+                const netVendor = payment.breakdown?.vendorReceivable || (grossAmount - platformFee);
+                const trxId = payment.gatewayDetails?.transactionId || payment.transactionId || "TRX-STANDARD";
 
                 return (
                   <tr
@@ -115,11 +116,11 @@ const TransactionManagementTable = ({
                         </p>
                         <div className="flex items-center gap-2 text-xs text-slate-400">
                           <span className="px-2 py-0.5 rounded-md font-semibold text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 uppercase">
-                            {payment.paymentMethod || "Online"}
+                            {payment.paymentMethod || payment.gatewayDetails?.gateway || "Online"}
                           </span>
                           <span>•</span>
                           <span className="font-mono text-[11px] text-slate-400 truncate">
-                            {payment.transactionId || "TRX-STANDARD"}
+                            {trxId}
                           </span>
                         </div>
                       </div>
@@ -131,16 +132,18 @@ const TransactionManagementTable = ({
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 truncate">
                           <User className="w-3 h-3 text-slate-400 shrink-0" />
                           <span>
-                            {payment.customerEmail ||
-                              payment.userEmail ||
+                            {payment.customer?.name ||
+                              payment.customer?.email ||
+                              payment.customerEmail ||
+                              payment.clientEmail ||
                               "Customer"}
                           </span>
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 truncate">
                           <Building className="w-3 h-3 text-slate-400 shrink-0" />
                           <span>
-                            {payment.decoratorName ||
-                              payment.decorator?.businessName ||
+                            {payment.decorator?.businessName ||
+                              payment.decoratorName ||
                               "StyleDecor Partner"}
                           </span>
                         </p>
