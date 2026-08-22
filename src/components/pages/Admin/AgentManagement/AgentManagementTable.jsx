@@ -117,7 +117,7 @@ const AgentManagementTable = ({
                   <td className="py-3.5 px-2 min-w-55">
                     <div className="flex items-center gap-3">
                       <img
-                        src={agent.avatar || getAgentAvatar(agent.name)}
+                        src={agent.photoUrl || agent.user?.photoUrl || agent.avatar || getAgentAvatar(agent.name)}
                         alt={agent.name}
                         onError={(e) => {
                           e.currentTarget.onerror = null;
@@ -131,7 +131,7 @@ const AgentManagementTable = ({
                         </p>
                         <p className="text-xs text-slate-400 flex items-center gap-1 truncate">
                           <Mail className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span className="truncate">{agent.email}</span>
+                          <span className="truncate">{agent.email || agent.user?.email}</span>
                         </p>
                       </div>
                     </div>
@@ -143,12 +143,14 @@ const AgentManagementTable = ({
                       <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
                         <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                         <span>
-                          {agent.serviceArea || agent.city || "Dhaka Zone"}
+                          {agent.assignedArea?.district
+                            ? `${agent.assignedArea.district}, ${agent.assignedArea.division || "Dhaka"}`
+                            : (agent.serviceArea || agent.city || "Dhaka Zone")}
                         </span>
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 truncate">
                         <Building className="w-3 h-3 text-slate-400 shrink-0" />
-                        <span>{agent.agencyName || "Independent"}</span>
+                        <span>{agent.decorator?.businessName || agent.agencyName || "Independent Registered Specialist"}</span>
                       </p>
                     </div>
                   </td>
@@ -158,13 +160,10 @@ const AgentManagementTable = ({
                     <div className="inline-flex flex-col items-center">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
                         <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                        <span>{Number(agent.rating || 4.9).toFixed(1)}</span>
+                        <span>{Number(agent.metrics?.rating || agent.rating || 4.9).toFixed(1)}</span>
                       </span>
                       <span className="text-[11px] text-slate-400 mt-1">
-                        {agent.completedEventsCount ||
-                          agent.completedMissions ||
-                          0}{" "}
-                        events
+                        {agent.metrics?.completedEvents ?? agent.completedEventsCount ?? agent.completedMissions ?? 0} events
                       </span>
                     </div>
                   </td>
