@@ -29,7 +29,18 @@ const MyProfileHeader = ({ userData, isEditing, onToggleEdit }) => {
     <div className="relative rounded-3xl overflow-hidden bg-linear-to-r from-purple-950 via-purple-900 to-indigo-950 text-white p-6 sm:p-10 shadow-xl transition-all duration-300 hover:shadow-2xl hover:shadow-purple-900/40">
       <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+      {/* Edit Profile Action Button in top right corner */}
+      <button
+        type="button"
+        onClick={onToggleEdit}
+        className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 p-2.5 sm:p-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-white transition-all duration-200 shadow-md cursor-pointer hover:scale-105 active:scale-95 group"
+        title="Edit Personal Info"
+        aria-label="Edit Personal Info"
+      >
+        <Edit3 className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 group-hover:rotate-6" />
+      </button>
+
+      <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end justify-between gap-6">
         {/* Left Side: Avatar & Metadata */}
         <div className="flex flex-col sm:flex-row items-center gap-5">
           <div className="relative group">
@@ -76,31 +87,18 @@ const MyProfileHeader = ({ userData, isEditing, onToggleEdit }) => {
           </div>
         </div>
 
-        {/* Right Side: Edit Action Button & Account Status Block positioned directly below it */}
-        <div className="flex flex-col items-stretch sm:items-end gap-3 self-stretch sm:self-auto w-full sm:w-auto">
-          {/* Edit Profile Action Button */}
-          <button
-            type="button"
-            onClick={onToggleEdit}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-sm font-semibold transition-all duration-200 shadow-lg cursor-pointer text-white"
-          >
-            <Edit3 className="w-4 h-4" />
-            <span>Edit Personal Info</span>
-          </button>
-
-          {/* Account Status Block (Moved directly below the Edit button) */}
-          <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-white shadow-xs">
-            <div className="p-1 bg-emerald-500 text-white rounded-lg shadow-xs shrink-0">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-            <div className="text-left">
-              <h4 className="font-bold text-xs text-white leading-tight">
-                Account Status
-              </h4>
-              <p className="text-[11px] text-emerald-300 font-medium leading-tight">
-                Verified & Active Member
-              </p>
-            </div>
+        {/* Right Side: Account Status Badge at the bottom right */}
+        <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 text-white shadow-xs self-stretch sm:self-end shrink-0">
+          <div className="p-1.5 bg-emerald-500 text-white rounded-xl shadow-xs shrink-0">
+            <CheckCircle2 className="w-4 h-4" />
+          </div>
+          <div className="text-left">
+            <h4 className="font-bold text-xs text-white leading-tight">
+              Account Status
+            </h4>
+            <p className="text-[11px] text-emerald-300 font-medium leading-tight">
+              Verified & Active Member
+            </p>
           </div>
         </div>
       </div>
