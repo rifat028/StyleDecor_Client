@@ -43,7 +43,8 @@ All split sub-components for this page MUST reside in their dedicated directory 
 3. **Search & Filters Bar Section**:
    - Sits directly above the table in a rounded card container (`bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800`).
    - **Left:** Search input with search icon, live debounce (350ms), and clear `(X)` button.
-   - **Right:** Clean dropdown selectors for filtering without redundant filter icons next to the dropdowns.
+   - **Right:** Clean dropdown selectors for filtering (Role, Division, District) without redundant filter icons.
+   - **Cascading Dropdown Counts:** Division dropdown counts dynamically reflect the user distribution for the active role filter (summing up to the selected role count, e.g. 40 decorators distributed across divisions). District dropdown counts dynamically reflect members within the selected division and role (e.g. 12 decorators in Dhaka distributed across its districts).
 
 4. **Table Redesign**:
    - **Container:** Crisp unrounded container (`rounded-none border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden`).
@@ -101,3 +102,13 @@ All split sub-components for this page MUST reside in their dedicated directory 
   - Added centered actions column header and bordered `rounded-md` action buttons with hover backgrounds.
   - Implemented 3-part streamlined `<Pagination>` with middle limit dropdown and `<TableSkeleton>` loader.
   - Extracted `SUPER_ADMIN_EMAIL` constant and applied single-line comments with light density.
+
+- **Date**: 2026-09-01
+- **Target Page**: `src/features/admin/ManageUser.page.jsx` & `src/components/pages/Admin/UserManagement/UserManagementToolbar.jsx`
+- **Actions Taken**:
+  - Implemented dynamic cascading counts for Role, Division, and District dropdown filters.
+  - Division dropdown dynamically reflects user counts for the selected role (with "All Divisions" summing to the role's total count).
+  - District dropdown dynamically reflects user counts for the selected division and role (with "All Districts" showing the selected division's count, and districts displaying the exact distribution).
+  - Upgraded server `getUserStats` aggregation endpoint in `userController.js` to provide full cross-dimensional breakdown (`byRole` and `divisionDistricts`).
+  - Standardized System Role badges to a uniform width (`w-28`) with centered text/icon layout (`justify-center text-center`) and center-aligned the System Role column.
+

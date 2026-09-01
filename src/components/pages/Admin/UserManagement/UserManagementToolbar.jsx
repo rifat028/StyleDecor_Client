@@ -192,9 +192,24 @@ const UserManagementToolbar = ({
   allowedRoles,
   divisionsList,
 }) => {
-  // Helper to get division count with case-insensitive fallback
-  const getDivisionCount = (division) => {
-    const countsMap = stats?.divisions;
+  // Helper to get division count with role awareness and case-insensitive fallback
+  const getDivisionCount = (division, role = roleFilter) => {
+    if (!stats) return 0;
+    if (role && role !== "all") {
+      if (!stats.byRole) return 0;
+      const roleKey = Object.keys(stats.byRole).find(
+        (k) => k.toLowerCase() === role.toLowerCase()
+      );
+      const countsMap = roleKey ? stats.byRole[roleKey]?.divisions : null;
+      if (!countsMap) return 0;
+      if (countsMap[division] !== undefined) return countsMap[division];
+      const matchKey = Object.keys(countsMap).find(
+        (k) => k.toLowerCase() === division.toLowerCase()
+      );
+      return matchKey ? countsMap[matchKey] : 0;
+    }
+
+    const countsMap = stats.divisions;
     if (!countsMap) return 0;
     if (countsMap[division] !== undefined) return countsMap[division];
     const matchKey = Object.keys(countsMap).find(
@@ -203,9 +218,58 @@ const UserManagementToolbar = ({
     return matchKey ? countsMap[matchKey] : 0;
   };
 
-  // Helper to get district count with case-insensitive fallback
-  const getDistrictCount = (district) => {
-    const countsMap = stats?.districts;
+  // Helper to get district count with division & role awareness and case-insensitive fallback
+  const getDistrictCount = (district, division = divisionFilter, role = roleFilter) => {
+    if (!stats) return 0;
+    const hasRole = role && role !== "all";
+    const hasDivision = division && division !== "all";
+
+    if (hasRole) {
+      if (!stats.byRole) return 0;
+      const roleKey = Object.keys(stats.byRole).find(
+        (k) => k.toLowerCase() === role.toLowerCase()
+      );
+      const roleData = roleKey ? stats.byRole[roleKey] : null;
+      if (!roleData) return 0;
+
+      if (hasDivision) {
+        if (!roleData.divisionDistricts) return 0;
+        const divKey = Object.keys(roleData.divisionDistricts).find(
+          (k) => k.toLowerCase() === division.toLowerCase()
+        );
+        const countsMap = divKey ? roleData.divisionDistricts[divKey] : null;
+        if (!countsMap) return 0;
+        if (countsMap[district] !== undefined) return countsMap[district];
+        const matchKey = Object.keys(countsMap).find(
+          (k) => k.toLowerCase() === district.toLowerCase()
+        );
+        return matchKey ? countsMap[matchKey] : 0;
+      }
+
+      const countsMap = roleData.districts;
+      if (!countsMap) return 0;
+      if (countsMap[district] !== undefined) return countsMap[district];
+      const matchKey = Object.keys(countsMap).find(
+        (k) => k.toLowerCase() === district.toLowerCase()
+      );
+      return matchKey ? countsMap[matchKey] : 0;
+    }
+
+    if (hasDivision) {
+      if (!stats.divisionDistricts) return 0;
+      const divKey = Object.keys(stats.divisionDistricts).find(
+        (k) => k.toLowerCase() === division.toLowerCase()
+      );
+      const countsMap = divKey ? stats.divisionDistricts[divKey] : null;
+      if (!countsMap) return 0;
+      if (countsMap[district] !== undefined) return countsMap[district];
+      const matchKey = Object.keys(countsMap).find(
+        (k) => k.toLowerCase() === district.toLowerCase()
+      );
+      return matchKey ? countsMap[matchKey] : 0;
+    }
+
+    const countsMap = stats.districts;
     if (!countsMap) return 0;
     if (countsMap[district] !== undefined) return countsMap[district];
     const matchKey = Object.keys(countsMap).find(
@@ -229,9 +293,9 @@ const UserManagementToolbar = ({
   // Combine predefined divisions with any additional divisions present in stats
   const allDivisions = useMemo(() => {
     const defaultList = [...divisionsList];
-    const countsMap = stats?.divisions;
-    if (countsMap) {
-      Object.keys(countsMap).forEach((division) => {
+    const addFromMap = (map) => {
+      if (!map) return;
+      Object.keys(map).forEach((division) => {
         if (
           division &&
           !defaultList.some((d) => d.toLowerCase() === division.toLowerCase())
@@ -239,19 +303,30 @@ const UserManagementToolbar = ({
           defaultList.push(division);
         }
       });
+    };
+    addFromMap(stats?.divisions);
+    if (roleFilter !== "all" && stats?.byRole) {
+      const roleKey = Object.keys(stats.byRole).find(
+        (k) => k.toLowerCase() === roleFilter.toLowerCase()
+      );
+      if (roleKey) addFromMap(stats.byRole[roleKey]?.divisions);
     }
     return defaultList;
-  }, [divisionsList, stats?.divisions]);
+  }, [divisionsList, stats, roleFilter]);
 
   // Build division options with label, count, and value
   const divisionOptions = useMemo(() => {
     return allDivisions.map((division) => {
       const isAll = division === "all";
       const label = isAll ? "All Divisions" : division;
-      const count = isAll ? stats?.totalUsers ?? 0 : getDivisionCount(division);
+      const count = isAll
+        ? roleFilter === "all"
+          ? stats?.totalUsers ?? 0
+          : stats?.roles?.[roleFilter] ?? 0
+        : getDivisionCount(division, roleFilter);
       return { value: division, label, count };
     });
-  }, [allDivisions, stats]);
+  }, [allDivisions, stats, roleFilter]);
 
   // Determine districts to display based on selected division
   const allDistricts = useMemo(() => {
@@ -264,9 +339,34 @@ const UserManagementToolbar = ({
 
     const list = ["all", ...baseList];
 
-    // Also include any unexpected districts present in stats if relevant
-    if (stats?.districts && divisionFilter === "all") {
-      Object.keys(stats.districts).forEach((district) => {
+    let relevantDistrictsMap = null;
+    const hasRole = roleFilter && roleFilter !== "all";
+    const hasDivision = divisionFilter && divisionFilter !== "all";
+
+    if (hasRole && stats?.byRole) {
+      const roleKey = Object.keys(stats.byRole).find(
+        (k) => k.toLowerCase() === roleFilter.toLowerCase()
+      );
+      const roleData = roleKey ? stats.byRole[roleKey] : null;
+      if (hasDivision && roleData?.divisionDistricts) {
+        const divKey = Object.keys(roleData.divisionDistricts).find(
+          (k) => k.toLowerCase() === divisionFilter.toLowerCase()
+        );
+        relevantDistrictsMap = divKey ? roleData.divisionDistricts[divKey] : null;
+      } else {
+        relevantDistrictsMap = roleData?.districts;
+      }
+    } else if (hasDivision && stats?.divisionDistricts) {
+      const divKey = Object.keys(stats.divisionDistricts).find(
+        (k) => k.toLowerCase() === divisionFilter.toLowerCase()
+      );
+      relevantDistrictsMap = divKey ? stats.divisionDistricts[divKey] : null;
+    } else {
+      relevantDistrictsMap = stats?.districts;
+    }
+
+    if (relevantDistrictsMap) {
+      Object.keys(relevantDistrictsMap).forEach((district) => {
         if (
           district &&
           !list.some((d) => d.toLowerCase() === district.toLowerCase())
@@ -276,21 +376,31 @@ const UserManagementToolbar = ({
       });
     }
     return list;
-  }, [divisionFilter, stats?.districts]);
+  }, [divisionFilter, roleFilter, stats]);
 
   // Build district options with label, count, and value
   const districtOptions = useMemo(() => {
+    const hasRole = roleFilter && roleFilter !== "all";
+    const hasDivision = divisionFilter && divisionFilter !== "all";
+
     return allDistricts.map((district) => {
       const isAll = district === "all";
       const label = isAll ? "All Districts" : district;
-      const count = isAll
-        ? divisionFilter === "all"
-          ? stats?.totalUsers ?? 0
-          : getDivisionCount(divisionFilter)
-        : getDistrictCount(district);
+      let count = 0;
+      if (isAll) {
+        if (hasDivision) {
+          count = getDivisionCount(divisionFilter, roleFilter);
+        } else if (hasRole) {
+          count = stats?.roles?.[roleFilter] ?? 0;
+        } else {
+          count = stats?.totalUsers ?? 0;
+        }
+      } else {
+        count = getDistrictCount(district, divisionFilter, roleFilter);
+      }
       return { value: district, label, count };
     });
-  }, [allDistricts, divisionFilter, stats]);
+  }, [allDistricts, divisionFilter, roleFilter, stats]);
 
   return (
     <div className="space-y-4">

@@ -33,6 +33,20 @@ const ManageCategories = () => {
   // Accordion expansion state: Default is all collapsed ({})
   const [expandedCategories, setExpandedCategories] = useState({});
 
+  // Reordering states
+  const [isReorderingCategories, setIsReorderingCategories] = useState(false);
+  const [initialCategoryOrder, setInitialCategoryOrder] = useState([]);
+  const [hasCategoryOrderChanged, setHasCategoryOrderChanged] = useState(false);
+
+  // Subcategory Reordering states
+  const [reorderingSubCategoryId, setReorderingSubCategoryId] = useState(null);
+  const [initialSubOrders, setInitialSubOrders] = useState({});
+  const [hasSubOrderChangedMap, setHasSubOrderChangedMap] = useState({});
+
+  // Bulk selection states
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
+  const [selectedSubCategoryIds, setSelectedSubCategoryIds] = useState({});
+
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
@@ -226,6 +240,249 @@ const ManageCategories = () => {
       console.error("Subcategory status toggle failed:", err);
       toast.error("Failed to change subcategory status");
       loadCategories();
+    }
+  };
+
+  // Handle Category Feature Toggle (Optimistic Update)
+  const handleToggleFeature = async (category) => {
+    const nextFeature = !category.feature;
+    // Optimistic update
+    setCategories((prev) =>
+      prev.map((c) =>
+        c._id === category._id ? { ...c, feature: nextFeature } : c
+      )
+    );
+
+    try {
+      await axiosSecure.patch(`/categories/${category._id}`, {
+        feature: nextFeature,
+      });
+      toast.success(
+        nextFeature
+          ? `"${category.name}" marked as Featured`
+          : `"${category.name}" unmark as Featured`
+      );
+    } catch (err) {
+      console.error("Failed to toggle feature:", err);
+      toast.error(err.response?.data?.message || "Failed to update featured state");
+      loadCategories();
+    }
+  };
+
+  // Reorder Categories Handler
+  const handleToggleReorderCategories = () => {
+    if (!isReorderingCategories) {
+      // Clear filters so user sees full list for reordering
+      setSearch("");
+      setDebouncedSearch("");
+      setStatusFilter("all");
+      setInitialCategoryOrder(categories.map((c) => c._id));
+      setHasCategoryOrderChanged(false);
+      setIsReorderingCategories(true);
+      setSelectedCategoryIds([]);
+    } else {
+      // Cancel/exit reorder mode: revert if changed
+      if (hasCategoryOrderChanged && initialCategoryOrder.length > 0) {
+        const orderMap = new Map(initialCategoryOrder.map((id, idx) => [id, idx]));
+        const reverted = [...categories].sort(
+          (a, b) => (orderMap.get(a._id) ?? 0) - (orderMap.get(b._id) ?? 0)
+        );
+        setCategories(reverted);
+      }
+      setIsReorderingCategories(false);
+      setHasCategoryOrderChanged(false);
+    }
+  };
+
+  const handleReorderCategories = (newCategories) => {
+    if (!Array.isArray(newCategories)) return;
+
+    setCategories(newCategories);
+
+    // Detect if order changed compared to initial
+    const currentIds = newCategories.map((c) => c._id);
+    const hasChanged = currentIds.some((id, idx) => id !== initialCategoryOrder[idx]);
+    setHasCategoryOrderChanged(hasChanged);
+  };
+
+  const handleConfirmCategoryReorder = async () => {
+    try {
+      await axiosSecure.patch("/categories/reorder", {
+        orders: categories.map((cat, idx) => ({
+          id: cat._id,
+          order: idx + 1,
+        })),
+      });
+      toast.success("Category order saved successfully!");
+      setIsReorderingCategories(false);
+      setHasCategoryOrderChanged(false);
+      loadCategories();
+    } catch (err) {
+      console.error("Failed to save category order:", err);
+      toast.error(err.response?.data?.message || "Failed to save category order");
+    }
+  };
+
+  // Bulk Selection & Deletion for Categories
+  const handleToggleSelectCategory = (id) => {
+    setSelectedCategoryIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllCategories = () => {
+    if (selectedCategoryIds.length === filteredCategories.length) {
+      setSelectedCategoryIds([]);
+    } else {
+      setSelectedCategoryIds(filteredCategories.map((c) => c._id));
+    }
+  };
+
+  const handleBulkDeleteCategories = async () => {
+    if (selectedCategoryIds.length === 0) return;
+
+    const confirm = await Swal.fire({
+      title: `Delete ${selectedCategoryIds.length} Categories?`,
+      text: `Are you sure you want to delete these ${selectedCategoryIds.length} categories? All their subcategories will also be deleted. This cannot be undone.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Delete Categories",
+      confirmButtonColor: "#ef4444",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await axiosSecure.post("/categories/bulk-delete", {
+        ids: selectedCategoryIds,
+      });
+      toast.success(`Deleted ${selectedCategoryIds.length} categories successfully`);
+      setSelectedCategoryIds([]);
+      loadCategories();
+    } catch (err) {
+      console.error("Bulk delete failed:", err);
+      toast.error(err.response?.data?.message || "Failed to delete categories");
+    }
+  };
+
+  // Reorder Subcategories Handler
+  const handleToggleReorderSub = (categoryId) => {
+    if (reorderingSubCategoryId !== categoryId) {
+      const cat = categories.find((c) => c._id === categoryId);
+      const subIds = (cat?.subCategories || []).map((s) => s.id);
+      setInitialSubOrders((prev) => ({ ...prev, [categoryId]: subIds }));
+      setHasSubOrderChangedMap((prev) => ({ ...prev, [categoryId]: false }));
+      setReorderingSubCategoryId(categoryId);
+    } else {
+      handleCancelReorderSub(categoryId);
+    }
+  };
+
+  const handleCancelReorderSub = (categoryId) => {
+    const initIds = initialSubOrders[categoryId];
+    if (initIds && hasSubOrderChangedMap[categoryId]) {
+      setCategories((prev) =>
+        prev.map((c) => {
+          if (c._id !== categoryId) return c;
+          const orderMap = new Map(initIds.map((id, idx) => [id, idx]));
+          const reverted = [...(c.subCategories || [])].sort(
+            (a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0)
+          );
+          return { ...c, subCategories: reverted };
+        })
+      );
+    }
+    setReorderingSubCategoryId(null);
+    setHasSubOrderChangedMap((prev) => ({ ...prev, [categoryId]: false }));
+  };
+
+  const handleReorderSubCategories = (categoryId, newSubs) => {
+    if (!Array.isArray(newSubs)) return;
+
+    setCategories((prev) =>
+      prev.map((c) =>
+        c._id === categoryId ? { ...c, subCategories: newSubs } : c
+      )
+    );
+
+    const initIds = initialSubOrders[categoryId] || [];
+    const currentIds = newSubs.map((s) => s.id);
+    const hasChanged = currentIds.some((id, idx) => id !== initIds[idx]);
+    setHasSubOrderChangedMap((prev) => ({ ...prev, [categoryId]: hasChanged }));
+  };
+
+  const handleConfirmSubCategoryReorder = async (categoryId) => {
+    const cat = categories.find((c) => c._id === categoryId);
+    if (!cat) return;
+
+    const subs = cat.subCategories || [];
+    try {
+      await axiosSecure.patch(`/categories/${categoryId}/subcategories/reorder`, {
+        subcategoryOrders: subs.map((sub, idx) => ({
+          id: sub.id,
+          order: idx + 1,
+        })),
+      });
+      toast.success("Subcategory order saved successfully!");
+      setReorderingSubCategoryId(null);
+      setHasSubOrderChangedMap((prev) => ({ ...prev, [categoryId]: false }));
+      loadCategories();
+    } catch (err) {
+      console.error("Failed to save subcategory order:", err);
+      toast.error(err.response?.data?.message || "Failed to save subcategory order");
+    }
+  };
+
+  // Bulk Selection & Deletion for Subcategories
+  const handleToggleSelectSubCategory = (categoryId, subId) => {
+    setSelectedSubCategoryIds((prev) => {
+      const current = prev[categoryId] || [];
+      const updated = current.includes(subId)
+        ? current.filter((id) => id !== subId)
+        : [...current, subId];
+      return { ...prev, [categoryId]: updated };
+    });
+  };
+
+  const handleSelectAllSubCategories = (categoryId, subs) => {
+    setSelectedSubCategoryIds((prev) => {
+      const current = prev[categoryId] || [];
+      const allIds = subs.map((s) => s.id);
+      const isAllSelected = current.length === allIds.length && allIds.length > 0;
+      return {
+        ...prev,
+        [categoryId]: isAllSelected ? [] : allIds,
+      };
+    });
+  };
+
+  const handleBulkDeleteSubCategories = async (categoryId) => {
+    const subIds = selectedSubCategoryIds[categoryId] || [];
+    if (subIds.length === 0) return;
+
+    const confirm = await Swal.fire({
+      title: `Delete ${subIds.length} Subcategories?`,
+      text: "Are you sure you want to delete the selected subcategories?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Delete Subcategories",
+      confirmButtonColor: "#ef4444",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await axiosSecure.post(`/categories/${categoryId}/subcategories/bulk-delete`, {
+        subIds,
+      });
+      toast.success(`Deleted ${subIds.length} subcategories successfully`);
+      setSelectedSubCategoryIds((prev) => ({ ...prev, [categoryId]: [] }));
+      loadCategories();
+    } catch (err) {
+      console.error("Bulk delete subcategories failed:", err);
+      toast.error(err.response?.data?.message || "Failed to delete subcategories");
     }
   };
 
@@ -489,7 +746,7 @@ const ManageCategories = () => {
         }
       />
 
-      {/* 2. Consolidated Toolbar (~130 lines) */}
+      {/* 2. Consolidated Toolbar */}
       <CategoryManagementToolbar
         stats={stats}
         statusFilter={statusFilter}
@@ -504,21 +761,42 @@ const ManageCategories = () => {
         areAllExpanded={areAllExpanded}
         onToggleExpandAll={handleToggleExpandAll}
         categoriesCount={filteredCategories.length}
+        isReordering={isReorderingCategories}
+        onToggleReorder={handleToggleReorderCategories}
+        hasOrderChanged={hasCategoryOrderChanged}
+        onConfirmReorder={handleConfirmCategoryReorder}
       />
 
-      {/* 3. Consolidated Accordion List Component (~280 lines) */}
+      {/* 3. Consolidated Accordion List Component */}
       <CategoryAccordionList
-        categories={filteredCategories}
+        categories={isReorderingCategories ? categories : filteredCategories}
         loading={loading}
         expandedCategories={expandedCategories}
         onToggleExpand={toggleExpand}
         onToggleStatus={handleToggleCategoryStatus}
         onOpenEdit={handleOpenEditCategory}
         onDeleteCategory={handleDeleteCategory}
+        onToggleFeature={handleToggleFeature}
         onOpenAddSub={handleOpenAddSub}
         onOpenEditSub={handleOpenEditSub}
         onToggleSubStatus={handleToggleSubCategoryStatus}
         onDeleteSub={handleDeleteSubCategory}
+        isReorderingCategories={isReorderingCategories}
+        onReorderCategories={handleReorderCategories}
+        selectedCategoryIds={selectedCategoryIds}
+        onToggleSelectCategory={handleToggleSelectCategory}
+        onSelectAllCategories={handleSelectAllCategories}
+        onBulkDeleteCategories={handleBulkDeleteCategories}
+        reorderingSubCategoryId={reorderingSubCategoryId}
+        onToggleReorderSub={handleToggleReorderSub}
+        onReorderSubCategories={handleReorderSubCategories}
+        hasSubOrderChangedMap={hasSubOrderChangedMap}
+        onConfirmReorderSub={handleConfirmSubCategoryReorder}
+        onCancelReorderSub={handleCancelReorderSub}
+        selectedSubCategoryIds={selectedSubCategoryIds}
+        onToggleSelectSubCategory={handleToggleSelectSubCategory}
+        onSelectAllSubCategories={handleSelectAllSubCategories}
+        onBulkDeleteSubCategories={handleBulkDeleteSubCategories}
         onResetFilters={() => {
           setSearch("");
           setDebouncedSearch("");

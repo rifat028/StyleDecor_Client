@@ -7,20 +7,7 @@ import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
 import DecoratorManagementToolbar from "../../components/pages/Admin/DecoratorManagement/DecoratorManagementToolbar";
 import DecoratorManagementTable from "../../components/pages/Admin/DecoratorManagement/DecoratorManagementTable";
 import DecoratorManagementModals from "../../components/pages/Admin/DecoratorManagement/DecoratorManagementModals";
-
-const TOP_CITIES = [
-  "all",
-  "Dhaka",
-  "Chattogram",
-  "Sylhet",
-  "Rajshahi",
-  "Khulna",
-  "Barishal",
-  "Rangpur",
-  "Mymensingh",
-  "Cumilla",
-  "Gazipur",
-];
+import { BANGLADESH_DIVISIONS } from "../../lib/constants";
 
 // Helper to generate consistent placeholder logo
 const getPlaceholderLogo = (name = "Decorator") => {
@@ -41,7 +28,7 @@ const ManageDecorator = () => {
 
   // Filter States
   const [statusFilter, setStatusFilter] = useState("all");
-  const [cityFilter, setCityFilter] = useState("all");
+  const [divisionFilter, setDivisionFilter] = useState("all");
   const [sortFilter, setSortFilter] = useState("rating");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -54,6 +41,8 @@ const ManageDecorator = () => {
     active: 0,
     pending: 0,
     suspended: 0,
+    verified: 0,
+    featured: 0,
   });
 
   // View Modal State
@@ -78,8 +67,14 @@ const ManageDecorator = () => {
         sort: sortFilter,
       });
 
-      if (statusFilter !== "all") params.append("status", statusFilter);
-      if (cityFilter !== "all") params.append("city", cityFilter);
+      if (statusFilter === "featured") {
+        params.append("featured", "true");
+      } else if (statusFilter === "verified") {
+        params.append("verified", "true");
+      } else if (statusFilter !== "all") {
+        params.append("status", statusFilter);
+      }
+      if (divisionFilter !== "all") params.append("division", divisionFilter);
       if (debouncedSearch.trim()) params.append("search", debouncedSearch.trim());
 
       const res = await axiosSecure.get(`/decorators?${params.toString()}`);
@@ -96,18 +91,35 @@ const ManageDecorator = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [axiosSecure, page, limit, statusFilter, cityFilter, sortFilter, debouncedSearch]);
+  }, [axiosSecure, page, limit, statusFilter, divisionFilter, sortFilter, debouncedSearch]);
 
   // Fetch Global Counter Stats
   const fetchStats = useCallback(async () => {
     try {
       const res = await axiosSecure.get("/decorators/stats");
-      if (res.data?.success && res.data?.data) {
+      const data = res.data?.data || res.data;
+      if (data && (data.total !== undefined || data.active !== undefined)) {
+        const total = data.total || 0;
+        const pending = data.pending || 0;
+        const suspended = data.suspended || 0;
+        const featured = data.featured || 0;
+        const verified = data.verified || 0;
+        const active =
+          data.active !== undefined &&
+          data.active !== null &&
+          !(data.active === 0 && total > 0 && pending === 0 && suspended === 0)
+            ? data.active
+            : total - pending - suspended;
+
         setStats({
-          total: res.data.data.total || 0,
-          active: res.data.data.active || 0,
-          pending: res.data.data.pending || 0,
-          suspended: res.data.data.suspended || 0,
+          total,
+          active: Math.max(0, active),
+          pending,
+          suspended,
+          verified,
+          featured,
+          byDivision: data.byDivision || [],
+          byStatus: data.byStatus || null,
         });
       }
     } catch (err) {
@@ -128,7 +140,7 @@ const ManageDecorator = () => {
     setSearch("");
     setDebouncedSearch("");
     setStatusFilter("all");
-    setCityFilter("all");
+    setDivisionFilter("all");
     setSortFilter("rating");
     setPage(1);
   };
@@ -230,6 +242,46 @@ const ManageDecorator = () => {
     }
   };
 
+  // Toggle Featured State (true/false)
+  const handleToggleFeatured = async (decorator) => {
+    const nextFeatured = !decorator.featured;
+    try {
+      await axiosSecure.patch(`/decorators/${decorator._id}/status`, {
+        featured: nextFeatured,
+      });
+      toast.success(
+        nextFeatured
+          ? `"${decorator.businessName}" marked as Featured`
+          : `"${decorator.businessName}" removed from Featured`
+      );
+      // Optimistically update local list and featured stat counter
+      setDecorators((prev) =>
+        prev.map((d) =>
+          d._id === decorator._id ? { ...d, featured: nextFeatured } : d
+        )
+      );
+      setStats((prev) => ({
+        ...prev,
+        featured: nextFeatured
+          ? (prev.featured || 0) + 1
+          : Math.max(0, (prev.featured || 0) - 1),
+      }));
+      // If modal is open for this decorator, update it
+      if (viewDecorator?._id === decorator._id) {
+        setViewDecorator((prev) => ({
+          ...prev,
+          featured: nextFeatured,
+        }));
+      }
+      fetchStats();
+    } catch (error) {
+      console.error("Failed to update featured state:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to update featured state"
+      );
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in pb-10">
       {/* 1. Standardized Top Header Bar */}
@@ -262,9 +314,9 @@ const ManageDecorator = () => {
           setDebouncedSearch("");
           setPage(1);
         }}
-        cityFilter={cityFilter}
-        onCityFilterChange={(c) => {
-          setCityFilter(c);
+        divisionFilter={divisionFilter}
+        onDivisionFilterChange={(d) => {
+          setDivisionFilter(d);
           setPage(1);
         }}
         sortFilter={sortFilter}
@@ -272,7 +324,7 @@ const ManageDecorator = () => {
           setSortFilter(s);
           setPage(1);
         }}
-        citiesList={TOP_CITIES}
+        divisionsList={BANGLADESH_DIVISIONS}
       />
 
       {/* 3. Consolidated Table Component (~240 lines) */}
@@ -281,6 +333,7 @@ const ManageDecorator = () => {
         loading={loading}
         onView={setViewDecorator}
         onStatusTransition={handleStatusTransition}
+        onToggleFeatured={handleToggleFeatured}
         onDelete={handleDeleteDecorator}
         getPlaceholderLogo={getPlaceholderLogo}
         onResetFilters={handleResetFilters}

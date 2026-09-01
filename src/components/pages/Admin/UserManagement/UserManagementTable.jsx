@@ -33,7 +33,7 @@ const UserManagementTable = ({
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
                 <th className="py-3.5 px-2 min-w-55">User Profile</th>
                 <th className="py-3.5 px-2 min-w-45">Contact & Location</th>
-                <th className="py-3.5 px-2 min-w-32.5">System Role</th>
+                <th className="py-3.5 px-2 text-center min-w-32.5">System Role</th>
                 <th className="py-3.5 px-2 text-center min-w-40">Quick Role Switch</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
               </tr>
@@ -58,7 +58,7 @@ const UserManagementTable = ({
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
                 <th className="py-3.5 px-2 min-w-55">User Profile</th>
                 <th className="py-3.5 px-2 min-w-45">Contact & Location</th>
-                <th className="py-3.5 px-2 min-w-32.5">System Role</th>
+                <th className="py-3.5 px-2 text-center min-w-32.5">System Role</th>
                 <th className="py-3.5 px-2 text-center min-w-40">Quick Role Switch</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
               </tr>
@@ -130,8 +130,10 @@ const UserManagementTable = ({
                     </td>
 
                     {/* System Role Badge Cell */}
-                    <td className="py-3.5 px-2 min-w-32.5">
-                      {getRoleBadge(user.role)}
+                    <td className="py-3.5 px-2 text-center min-w-32.5">
+                      <div className="flex justify-center">
+                        {getRoleBadge(user.role)}
+                      </div>
                     </td>
 
                     {/* Quick Role Switch Select Cell */}

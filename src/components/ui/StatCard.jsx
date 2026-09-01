@@ -31,6 +31,10 @@ const StatCard = ({
       activeRing: "ring-2 ring-emerald-500 border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/30",
       iconBg: "bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400",
     },
+    blue: {
+      activeRing: "ring-2 ring-blue-500 border-blue-500 bg-blue-50/40 dark:bg-blue-950/30",
+      iconBg: "bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400",
+    },
   };
 
   const selectedTone = tones[tone] || tones.purple;

@@ -29,31 +29,31 @@ const getPlaceholderAvatar = (name = "User", role = "customer") => {
   return `https://ui-avatars.com/api/?name=${initials}&background=${color}&color=ffffff&bold=true&size=150`;
 };
 
-// Role badge styling component with categorical colors
+// Role badge styling component with categorical colors, unified width, and center alignment
 const getRoleBadge = (role) => {
   switch (role) {
     case "admin":
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-          <Shield className="w-3 h-3" /> Admin
+        <span className="inline-flex items-center justify-center gap-1.5 w-28 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-center">
+          <Shield className="w-3 h-3 shrink-0" /> Admin
         </span>
       );
     case "decorator":
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-          <Palette className="w-3 h-3" /> Decorator
+        <span className="inline-flex items-center justify-center gap-1.5 w-28 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-center">
+          <Palette className="w-3 h-3 shrink-0" /> Decorator
         </span>
       );
     case "agent":
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-          <Briefcase className="w-3 h-3" /> Agent
+        <span className="inline-flex items-center justify-center gap-1.5 w-28 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-center">
+          <Briefcase className="w-3 h-3 shrink-0" /> Agent
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-          <UserCheck className="w-3 h-3" /> Customer
+        <span className="inline-flex items-center justify-center gap-1.5 w-28 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-center">
+          <UserCheck className="w-3 h-3 shrink-0" /> Customer
         </span>
       );
   }
@@ -102,18 +102,134 @@ const ManageUser = () => {
     return () => clearTimeout(handler);
   }, [search]);
 
-  // Load user statistics summary
+  // Load user statistics summary with client-side distribution fallback if backend is missing byRole
   const loadStats = useCallback(async () => {
     try {
       setStatsLoading(true);
       const res = await axiosSecure.get("/users/stats");
-      setStats(res.data);
+      let statsData = res.data || {};
+
+      // If backend does not provide byRole, compute client-side distribution
+      if (!statsData?.byRole) {
+        try {
+          const usersRes = await axiosSecure.get("/users?limit=5000");
+          const allFetched = usersRes.data?.users || [];
+          const byRole = {
+            admin: { divisions: {}, districts: {}, divisionDistricts: {} },
+            decorator: { divisions: {}, districts: {}, divisionDistricts: {} },
+            agent: { divisions: {}, districts: {}, divisionDistricts: {} },
+            customer: { divisions: {}, districts: {}, divisionDistricts: {} },
+          };
+          const divisionDistricts = {};
+
+          allFetched.forEach((u) => {
+            const role = u.role?.toLowerCase()?.trim();
+            const division = u.address?.division?.trim();
+            const district = u.address?.district?.trim();
+
+            if (division && district) {
+              if (!divisionDistricts[division]) divisionDistricts[division] = {};
+              divisionDistricts[division][district] = (divisionDistricts[division][district] || 0) + 1;
+            }
+
+            if (role) {
+              if (!byRole[role]) {
+                byRole[role] = { divisions: {}, districts: {}, divisionDistricts: {} };
+              }
+              if (division) {
+                byRole[role].divisions[division] = (byRole[role].divisions[division] || 0) + 1;
+                if (district) {
+                  if (!byRole[role].divisionDistricts[division]) {
+                    byRole[role].divisionDistricts[division] = {};
+                  }
+                  byRole[role].divisionDistricts[division][district] =
+                    (byRole[role].divisionDistricts[division][district] || 0) + 1;
+                }
+              }
+              if (district) {
+                byRole[role].districts[district] = (byRole[role].districts[district] || 0) + 1;
+              }
+            }
+          });
+
+          statsData = {
+            ...statsData,
+            byRole,
+            divisionDistricts,
+          };
+        } catch (fetchErr) {
+          console.warn("Could not compute distribution map client-side:", fetchErr);
+        }
+      }
+
+      setStats(statsData);
     } catch (err) {
       console.error("Failed to load user stats:", err);
     } finally {
       setStatsLoading(false);
     }
   }, [axiosSecure]);
+
+  // Ensure active role distribution is cached if byRole is missing for that role
+  useEffect(() => {
+    if (roleFilter === "all" || !stats) return;
+    const roleKey = Object.keys(stats?.byRole || {}).find(
+      (k) => k.toLowerCase() === roleFilter.toLowerCase()
+    );
+    if (stats?.byRole && roleKey && stats.byRole[roleKey]?.divisions) {
+      return;
+    }
+
+    let isCancelled = false;
+    const fetchRoleDist = async () => {
+      try {
+        const res = await axiosSecure.get(`/users?role=${roleFilter}&limit=2000`);
+        if (isCancelled) return;
+        const roleUsers = res.data?.users || [];
+        const roleDivisions = {};
+        const roleDistricts = {};
+        const roleDivisionDistricts = {};
+
+        roleUsers.forEach((u) => {
+          const div = u.address?.division?.trim();
+          const dist = u.address?.district?.trim();
+          if (div) {
+            roleDivisions[div] = (roleDivisions[div] || 0) + 1;
+            if (dist) {
+              if (!roleDivisionDistricts[div]) roleDivisionDistricts[div] = {};
+              roleDivisionDistricts[div][dist] = (roleDivisionDistricts[div][dist] || 0) + 1;
+            }
+          }
+          if (dist) {
+            roleDistricts[dist] = (roleDistricts[dist] || 0) + 1;
+          }
+        });
+
+        setStats((prevStats) => {
+          if (!prevStats) return prevStats;
+          const prevByRole = prevStats.byRole || {};
+          return {
+            ...prevStats,
+            byRole: {
+              ...prevByRole,
+              [roleFilter]: {
+                divisions: roleDivisions,
+                districts: roleDistricts,
+                divisionDistricts: roleDivisionDistricts,
+              },
+            },
+          };
+        });
+      } catch (err) {
+        console.warn("Could not fetch distribution for role:", roleFilter, err);
+      }
+    };
+
+    fetchRoleDist();
+    return () => {
+      isCancelled = true;
+    };
+  }, [roleFilter, stats, axiosSecure]);
 
   // Load users list with query parameters
   const loadUsers = useCallback(async () => {

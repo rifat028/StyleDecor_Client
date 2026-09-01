@@ -17,35 +17,38 @@ import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
 import TableActionButton from "../../../ui/TableActionButton";
 
-// Helper to render categorical status badge
-const renderStatusBadge = (status, isVerified) => {
-  if (status === "active") {
+
+
+// Helper to render categorical status badge with fixed width, distinct background color, and center alignment
+const renderStatusBadge = (status) => {
+  const norm = (status || "active").toLowerCase().trim();
+  if (norm === "active") {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-        <CheckCircle2 className="w-3 h-3" />
+      <span className="inline-flex items-center justify-center gap-1.5 w-36 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 text-center shadow-xs">
+        <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
         <span>Active</span>
       </span>
     );
   }
-  if (status === "pending") {
+  if (norm === "pending") {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-        <Award className="w-3 h-3" />
+      <span className="inline-flex items-center justify-center gap-1.5 w-36 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 text-center shadow-xs">
+        <Award className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
         <span>Pending Approval</span>
       </span>
     );
   }
-  if (status === "suspended") {
+  if (norm === "suspended") {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-        <Ban className="w-3 h-3" />
+      <span className="inline-flex items-center justify-center gap-1.5 w-36 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700 text-center shadow-xs">
+        <Ban className="w-3.5 h-3.5 shrink-0 text-rose-600 dark:text-rose-400" />
         <span>Suspended</span>
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-      {status}
+    <span className="inline-flex items-center justify-center gap-1.5 w-36 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 text-center capitalize shadow-xs">
+      {status || "Unknown"}
     </span>
   );
 };
@@ -56,6 +59,7 @@ const DecoratorManagementTable = ({
   loading,
   onView,
   onStatusTransition,
+  onToggleFeatured,
   onDelete,
   getPlaceholderLogo,
   onResetFilters,
@@ -77,7 +81,7 @@ const DecoratorManagementTable = ({
                 <th className="py-3.5 px-2 min-w-45">Contact & City</th>
                 <th className="py-3.5 px-2 text-center min-w-32.5">Performance</th>
                 <th className="py-3.5 px-2 text-center min-w-40">Status</th>
-                <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
+                <th className="py-3.5 px-2 text-center min-w-36">Actions</th>
               </tr>
             </thead>
             <TableSkeleton rows={5} columns={5} />
@@ -102,13 +106,13 @@ const DecoratorManagementTable = ({
                 <th className="py-3.5 px-2 min-w-45">Contact & City</th>
                 <th className="py-3.5 px-2 text-center min-w-32.5">Performance</th>
                 <th className="py-3.5 px-2 text-center min-w-40">Status</th>
-                <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
+                <th className="py-3.5 px-2 text-center min-w-36">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
               {decorators.map((decorator) => {
                 const isVerified = decorator.verification?.isVerified;
-                const status = decorator.status;
+                const status = decorator.status || "active";
 
                 return (
                   <tr
@@ -142,6 +146,15 @@ const DecoratorManagementTable = ({
                                 className="w-4 h-4 text-emerald-500 shrink-0"
                                 title="Verified Agency"
                               />
+                            )}
+                            {decorator.featured && (
+                              <span
+                                className="inline-flex items-center gap-0.5 text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 font-bold px-1.5 py-0.5 rounded-sm border border-amber-300 dark:border-amber-700 shrink-0"
+                                title="Featured Partner Agency"
+                              >
+                                <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-500 shrink-0" />
+                                FEATURED
+                              </span>
                             )}
                           </p>
                           <p className="text-xs text-slate-400 truncate">
@@ -193,18 +206,39 @@ const DecoratorManagementTable = ({
 
                     {/* Status Badge Cell */}
                     <td className="py-3.5 px-2 text-center min-w-40">
-                      {renderStatusBadge(status, isVerified)}
+                      <div className="flex justify-center">
+                        {renderStatusBadge(status, isVerified)}
+                      </div>
                     </td>
 
                     {/* Centered Actions Cell with Bordered Buttons */}
-                    <td className="py-3.5 px-2 text-center min-w-30">
-                      <div className="flex items-center justify-center gap-2">
+                    <td className="py-3.5 px-2 text-center min-w-36">
+                      <div className="flex items-center justify-center gap-1.5">
                         {/* View Full Dossier */}
                         <TableActionButton
                           icon={Eye}
                           onClick={() => onView(decorator)}
                           tooltip="View Agency Dossier"
                           tone="purple"
+                        />
+
+                        {/* Toggle Featured Button (Set true / false) */}
+                        <TableActionButton
+                          icon={Star}
+                          onClick={() =>
+                            onToggleFeatured && onToggleFeatured(decorator)
+                          }
+                          tooltip={
+                            decorator.featured
+                              ? "Unmark as Featured (Set False)"
+                              : "Mark as Featured (Set True)"
+                          }
+                          tone={decorator.featured ? "featured" : "amber"}
+                          iconClassName={
+                            decorator.featured
+                              ? "fill-amber-400 text-amber-500 shrink-0"
+                              : "shrink-0"
+                          }
                         />
 
                         {/* Status Transition (Approve / Suspend / Reactivate) */}
