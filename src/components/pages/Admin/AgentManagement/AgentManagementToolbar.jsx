@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import {
   Users,
   CheckCircle2,
@@ -122,17 +122,82 @@ const AgentManagementToolbar = ({
   onTerritoryFilterChange,
   territoriesList = [],
 }) => {
-  const statusOptions = [
-    { value: "all", label: "All Statuses", count: stats?.totalAgents },
-    { value: "available", label: "Available", count: stats?.availableCount },
-    { value: "assigned", label: "Assigned", count: stats?.onAssignmentCount ?? stats?.assignedCount },
-    { value: "suspended", label: "Suspended", count: stats?.suspendedCount },
-  ];
+  const statusOptions = useMemo(
+    () => [
+      { value: "all", label: "All Statuses", count: stats?.totalAgents },
+      { value: "available", label: "Available", count: stats?.availableCount },
+      { value: "assigned", label: "Assigned", count: stats?.onAssignmentCount ?? stats?.assignedCount },
+      { value: "suspended", label: "Suspended", count: stats?.suspendedCount },
+    ],
+    [stats]
+  );
 
-  const territoryOptions = territoriesList.map((t) => ({
-    value: t,
-    label: t === "all" ? "All Territories" : t,
-  }));
+  // Helper to compute territory count dynamically based on the selected statusFilter
+  const getTerritoryCount = useCallback(
+    (territory) => {
+      if (!stats) return 0;
+      const isAllStatus = !statusFilter || statusFilter === "all";
+
+      // When "all" territory option is evaluated
+      if (territory === "all") {
+        if (isAllStatus) return stats.totalAgents ?? 0;
+        if (statusFilter === "available" || statusFilter === "active") return stats.availableCount ?? 0;
+        if (statusFilter === "assigned" || statusFilter === "on_assignment")
+          return stats.onAssignmentCount ?? stats.assignedCount ?? 0;
+        if (statusFilter === "suspended") return stats.suspendedCount ?? 0;
+        return stats.totalAgents ?? 0;
+      }
+
+      // When a specific territory (division) is evaluated
+      if (isAllStatus) {
+        if (!stats.divisions) return 0;
+        if (stats.divisions[territory] !== undefined) return stats.divisions[territory];
+        const matchKey = Object.keys(stats.divisions).find(
+          (k) => k.toLowerCase() === territory.toLowerCase()
+        );
+        return matchKey ? stats.divisions[matchKey] : 0;
+      }
+
+      // Specific status selected: extract from byStatus map
+      const normStatus =
+        statusFilter === "assigned" || statusFilter === "on_assignment"
+          ? "assigned"
+          : statusFilter === "suspended"
+          ? "suspended"
+          : "available";
+
+      const statusMap = stats.byStatus?.[normStatus]?.divisions;
+      if (!statusMap) return 0;
+      if (statusMap[territory] !== undefined) return statusMap[territory];
+      const matchKey = Object.keys(statusMap).find(
+        (k) => k.toLowerCase() === territory.toLowerCase()
+      );
+      return matchKey ? statusMap[matchKey] : 0;
+    },
+    [stats, statusFilter]
+  );
+
+  // Combine predefined territories with any additional divisions present in stats
+  const allTerritories = useMemo(() => {
+    const list = [...territoriesList];
+    if (stats?.divisions) {
+      Object.keys(stats.divisions).forEach((div) => {
+        if (div && !list.some((t) => t.toLowerCase() === div.toLowerCase())) {
+          list.push(div);
+        }
+      });
+    }
+    return list;
+  }, [territoriesList, stats]);
+
+  // Build territoryOptions with label, count, and value based on selected statusFilter
+  const territoryOptions = useMemo(() => {
+    return allTerritories.map((t) => ({
+      value: t,
+      label: t === "all" ? "All Territories" : t,
+      count: getTerritoryCount(t),
+    }));
+  }, [allTerritories, getTerritoryCount]);
 
   return (
     <div className="space-y-4">
