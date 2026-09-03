@@ -19,7 +19,7 @@ const ManageTransactions = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Statistics Summary for 4 Payment Types
+  // Statistics Summary for 4 Payment Types + Total
   const [stats, setStats] = useState({
     total: 0,
     totalVolume: 0,
@@ -31,6 +31,7 @@ const ManageTransactions = () => {
     fullCount: 0,
     platformCount: 0,
     agentCount: 0,
+    decoratorStats: {},
   });
 
   // Filter States (typeFilter, selectedDecorator, sort, search)
@@ -46,13 +47,6 @@ const ManageTransactions = () => {
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [receiptLoading, setReceiptLoading] = useState(false);
-
-  // Refund Modal
-  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
-  const [refundPayment, setRefundPayment] = useState(null);
-  const [refundReason, setRefundReason] = useState("");
-  const [refundAmount, setRefundAmount] = useState("");
-  const [submittingRefund, setSubmittingRefund] = useState(false);
 
   // Debounce search query (350ms)
   useEffect(() => {
@@ -154,39 +148,6 @@ const ManageTransactions = () => {
     }
   };
 
-  // Open Refund Modal
-  const handleOpenRefund = (pay) => {
-    setRefundPayment(pay);
-    setRefundAmount(String(pay.amount || 0));
-    setRefundReason("Customer dispute settlement and order cancellation.");
-    setIsRefundModalOpen(true);
-  };
-
-  // Process Refund Submission
-  const handleProcessRefund = async () => {
-    if (!refundPayment?._id) return;
-
-    try {
-      setSubmittingRefund(true);
-      const res = await axiosSecure.post(`/payments/${refundPayment._id}/refund`, {
-        refundAmount: Number(refundAmount) || refundPayment.amount,
-        refundReason: refundReason,
-      });
-
-      if (res.data?.success) {
-        toast.success(`Refund processed for ${refundPayment.paymentCode || "payment"}`);
-        setIsRefundModalOpen(false);
-        loadPayments();
-        loadStats();
-      }
-    } catch (err) {
-      console.error("Failed to process refund:", err);
-      toast.error(err.response?.data?.message || "Failed to process refund");
-    } finally {
-      setSubmittingRefund(false);
-    }
-  };
-
   return (
     <div className="space-y-6 animate-fade-in pb-10">
       {/* 1. Standardized Top Header Bar */}
@@ -203,7 +164,7 @@ const ManageTransactions = () => {
         refreshDisabled={loading || refreshing}
       />
 
-      {/* 2. Consolidated Toolbar with 4 payment types and 3 dropdowns */}
+      {/* 2. Consolidated Toolbar with 5 cards and 3 dropdowns */}
       <TransactionManagementToolbar
         stats={stats}
         typeFilter={typeFilter}
@@ -237,7 +198,6 @@ const ManageTransactions = () => {
         payments={payments}
         loading={loading}
         onView={handleOpenReceipt}
-        onOpenRefund={handleOpenRefund}
         onResetFilters={handleResetFilters}
         page={page}
         totalPages={totalPages}
@@ -250,21 +210,12 @@ const ManageTransactions = () => {
         }}
       />
 
-      {/* 4. Consolidated Modals Component */}
+      {/* 4. Consolidated Dossier Modal Component */}
       <TransactionManagementModals
         isReceiptModalOpen={isReceiptModalOpen}
         onCloseReceipt={() => setIsReceiptModalOpen(false)}
         selectedPayment={selectedPayment}
         receiptLoading={receiptLoading}
-        isRefundModalOpen={isRefundModalOpen}
-        onCloseRefund={() => setIsRefundModalOpen(false)}
-        refundPayment={refundPayment}
-        refundAmount={refundAmount}
-        onRefundAmountChange={setRefundAmount}
-        refundReason={refundReason}
-        onRefundReasonChange={setRefundReason}
-        onSubmitRefund={handleProcessRefund}
-        submittingRefund={submittingRefund}
       />
     </div>
   );

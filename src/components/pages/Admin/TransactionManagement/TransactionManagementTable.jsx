@@ -6,7 +6,6 @@ import {
   Eye,
   CheckCircle2,
   UserCheck,
-  RotateCcw,
   Clock,
   User,
   ShieldCheck,
@@ -102,7 +101,6 @@ const TransactionManagementTable = ({
   payments = [],
   loading = false,
   onView,
-  onOpenRefund,
   onResetFilters,
   page,
   totalPages,
@@ -233,24 +231,14 @@ const TransactionManagementTable = ({
                     </td>
 
                     {/* 6. Actions Cell */}
-                    <td className="py-3.5 px-3 text-center min-w-24">
-                      <div className="flex items-center justify-center gap-2">
+                    <td className="py-3.5 px-3 text-center min-w-20">
+                      <div className="flex items-center justify-center">
                         <TableActionButton
                           icon={Eye}
                           onClick={() => onView(payment._id)}
                           tooltip="View Payment Dossier"
                           tone="purple"
                         />
-                        {onOpenRefund && (
-                          <TableActionButton
-                            icon={RotateCcw}
-                            disabled={payment.paymentType !== "full_payment"}
-                            onClick={() => onOpenRefund(payment)}
-                            tooltip="Process Dispute Refund"
-                            disabledTooltip="Refund Not Applicable"
-                            tone="rose"
-                          />
-                        )}
                       </div>
                     </td>
                   </tr>
