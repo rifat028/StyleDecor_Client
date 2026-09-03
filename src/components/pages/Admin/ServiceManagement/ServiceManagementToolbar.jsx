@@ -82,7 +82,7 @@ const FilterDropdown = ({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1.5 w-full min-w-[210px] max-h-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 flex flex-col animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
+        <div className="absolute right-0 mt-1.5 w-full min-w-full sm:min-w-[280px] max-h-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 flex flex-col animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
           {searchable && (
             <div className="p-2 border-b border-slate-100 dark:border-slate-800 shrink-0">
               <div className="relative">
@@ -310,7 +310,7 @@ const ServiceManagementToolbar = ({
             onChange={onDecoratorFilterChange}
             options={decoratorOptions}
             placeholder="All Decorators"
-            minWidth="w-full sm:w-48"
+            minWidth="w-full sm:w-64 md:w-72"
             searchable={true}
             searchPlaceholder="Search decorators..."
           />
