@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import toast from "react-hot-toast";
-import Swal from "sweetalert2";
 import { DollarSign } from "lucide-react";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
 import TransactionManagementToolbar from "../../components/pages/Admin/TransactionManagement/TransactionManagementToolbar";
@@ -20,17 +19,22 @@ const ManageTransactions = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Statistics Summary
+  // Statistics Summary for 4 Payment Types
   const [stats, setStats] = useState({
     total: 0,
-    completed: 0,
-    refunded: 0,
-    volume: 0,
+    totalVolume: 0,
+    advance_payment: { count: 0, volume: 0 },
+    full_payment: { count: 0, volume: 0 },
+    platform_fee: { count: 0, volume: 0 },
+    agent_fee: { count: 0, volume: 0 },
+    advanceCount: 0,
+    fullCount: 0,
+    platformCount: 0,
+    agentCount: 0,
   });
 
-  // Filter States
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [methodFilter, setMethodFilter] = useState("all");
+  // Filter States (typeFilter, selectedDecorator, sort, search)
+  const [typeFilter, setTypeFilter] = useState("all");
   const [selectedDecorator, setSelectedDecorator] = useState("all");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -83,8 +87,7 @@ const ManageTransactions = () => {
         sort: sortBy,
       });
 
-      if (statusFilter !== "all") params.append("status", statusFilter);
-      if (methodFilter !== "all") params.append("paymentMethod", methodFilter);
+      if (typeFilter !== "all") params.append("paymentType", typeFilter);
       if (selectedDecorator !== "all") params.append("decoratorId", selectedDecorator);
       if (debouncedSearch.trim()) params.append("search", debouncedSearch.trim());
 
@@ -106,19 +109,14 @@ const ManageTransactions = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [axiosSecure, page, limit, statusFilter, methodFilter, selectedDecorator, debouncedSearch, sortBy]);
+  }, [axiosSecure, page, limit, typeFilter, selectedDecorator, debouncedSearch, sortBy]);
 
   // Load Statistics Counters
   const loadStats = useCallback(async () => {
     try {
       const res = await axiosSecure.get("/payments/stats");
       if (res.data?.success && res.data?.stats) {
-        setStats({
-          total: res.data.stats.totalTransactionsCount || 0,
-          completed: res.data.stats.completedTransactionsCount || 0,
-          refunded: res.data.stats.refundedTransactionsCount || 0,
-          volume: res.data.stats.totalVolume || 0,
-        });
+        setStats(res.data.stats);
       }
     } catch (err) {
       console.warn("Failed to load transaction stats:", err);
@@ -132,8 +130,7 @@ const ManageTransactions = () => {
 
   // Reset Filters
   const handleResetFilters = () => {
-    setStatusFilter("all");
-    setMethodFilter("all");
+    setTypeFilter("all");
     setSelectedDecorator("all");
     setSearch("");
     setDebouncedSearch("");
@@ -196,7 +193,7 @@ const ManageTransactions = () => {
       <DashboardPageHeader
         icon={DollarSign}
         title="Manage Payment Transactions"
-        subtitle="Supervise platform escrow, gateway clearances, and dispute refunds across Bangladesh."
+        subtitle="Supervise platform escrow, gateway clearances, and fee settlements across Bangladesh."
         onRefresh={() => {
           setRefreshing(true);
           loadPayments();
@@ -206,12 +203,12 @@ const ManageTransactions = () => {
         refreshDisabled={loading || refreshing}
       />
 
-      {/* 2. Consolidated Toolbar (~130 lines) */}
+      {/* 2. Consolidated Toolbar with 4 payment types and 3 dropdowns */}
       <TransactionManagementToolbar
         stats={stats}
-        statusFilter={statusFilter}
-        onSelectStatusFilter={(status) => {
-          setStatusFilter(status);
+        typeFilter={typeFilter}
+        onSelectTypeFilter={(type) => {
+          setTypeFilter(type);
           setPage(1);
         }}
         loadingStats={loading && !stats.total}
@@ -220,11 +217,6 @@ const ManageTransactions = () => {
         onClearSearch={() => {
           setSearch("");
           setDebouncedSearch("");
-          setPage(1);
-        }}
-        methodFilter={methodFilter}
-        onMethodFilterChange={(m) => {
-          setMethodFilter(m);
           setPage(1);
         }}
         decoratorFilter={selectedDecorator}
@@ -240,7 +232,7 @@ const ManageTransactions = () => {
         decoratorsList={decorators}
       />
 
-      {/* 3. Consolidated Table Component (~230 lines) */}
+      {/* 3. Consolidated Table Component with From, To, Amount, Type columns */}
       <TransactionManagementTable
         payments={payments}
         loading={loading}
@@ -258,7 +250,7 @@ const ManageTransactions = () => {
         }}
       />
 
-      {/* 4. Consolidated Modals Component (~260 lines) */}
+      {/* 4. Consolidated Modals Component */}
       <TransactionManagementModals
         isReceiptModalOpen={isReceiptModalOpen}
         onCloseReceipt={() => setIsReceiptModalOpen(false)}

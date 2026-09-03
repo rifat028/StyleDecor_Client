@@ -1,48 +1,106 @@
 import React from "react";
 import {
-  DollarSign,
   CreditCard,
-  Building,
+  Building2,
   Calendar,
   Eye,
   CheckCircle2,
+  UserCheck,
   RotateCcw,
   Clock,
   User,
+  ShieldCheck,
 } from "lucide-react";
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
 import TableActionButton from "../../../ui/TableActionButton";
 
-// Helper to render categorical status badge
-const renderStatusBadge = (status) => {
-  const s = String(status || "").toLowerCase();
-  if (s === "completed") {
+// Helper to render uniform width, center-aligned payment type badges
+const renderPaymentTypeBadge = (type) => {
+  const t = String(type || "").toLowerCase();
+  if (t === "advance_payment") {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase">
-        <CheckCircle2 className="w-3 h-3" /> Completed
+      <span className="w-36 inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 shrink-0">
+        <CreditCard className="w-3.5 h-3.5 shrink-0" />
+        <span className="truncate">Advance Payment</span>
       </span>
     );
   }
-  if (s === "refunded") {
+  if (t === "full_payment") {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 uppercase">
-        <RotateCcw className="w-3 h-3" /> Refunded
+      <span className="w-36 inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
+        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+        <span className="truncate">Full Payment</span>
+      </span>
+    );
+  }
+  if (t === "platform_fee") {
+    return (
+      <span className="w-36 inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shrink-0">
+        <Building2 className="w-3.5 h-3.5 shrink-0" />
+        <span className="truncate">Platform Fee</span>
+      </span>
+    );
+  }
+  if (t === "agent_fee") {
+    return (
+      <span className="w-36 inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0">
+        <UserCheck className="w-3.5 h-3.5 shrink-0" />
+        <span className="truncate">Agent Fee</span>
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 uppercase">
-      <Clock className="w-3 h-3" /> Pending
+    <span className="w-36 inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0">
+      <Clock className="w-3.5 h-3.5 shrink-0" />
+      <span className="truncate">{type || "Payment"}</span>
     </span>
   );
 };
 
-// Transaction management table component with responsive min-widths and pagination (210-250 lines)
+// Helper to render role badge with appropriate styling
+const renderRoleBadge = (role) => {
+  const r = String(role || "").toLowerCase();
+  if (r === "customer") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
+        <User className="w-2.5 h-2.5" /> Customer
+      </span>
+    );
+  }
+  if (r === "decorator") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
+        <Building2 className="w-2.5 h-2.5" /> Decorator
+      </span>
+    );
+  }
+  if (r === "admin") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60">
+        <ShieldCheck className="w-2.5 h-2.5" /> Admin
+      </span>
+    );
+  }
+  if (r === "agent") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
+        <UserCheck className="w-2.5 h-2.5" /> Agent
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+      {role}
+    </span>
+  );
+};
+
+// Transaction management table component with From, To, Amount, Type columns
 const TransactionManagementTable = ({
-  payments,
-  loading,
+  payments = [],
+  loading = false,
   onView,
   onOpenRefund,
   onResetFilters,
@@ -60,21 +118,22 @@ const TransactionManagementTable = ({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
-                <th className="py-3.5 px-2 min-w-55">Transaction & Gateway</th>
-                <th className="py-3.5 px-2 min-w-45">Customer & Vendor</th>
-                <th className="py-3.5 px-2 text-center min-w-35">Gross & Escrow</th>
-                <th className="py-3.5 px-2 text-center min-w-40">Status</th>
-                <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
+                <th className="py-3.5 px-3 min-w-44">Transaction & Code</th>
+                <th className="py-3.5 px-3 min-w-44">From</th>
+                <th className="py-3.5 px-3 min-w-44">To</th>
+                <th className="py-3.5 px-3 text-center min-w-32">Amount</th>
+                <th className="py-3.5 px-3 text-center min-w-40">Type</th>
+                <th className="py-3.5 px-3 text-center min-w-24">Actions</th>
               </tr>
             </thead>
-            <TableSkeleton rows={5} columns={5} />
+            <TableSkeleton rows={5} columns={6} />
           </table>
         </div>
       ) : payments.length === 0 ? (
         <EmptyState
-          icon={DollarSign}
+          icon={CreditCard}
           title="No Transactions Found"
-          message="Try adjusting your status, gateway, or vendor filters."
+          message="Try adjusting your payment type or decorator filters."
           action={{
             label: "Clear All Filters",
             onClick: onResetFilters,
@@ -85,114 +144,113 @@ const TransactionManagementTable = ({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
-                <th className="py-3.5 px-2 min-w-55">Transaction & Gateway</th>
-                <th className="py-3.5 px-2 min-w-45">Customer & Vendor</th>
-                <th className="py-3.5 px-2 text-center min-w-35">Gross & Escrow</th>
-                <th className="py-3.5 px-2 text-center min-w-40">Status</th>
-                <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
+                <th className="py-3.5 px-3 min-w-44">Transaction & Code</th>
+                <th className="py-3.5 px-3 min-w-44">From</th>
+                <th className="py-3.5 px-3 min-w-44">To</th>
+                <th className="py-3.5 px-3 text-center min-w-32">Amount</th>
+                <th className="py-3.5 px-3 text-center min-w-40">Type</th>
+                <th className="py-3.5 px-3 text-center min-w-24">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
               {payments.map((payment) => {
-                const isCompleted = payment.status === "completed";
-                const isRefunded = payment.status === "refunded";
-                const grossAmount = payment.amount || 0;
-                const platformFee = payment.breakdown?.platformCommission || payment.platformFee || Math.round(grossAmount * 0.1);
-                const netVendor = payment.breakdown?.vendorReceivable || (grossAmount - platformFee);
-                const trxId = payment.gatewayDetails?.transactionId || payment.transactionId || "TRX-STANDARD";
+                const amount = payment.amount || 0;
+                const paymentDate = payment.paidAt || payment.createdAt;
+                const senderName =
+                  payment.sender?.name ||
+                  payment.sender?.businessName ||
+                  payment.customer?.name ||
+                  "Customer";
+                const receiverName =
+                  payment.receiver?.name ||
+                  payment.receiver?.businessName ||
+                  payment.decorator?.businessName ||
+                  "Decorator Partner";
 
                 return (
                   <tr
                     key={payment._id}
                     className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                   >
-                    {/* Transaction & Gateway Profile Cell */}
-                    <td className="py-3.5 px-2 min-w-55">
+                    {/* 1. Transaction Code & Date Cell */}
+                    <td className="py-3.5 px-3 min-w-44">
                       <div className="space-y-1">
-                        <p className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 truncate">
-                          <span>
-                            #{payment.paymentCode || payment._id?.slice(-8)}
-                          </span>
+                        <p className="font-bold text-xs text-slate-900 dark:text-slate-100 flex items-center gap-1.5 truncate">
+                          <span>#{payment.paymentCode || payment._id?.slice(-8)}</span>
                         </p>
-                        <div className="flex items-center gap-2 text-xs text-slate-400">
-                          <span className="px-2 py-0.5 rounded-md font-semibold text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 uppercase">
-                            {payment.paymentMethod || payment.gatewayDetails?.gateway || "Online"}
-                          </span>
-                          <span>•</span>
-                          <span className="font-mono text-[11px] text-slate-400 truncate">
-                            {trxId}
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                          <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span>
+                            {paymentDate
+                              ? new Date(paymentDate).toLocaleDateString("en-GB", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                })
+                              : "Recent"}
                           </span>
                         </div>
                       </div>
                     </td>
 
-                    {/* Customer & Vendor Cell */}
-                    <td className="py-3.5 px-2 min-w-45">
+                    {/* 2. From Cell (Sender) */}
+                    <td className="py-3.5 px-3 min-w-44">
                       <div className="space-y-1">
-                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 truncate">
-                          <User className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span>
-                            {payment.customer?.name ||
-                              payment.customer?.email ||
-                              payment.customerEmail ||
-                              payment.clientEmail ||
-                              "Customer"}
-                          </span>
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 truncate">
-                          <Building className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span>
-                            {payment.decorator?.businessName ||
-                              payment.decoratorName ||
-                              "StyleDecor Partner"}
-                          </span>
+                        <div>{renderRoleBadge(payment.sender?.role || "customer")}</div>
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                          {senderName}
                         </p>
                       </div>
                     </td>
 
-                    {/* Gross Amount & Escrow Net Cell */}
-                    <td className="py-3.5 px-2 text-center min-w-35">
+                    {/* 3. To Cell (Receiver) */}
+                    <td className="py-3.5 px-3 min-w-44">
+                      <div className="space-y-1">
+                        <div>{renderRoleBadge(payment.receiver?.role || "decorator")}</div>
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                          {receiverName}
+                        </p>
+                      </div>
+                    </td>
+
+                    {/* 4. Amount Cell */}
+                    <td className="py-3.5 px-3 text-center min-w-32">
                       <div className="inline-flex flex-col items-center">
-                        <span className="font-black text-slate-900 dark:text-slate-100 text-sm">
-                          ৳{Number(grossAmount).toLocaleString()}
+                        <span className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">
+                          ৳{Number(amount).toLocaleString()}
                         </span>
-                        <span className="text-[11px] text-slate-400 mt-0.5">
-                          Net: ৳{Number(netVendor).toLocaleString()}
+                        <span className="mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase tracking-wide">
+                          {payment.paymentMethod || "Online"}
                         </span>
                       </div>
                     </td>
 
-                    {/* Status Badge Cell (min-w-40) */}
-                    <td className="py-3.5 px-2 text-center min-w-40">
-                      {renderStatusBadge(payment.status)}
+                    {/* 5. Type Badge Cell (Uniform w-36, center-aligned) */}
+                    <td className="py-3.5 px-3 text-center min-w-40">
+                      <div className="flex justify-center">
+                        {renderPaymentTypeBadge(payment.paymentType)}
+                      </div>
                     </td>
 
-                    {/* Centered Actions Cell with Bordered Buttons */}
-                    <td className="py-3.5 px-2 text-center min-w-30">
+                    {/* 6. Actions Cell */}
+                    <td className="py-3.5 px-3 text-center min-w-24">
                       <div className="flex items-center justify-center gap-2">
-                        {/* View Invoice Dossier Button */}
                         <TableActionButton
                           icon={Eye}
                           onClick={() => onView(payment._id)}
-                          tooltip="View Invoice Dossier"
+                          tooltip="View Payment Dossier"
                           tone="purple"
                         />
-
-                        {/* Process Refund Button (Disabled if not completed or already refunded) */}
-                        <TableActionButton
-                          icon={RotateCcw}
-                          disabled={!isCompleted || isRefunded}
-                          onClick={() => onOpenRefund(payment)}
-                          tooltip="Process Dispute Refund"
-                          disabledTooltip={
-                            isRefunded
-                              ? "Already Refunded"
-                              : !isCompleted
-                              ? "Refund Not Applicable"
-                              : "Process Dispute Refund"
-                          }
-                          tone="rose"
-                        />
+                        {onOpenRefund && (
+                          <TableActionButton
+                            icon={RotateCcw}
+                            disabled={payment.paymentType !== "full_payment"}
+                            onClick={() => onOpenRefund(payment)}
+                            tooltip="Process Dispute Refund"
+                            disabledTooltip="Refund Not Applicable"
+                            tone="rose"
+                          />
+                        )}
                       </div>
                     </td>
                   </tr>
