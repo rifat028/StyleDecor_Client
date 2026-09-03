@@ -9,7 +9,6 @@ import {
   Mail,
   Building,
   Star,
-  Trash2,
   Award,
   Shield,
 } from "lucide-react";
@@ -21,12 +20,11 @@ const getAgentAvatar = (name = "Agent") => {
   return `https://ui-avatars.com/api/?name=${initials}&background=D97706&color=ffffff&bold=true&size=150`;
 };
 
-// Consolidated Agent Dossier Modal (200-240 lines)
+// Consolidated Agent Dossier Modal
 const AgentManagementModals = ({
   selectedAgent,
   onClose,
   onUpdateStatus,
-  onDelete,
   loading = false,
 }) => {
   if (!selectedAgent) return null;
@@ -122,47 +120,36 @@ const AgentManagementModals = ({
         </div>
 
         {/* Modal Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800">
           <button
             type="button"
-            onClick={() => onDelete(selectedAgent)}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-semibold text-xs transition-colors cursor-pointer"
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-colors cursor-pointer"
           >
-            <Trash2 className="w-4 h-4" />
-            <span>Remove Specialist</span>
+            Close
           </button>
 
-          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+          {status !== "available" && status !== "active" && (
             <button
               type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-colors cursor-pointer"
+              onClick={() => onUpdateStatus(selectedAgent, "available")}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-xs transition-colors cursor-pointer"
             >
-              Close
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Mark Available</span>
             </button>
+          )}
 
-            {status !== "available" && status !== "active" && (
-              <button
-                type="button"
-                onClick={() => onUpdateStatus(selectedAgent, "available")}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-xs transition-colors cursor-pointer"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Mark Available</span>
-              </button>
-            )}
-
-            {status !== "suspended" && (
-              <button
-                type="button"
-                onClick={() => onUpdateStatus(selectedAgent, "suspended")}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm shadow-xs transition-colors cursor-pointer"
-              >
-                <UserX className="w-4 h-4" />
-                <span>Suspend Agent</span>
-              </button>
-            )}
-          </div>
+          {status !== "suspended" && (
+            <button
+              type="button"
+              onClick={() => onUpdateStatus(selectedAgent, "suspended")}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm shadow-xs transition-colors cursor-pointer"
+            >
+              <UserX className="w-4 h-4" />
+              <span>Suspend Agent</span>
+            </button>
+          )}
         </div>
       </div>
     </Modal>

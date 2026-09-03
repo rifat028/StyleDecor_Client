@@ -4,11 +4,10 @@ import {
   CheckCircle2,
   Activity,
   UserX,
+  UserCheck,
   MapPin,
-  Phone,
   Mail,
   Eye,
-  Trash2,
   Star,
   Building,
 } from "lucide-react";
@@ -17,33 +16,36 @@ import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
 import TableActionButton from "../../../ui/TableActionButton";
 
-// Helper to render categorical status badge for field agents
+// Helper to render categorical status badge for field agents with uniform width and centered text
 const renderStatusBadge = (status) => {
   const s = String(status || "").toLowerCase();
   if (s === "available" || s === "active") {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase">
-        <CheckCircle2 className="w-3 h-3" /> Available
+      <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+        <span>Available</span>
       </span>
     );
   }
   if (s === "on_assignment" || s === "assigned") {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 uppercase">
-        <Activity className="w-3 h-3" /> On Assignment
+      <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+        <Activity className="w-3.5 h-3.5 shrink-0" />
+        <span>Assigned</span>
       </span>
     );
   }
   if (s === "suspended") {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 uppercase">
-        <UserX className="w-3 h-3" /> Suspended
+      <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+        <UserX className="w-3.5 h-3.5 shrink-0" />
+        <span>Suspended</span>
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase">
-      {status}
+    <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+      <span>{status}</span>
     </span>
   );
 };
@@ -59,7 +61,7 @@ const AgentManagementTable = ({
   agents,
   loading,
   onView,
-  onDelete,
+  onUpdateStatus,
   onResetFilters,
   page,
   totalPages,
@@ -184,13 +186,22 @@ const AgentManagementTable = ({
                         tone="purple"
                       />
 
-                      {/* Delete Agent Button */}
-                      <TableActionButton
-                        icon={Trash2}
-                        onClick={() => onDelete(agent)}
-                        tooltip="Delete Agent"
-                        tone="rose"
-                      />
+                      {/* Suspend / Activate Agent Button */}
+                      {String(agent.status || "").toLowerCase() === "suspended" ? (
+                        <TableActionButton
+                          icon={UserCheck}
+                          onClick={() => onUpdateStatus(agent, "available")}
+                          tooltip="Activate Agent (Mark Available)"
+                          tone="emerald"
+                        />
+                      ) : (
+                        <TableActionButton
+                          icon={UserX}
+                          onClick={() => onUpdateStatus(agent, "suspended")}
+                          tooltip="Suspend Agent"
+                          tone="rose"
+                        />
+                      )}
                     </div>
                   </td>
                 </tr>

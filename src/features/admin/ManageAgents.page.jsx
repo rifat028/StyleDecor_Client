@@ -8,18 +8,17 @@ import AgentManagementToolbar from "../../components/pages/Admin/AgentManagement
 import AgentManagementTable from "../../components/pages/Admin/AgentManagement/AgentManagementTable";
 import AgentManagementModals from "../../components/pages/Admin/AgentManagement/AgentManagementModals";
 
-const CITIES_LIST = [
+// Official administrative divisions of Bangladesh used for territory governance
+const TERRITORIES_LIST = [
   "all",
   "Dhaka",
   "Chattogram",
-  "Sylhet",
   "Rajshahi",
   "Khulna",
   "Barishal",
+  "Sylhet",
   "Rangpur",
   "Mymensingh",
-  "Cumilla",
-  "Gazipur",
 ];
 
 // Admin field specialist supervision page
@@ -36,7 +35,7 @@ const ManageAgents = () => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [cityFilter, setCityFilter] = useState("all");
+  const [territoryFilter, setTerritoryFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -67,7 +66,7 @@ const ManageAgents = () => {
     }
   }, [axiosSecure]);
 
-  // Load paginated agents list
+  // Load paginated agents list filtered by division territory & status
   const loadAgents = useCallback(async () => {
     try {
       setLoading(true);
@@ -77,7 +76,7 @@ const ManageAgents = () => {
       });
 
       if (statusFilter !== "all") params.append("status", statusFilter);
-      if (cityFilter !== "all") params.append("city", cityFilter);
+      if (territoryFilter !== "all") params.append("division", territoryFilter);
       if (debouncedSearch.trim()) params.append("search", debouncedSearch.trim());
 
       const res = await axiosSecure.get(`/agents?${params.toString()}`);
@@ -93,7 +92,7 @@ const ManageAgents = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [axiosSecure, page, limit, statusFilter, cityFilter, debouncedSearch]);
+  }, [axiosSecure, page, limit, statusFilter, territoryFilter, debouncedSearch]);
 
   useEffect(() => {
     loadStats();
@@ -108,7 +107,7 @@ const ManageAgents = () => {
     setSearch("");
     setDebouncedSearch("");
     setStatusFilter("all");
-    setCityFilter("all");
+    setTerritoryFilter("all");
     setPage(1);
   };
 
@@ -130,12 +129,17 @@ const ManageAgents = () => {
 
   // Update agent status (Available, Suspended)
   const handleUpdateStatus = async (agent, newStatus) => {
+    const isSuspending = newStatus === "suspended";
     const confirm = await Swal.fire({
-      title: `Update Agent Status to "${newStatus}"?`,
-      text: `Are you sure you want to change the status for ${agent.name}?`,
-      icon: "question",
+      title: isSuspending ? `Suspend ${agent.name}?` : `Activate ${agent.name}?`,
+      text: isSuspending
+        ? `Are you sure you want to suspend this agent? They will not be assigned to new events.`
+        : `Are you sure you want to mark ${agent.name} as available?`,
+      icon: isSuspending ? "warning" : "question",
       showCancelButton: true,
-      confirmButtonText: "Yes, Update",
+      confirmButtonText: isSuspending ? "Yes, Suspend" : "Yes, Activate",
+      confirmButtonColor: isSuspending ? "#ef4444" : "#10b981",
+      cancelButtonText: "Cancel",
     });
 
     if (!confirm.isConfirmed) return;
@@ -144,7 +148,7 @@ const ManageAgents = () => {
       await axiosSecure.patch(`/agents/${agent._id}/status`, {
         status: newStatus,
       });
-      toast.success(`Agent status is now ${newStatus}`);
+      toast.success(`Agent status updated to ${newStatus}`);
       if (selectedAgent?._id === agent._id) {
         setSelectedAgent((prev) => ({ ...prev, status: newStatus }));
       }
@@ -153,34 +157,6 @@ const ManageAgents = () => {
     } catch (err) {
       console.error("Failed to update status:", err);
       toast.error("Failed to update agent status");
-    }
-  };
-
-  // Delete agent
-  const handleDeleteAgent = async (agent) => {
-    const confirm = await Swal.fire({
-      title: "Permanently Remove Agent?",
-      text: `Are you sure you want to delete ${agent.name} from the platform database?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#ef4444",
-      confirmButtonText: "Yes, Delete",
-      cancelButtonText: "Cancel",
-    });
-
-    if (!confirm.isConfirmed) return;
-
-    try {
-      await axiosSecure.delete(`/agents/${agent._id}`);
-      toast.success("Agent has been removed");
-      if (selectedAgent?._id === agent._id) {
-        setSelectedAgent(null);
-      }
-      loadAgents();
-      loadStats();
-    } catch (err) {
-      console.error("Failed to delete agent:", err);
-      toast.error("Failed to delete agent");
     }
   };
 
@@ -200,7 +176,7 @@ const ManageAgents = () => {
         refreshDisabled={loading || refreshing}
       />
 
-      {/* 2. Consolidated Toolbar (~130 lines) */}
+      {/* 2. Consolidated Toolbar with Dropdown Filters and Stat Cards */}
       <AgentManagementToolbar
         stats={stats}
         statusFilter={statusFilter}
@@ -216,20 +192,20 @@ const ManageAgents = () => {
           setDebouncedSearch("");
           setPage(1);
         }}
-        cityFilter={cityFilter}
-        onCityFilterChange={(c) => {
-          setCityFilter(c);
+        territoryFilter={territoryFilter}
+        onTerritoryFilterChange={(t) => {
+          setTerritoryFilter(t);
           setPage(1);
         }}
-        citiesList={CITIES_LIST}
+        territoriesList={TERRITORIES_LIST}
       />
 
-      {/* 3. Consolidated Table Component (~220 lines) */}
+      {/* 3. Consolidated Table Component */}
       <AgentManagementTable
         agents={agents}
         loading={loading}
         onView={handleOpenDossier}
-        onDelete={handleDeleteAgent}
+        onUpdateStatus={handleUpdateStatus}
         onResetFilters={handleResetFilters}
         page={page}
         totalPages={totalPages}
@@ -242,12 +218,11 @@ const ManageAgents = () => {
         }}
       />
 
-      {/* 4. Consolidated Modals Component (~210 lines) */}
+      {/* 4. Consolidated Modals Component */}
       <AgentManagementModals
         selectedAgent={selectedAgent}
         onClose={() => setSelectedAgent(null)}
         onUpdateStatus={handleUpdateStatus}
-        onDelete={handleDeleteAgent}
         loading={dossierLoading}
       />
     </div>
