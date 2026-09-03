@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
+  DollarSign,
   CreditCard,
   CheckCircle2,
   Building2,
@@ -217,16 +218,39 @@ const TransactionManagementToolbar = ({
     [stats]
   );
 
-  // Decorator options with search support and wide container
+  // Decorator options with search support and dynamic counts based on selected payment type
   const decoratorOptions = useMemo(() => {
+    const allDecCount =
+      typeFilter === "all"
+        ? stats?.total
+        : stats?.[typeFilter]?.count ?? 0;
+
     return [
-      { value: "all", label: "All Decorators" },
-      ...decoratorsList.map((dec) => ({
-        value: String(dec._id),
-        label: dec.businessName || dec.name || "Agency Partner",
-      })),
+      {
+        value: "all",
+        label: "All Decorators",
+        count: allDecCount,
+      },
+      ...decoratorsList.map((dec) => {
+        const decId = String(dec._id);
+        const decStats = stats?.decoratorStats?.[decId];
+        let count = 0;
+        if (decStats) {
+          if (typeFilter === "all") {
+            count = decStats.total || 0;
+          } else {
+            count = decStats[typeFilter] || 0;
+          }
+        }
+
+        return {
+          value: decId,
+          label: dec.businessName || dec.name || "Agency Partner",
+          count,
+        };
+      }),
     ];
-  }, [decoratorsList]);
+  }, [decoratorsList, stats, typeFilter]);
 
   // Sort options
   const sortOptions = useMemo(
@@ -240,8 +264,20 @@ const TransactionManagementToolbar = ({
 
   return (
     <div className="space-y-4">
-      {/* 1. 4 Payment-Type Stat Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* 1. 5 Stat Cards Grid with Total on Top Left */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {/* Total Transactions (Top Left) */}
+        <StatCard
+          icon={DollarSign}
+          title="Total Transactions"
+          value={stats?.total ?? 0}
+          subtitle={`৳${Number(stats?.totalVolume || stats?.volume || 0).toLocaleString()}`}
+          tone="purple"
+          active={typeFilter === "all"}
+          onClick={() => onSelectTypeFilter("all")}
+          loading={loadingStats}
+        />
+
         {/* Advance Payment */}
         <StatCard
           icon={CreditCard}
@@ -276,7 +312,7 @@ const TransactionManagementToolbar = ({
           title="Platform Fee"
           value={stats?.platform_fee?.count ?? stats?.platformCount ?? 0}
           subtitle={`৳${Number(stats?.platform_fee?.volume || 0).toLocaleString()}`}
-          tone="purple"
+          tone="indigo"
           active={typeFilter === "platform_fee"}
           onClick={() =>
             onSelectTypeFilter(typeFilter === "platform_fee" ? "all" : "platform_fee")
