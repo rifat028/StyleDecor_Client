@@ -14,7 +14,7 @@ import EditDecoratorAgencyModal from "../../components/pages/Customer/MyProfile/
 
 // User & Agency Profile Management Page
 const MyProfile = () => {
-  const { user } = useContext(AuthContext);
+  const { user, updateProfileInfo } = useContext(AuthContext);
   const { role } = useRole();
   const axiosSecure = useAxiosSecure();
 
@@ -57,6 +57,10 @@ const MyProfile = () => {
       const res = await axiosSecure.get("/users/me");
       const u = res.data?.data || res.data;
       setUserData(u);
+      if (u && user?.email) {
+        localStorage.setItem(`styledecor_user_profile_${user.email}`, JSON.stringify(u));
+        window.dispatchEvent(new CustomEvent("user-profile-updated", { detail: u }));
+      }
       if (u) {
         setFormData({
           name: u.name || "",
@@ -151,8 +155,20 @@ const MyProfile = () => {
       };
 
       const res = await axiosSecure.patch("/users/profile", payload);
-      if (res.data?.user || res.data?.data) {
-        setUserData(res.data.user || res.data.data);
+      const updatedUser = res.data?.user || res.data?.data;
+      if (updatedUser) {
+        setUserData(updatedUser);
+        if (user?.email) {
+          localStorage.setItem(`styledecor_user_profile_${user.email}`, JSON.stringify(updatedUser));
+        }
+        window.dispatchEvent(new CustomEvent("user-profile-updated", { detail: updatedUser }));
+      }
+      if (updateProfileInfo) {
+        try {
+          await updateProfileInfo(payload.name, payload.photoUrl);
+        } catch (fbErr) {
+          console.warn("Could not sync Firebase profile:", fbErr);
+        }
       }
       toast.success("Profile updated successfully!");
       setIsEditing(false);

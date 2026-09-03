@@ -57,7 +57,13 @@ const NavBar = () => {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  const { role, roleLoading } = useRole();
+  const { role, roleLoading, dbUser } = useRole();
+
+  const profilePhoto =
+    dbUser?.photoUrl ||
+    user?.photoURL ||
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400";
+  const displayName = dbUser?.name || user?.displayName || "User";
 
   const location = useLocation();
 
@@ -268,7 +274,7 @@ const NavBar = () => {
                 className="relative rounded-full ring-2 ring-primary/20 hover:ring-primary transition-all p-0.5"
               >
                 <img
-                  src={user.photoURL}
+                  src={profilePhoto}
                   alt="profile"
                   className="rounded-full h-10 w-10 sm:h-11 sm:w-11 object-cover"
                 />
@@ -286,7 +292,7 @@ const NavBar = () => {
                 <li className="px-4 py-2 hover:bg-transparent cursor-default">
                   <div className="flex flex-col gap-1 items-start">
                     <span className="font-bold text-base truncate w-full text-gray-800 dark:text-gray-100">
-                      {user?.displayName || "User"}
+                      {displayName}
                     </span>
                     <span className="text-xs opacity-70 truncate w-full text-gray-500 dark:text-gray-400">
                       {user?.email}
