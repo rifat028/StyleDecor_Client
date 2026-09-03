@@ -15,11 +15,13 @@ const ManageReviews = () => {
   // Data States
   const [reviewsData, setReviewsData] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [decorators, setDecorators] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   // Filters & Search
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedDecorator, setSelectedDecorator] = useState("all");
   const [starFilter, setStarFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -39,6 +41,20 @@ const ManageReviews = () => {
     return () => clearTimeout(handler);
   }, [search]);
 
+  // Load Decorators List for Vendor Filter Dropdown
+  useEffect(() => {
+    const fetchDecorators = async () => {
+      try {
+        const res = await axiosSecure.get("/decorators?limit=100&status=all");
+        const list = res.data?.data || res.data || [];
+        setDecorators(Array.isArray(list) ? list : []);
+      } catch (err) {
+        console.warn("Failed to load decorators for review dropdown:", err);
+      }
+    };
+    fetchDecorators();
+  }, [axiosSecure]);
+
   // Load Reviews with Filters & Pagination
   const loadReviews = useCallback(async () => {
     try {
@@ -46,9 +62,11 @@ const ManageReviews = () => {
       const params = {
         page,
         limit,
+        sort: sortBy,
       };
 
       if (statusFilter !== "all") params.status = statusFilter;
+      if (selectedDecorator !== "all") params.decoratorId = selectedDecorator;
       if (starFilter !== "all") params.rating = starFilter;
       if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
 
@@ -67,7 +85,7 @@ const ManageReviews = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [axiosSecure, page, limit, statusFilter, starFilter, debouncedSearch]);
+  }, [axiosSecure, page, limit, statusFilter, selectedDecorator, starFilter, debouncedSearch, sortBy]);
 
   useEffect(() => {
     loadReviews();
@@ -76,6 +94,7 @@ const ManageReviews = () => {
   // Reset Filters
   const handleResetFilters = () => {
     setStatusFilter("all");
+    setSelectedDecorator("all");
     setStarFilter("all");
     setSearch("");
     setDebouncedSearch("");
@@ -151,14 +170,8 @@ const ManageReviews = () => {
       reviewsData?.stats?.flaggedCount ??
       reviewsData?.stats?.flagged ??
       reviews.filter((r) => r.status === "flagged").length,
+    decoratorStats: reviewsData?.stats?.decoratorStats || {},
     averageRating: reviewsData?.stats?.averageRating ?? 4.8,
-  };
-
-  const pagination = reviewsData?.pagination || {
-    page: 1,
-    limit,
-    total: reviews.length,
-    totalPages: 1,
   };
 
   return (
@@ -176,7 +189,7 @@ const ManageReviews = () => {
         refreshDisabled={loading || refreshing}
       />
 
-      {/* 2. Consolidated Toolbar (~130 lines) */}
+      {/* 2. Consolidated Toolbar with styled dropdowns matching Admin -> Users */}
       <ReviewManagementToolbar
         stats={stats}
         statusFilter={statusFilter}
@@ -192,6 +205,11 @@ const ManageReviews = () => {
           setDebouncedSearch("");
           setPage(1);
         }}
+        decoratorFilter={selectedDecorator}
+        onDecoratorFilterChange={(dec) => {
+          setSelectedDecorator(dec);
+          setPage(1);
+        }}
         starFilter={starFilter}
         onStarFilterChange={(star) => {
           setStarFilter(star);
@@ -202,9 +220,10 @@ const ManageReviews = () => {
           setSortBy(sort);
           setPage(1);
         }}
+        decoratorsList={decorators}
       />
 
-      {/* 3. Consolidated Table Component (~240 lines) */}
+      {/* 3. Consolidated Table Component */}
       <ReviewManagementTable
         reviews={reviews}
         loading={loading}
@@ -213,8 +232,8 @@ const ManageReviews = () => {
         onDelete={handleDeleteReview}
         onResetFilters={handleResetFilters}
         page={page}
-        totalPages={pagination.totalPages || 1}
-        totalCount={pagination.total || reviews.length}
+        totalPages={reviewsData?.totalPages || 1}
+        totalCount={reviewsData?.totalCount || reviews.length}
         limit={limit}
         onPageChange={setPage}
         onLimitChange={(newLimit) => {
@@ -223,12 +242,11 @@ const ManageReviews = () => {
         }}
       />
 
-      {/* 4. Consolidated Modals Component (~230 lines) */}
+      {/* 4. Consolidated Modals Component */}
       <ReviewManagementModals
         selectedReview={selectedReview}
         onClose={() => setSelectedReview(null)}
         onUpdateStatus={handleUpdateStatus}
-        onDelete={handleDeleteReview}
       />
     </div>
   );
