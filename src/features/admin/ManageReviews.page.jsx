@@ -132,12 +132,26 @@ const ManageReviews = () => {
     }
   };
 
-  const stats = reviewsData?.stats || {
-    totalReviews: reviews.length,
-    publishedCount: reviews.filter((r) => r.status === "published" || !r.status).length,
-    hiddenCount: reviews.filter((r) => r.status === "hidden").length,
-    flaggedCount: reviews.filter((r) => r.status === "flagged").length,
-    averageRating: 4.8,
+  const stats = {
+    totalReviews:
+      reviewsData?.stats?.totalReviews ??
+      reviewsData?.stats?.all ??
+      reviewsData?.stats?.total ??
+      reviewsData?.totalCount ??
+      reviews.length,
+    publishedCount:
+      reviewsData?.stats?.publishedCount ??
+      reviewsData?.stats?.published ??
+      reviews.filter((r) => r.status === "published" || !r.status).length,
+    hiddenCount:
+      reviewsData?.stats?.hiddenCount ??
+      reviewsData?.stats?.hidden ??
+      reviews.filter((r) => r.status === "hidden").length,
+    flaggedCount:
+      reviewsData?.stats?.flaggedCount ??
+      reviewsData?.stats?.flagged ??
+      reviews.filter((r) => r.status === "flagged").length,
+    averageRating: reviewsData?.stats?.averageRating ?? 4.8,
   };
 
   const pagination = reviewsData?.pagination || {
