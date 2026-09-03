@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   XCircle,
   Eye,
-  Trash2,
   Star,
   Building,
   Clock,
@@ -28,7 +27,6 @@ const ServiceManagementTable = ({
   onView,
   onToggleStatus,
   onToggleFeatured,
-  onDelete,
   onResetFilters,
   page,
   totalPages,
@@ -47,7 +45,7 @@ const ServiceManagementTable = ({
                 <th className="py-3.5 px-2 min-w-55">Service Package</th>
                 <th className="py-3.5 px-2 min-w-40">Decorator Agency</th>
                 <th className="py-3.5 px-2 text-center min-w-32.5">Pricing</th>
-                <th className="py-3.5 px-2 text-center min-w-40">Status & Feature</th>
+                <th className="py-3.5 px-2 text-center min-w-36">Status</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
               </tr>
             </thead>
@@ -72,7 +70,7 @@ const ServiceManagementTable = ({
                 <th className="py-3.5 px-2 min-w-55">Service Package</th>
                 <th className="py-3.5 px-2 min-w-40">Decorator Agency</th>
                 <th className="py-3.5 px-2 text-center min-w-32.5">Pricing</th>
-                <th className="py-3.5 px-2 text-center min-w-40">Status & Feature</th>
+                <th className="py-3.5 px-2 text-center min-w-36">Status</th>
                 <th className="py-3.5 px-2 text-center min-w-30">Actions</th>
               </tr>
             </thead>
@@ -166,24 +164,19 @@ const ServiceManagementTable = ({
                       </div>
                     </td>
 
-                    {/* Status & Featured Cell */}
-                    <td className="py-3.5 px-2 text-center min-w-40">
-                      <div className="inline-flex flex-col items-center gap-1">
-                        {isActive ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                            <CheckCircle2 className="w-3 h-3" /> Active
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-                            <XCircle className="w-3 h-3" /> Inactive
-                          </span>
-                        )}
-                        {isFeatured && (
-                          <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-                            Featured
-                          </span>
-                        )}
-                      </div>
+                    {/* Status Cell */}
+                    <td className="py-3.5 px-2 text-center min-w-36">
+                      {isActive ? (
+                        <span className="inline-flex items-center justify-center w-28 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+                          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                          <span>Active</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center justify-center w-28 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+                          <XCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>Inactive</span>
+                        </span>
+                      )}
                     </td>
 
                     {/* Centered Actions Cell with Bordered Buttons */}
@@ -219,14 +212,6 @@ const ServiceManagementTable = ({
                               : "Activate Package"
                           }
                           tone={isActive ? "success" : "default"}
-                        />
-
-                        {/* Delete Service Button */}
-                        <TableActionButton
-                          icon={Trash2}
-                          onClick={() => onDelete(service)}
-                          tooltip="Delete Service Package"
-                          tone="rose"
                         />
                       </div>
                     </td>

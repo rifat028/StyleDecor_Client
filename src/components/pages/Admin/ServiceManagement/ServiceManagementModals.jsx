@@ -8,7 +8,6 @@ import {
   Clock,
   Tag,
   Check,
-  Trash2,
   Star,
 } from "lucide-react";
 import Modal from "../../../ui/Modal";
@@ -24,7 +23,6 @@ const ServiceManagementModals = ({
   onClose,
   onToggleStatus,
   onToggleFeatured,
-  onDelete,
 }) => {
   if (!viewingService) return null;
 
@@ -145,24 +143,14 @@ const ServiceManagementModals = ({
           )}
 
         {/* Modal Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center gap-2.5 justify-end pt-4 border-t border-slate-100 dark:border-slate-800 flex-wrap sm:flex-nowrap">
           <button
             type="button"
-            onClick={() => onDelete(viewingService)}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-semibold text-xs transition-colors cursor-pointer"
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-colors cursor-pointer"
           >
-            <Trash2 className="w-4 h-4" />
-            <span>Delete Package</span>
+            Close
           </button>
-
-          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end flex-wrap sm:flex-nowrap">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-colors cursor-pointer"
-            >
-              Close
-            </button>
 
             {/* Toggle Featured Button */}
             <button
@@ -202,9 +190,8 @@ const ServiceManagementModals = ({
             </button>
           </div>
         </div>
-      </div>
-    </Modal>
-  );
+      </Modal>
+    );
 };
 
 export default ServiceManagementModals;

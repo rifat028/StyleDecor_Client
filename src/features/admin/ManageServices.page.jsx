@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import toast from "react-hot-toast";
-import Swal from "sweetalert2";
 import { Layers } from "lucide-react";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
 import ServiceManagementToolbar from "../../components/pages/Admin/ServiceManagement/ServiceManagementToolbar";
@@ -185,36 +184,6 @@ const ManageServices = () => {
     }
   };
 
-  // Delete Service Package
-  const handleDelete = async (srv) => {
-    const confirm = await Swal.fire({
-      title: "Delete Service Package?",
-      text: `Are you sure you want to permanently delete "${
-        srv.title || srv.serviceName
-      }" from the marketplace?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#ef4444",
-      confirmButtonText: "Yes, Delete Permanent",
-      cancelButtonText: "Cancel",
-    });
-
-    if (!confirm.isConfirmed) return;
-
-    try {
-      await axiosSecure.delete(`/services/${srv._id}`);
-      toast.success("Package permanently removed");
-      if (viewingService?._id === srv._id) {
-        setViewingService(null);
-      }
-      loadServices();
-      loadStats();
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to delete package");
-    }
-  };
-
   return (
     <div className="space-y-6 animate-fade-in pb-10">
       {/* 1. Standardized Top Header Bar */}
@@ -231,7 +200,7 @@ const ManageServices = () => {
         refreshDisabled={loading || refreshing}
       />
 
-      {/* 2. Consolidated Toolbar (~130 lines) */}
+      {/* 2. Consolidated Toolbar with Dropdown Filters and Stat Cards */}
       <ServiceManagementToolbar
         stats={stats}
         statusTab={statusTab}
@@ -266,14 +235,13 @@ const ManageServices = () => {
         decoratorsList={decorators}
       />
 
-      {/* 3. Consolidated Table Component (~240 lines) */}
+      {/* 3. Consolidated Table Component */}
       <ServiceManagementTable
         services={services}
         loading={loading}
         onView={setViewingService}
         onToggleStatus={handleToggleStatus}
         onToggleFeatured={handleToggleFeatured}
-        onDelete={handleDelete}
         onResetFilters={handleResetFilters}
         page={page}
         totalPages={totalPages}
@@ -286,13 +254,12 @@ const ManageServices = () => {
         }}
       />
 
-      {/* 4. Consolidated Modals Component (~230 lines) */}
+      {/* 4. Consolidated Modals Component */}
       <ServiceManagementModals
         viewingService={viewingService}
         onClose={() => setViewingService(null)}
         onToggleStatus={handleToggleStatus}
         onToggleFeatured={handleToggleFeatured}
-        onDelete={handleDelete}
       />
     </div>
   );
