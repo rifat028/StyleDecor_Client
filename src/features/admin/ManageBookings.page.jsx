@@ -22,10 +22,11 @@ const ManageBookings = () => {
   // Statistics Summary
   const [stats, setStats] = useState({
     total: 0,
-    accepted: 0,
-    inProgress: 0,
+    preparing: 0,
+    out_for_destination: 0,
+    in_progress: 0,
     completed: 0,
-    pending: 0,
+    cancelled: 0,
   });
 
   // Filter States
@@ -102,13 +103,7 @@ const ManageBookings = () => {
     try {
       const res = await axiosSecure.get("/bookings/stats");
       if (res.data?.success && res.data?.stats) {
-        setStats({
-          total: res.data.stats.total || 0,
-          accepted: res.data.stats.accepted || 0,
-          inProgress: res.data.stats.inProgress || 0,
-          completed: res.data.stats.completed || 0,
-          pending: res.data.stats.pending || 0,
-        });
+        setStats(res.data.stats);
       }
     } catch (err) {
       console.warn("Failed to load stats:", err);

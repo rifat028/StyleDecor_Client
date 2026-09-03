@@ -2,6 +2,7 @@ import React from "react";
 import {
   Calendar,
   Clock,
+  Navigation,
   MapPin,
   Building,
   User,
@@ -20,52 +21,83 @@ import EmptyState from "../../../ui/EmptyState";
 import Pagination from "../../../ui/Pagination";
 import TableActionButton from "../../../ui/TableActionButton";
 
-// Helper to render booking lifecycle status badge
+// Helper to render booking lifecycle status badge with uniform width and centered alignment
 const renderStatusBadge = (status) => {
   const s = String(status || "").toLowerCase();
   switch (s) {
-    case "pending":
+    case "preparing":
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 uppercase">
-          <AlertCircle className="w-3 h-3" /> Pending
+        <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+          <Clock className="w-3.5 h-3.5 shrink-0" />
+          <span>Preparing</span>
         </span>
       );
-    case "accepted":
+    case "out_for_destination":
+    case "out for destination":
+    case "on_the_way":
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 uppercase">
-          <CheckCircle2 className="w-3 h-3" /> Accepted
-        </span>
-      );
-    case "rejected":
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 uppercase">
-          <XCircle className="w-3 h-3" /> Rejected
-        </span>
-      );
-    case "advance_paid":
-    case "advance paid":
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 uppercase">
-          <CreditCard className="w-3 h-3" /> Advance Paid
+        <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+          <Navigation className="w-3.5 h-3.5 shrink-0" />
+          <span>On The Way</span>
         </span>
       );
     case "in_progress":
     case "inprogress":
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 uppercase">
-          <Clock className="w-3 h-3" /> In Progress
+        <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+          <Clock className="w-3.5 h-3.5 shrink-0" />
+          <span>In Progress</span>
         </span>
       );
     case "completed":
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase">
-          <CheckCircle2 className="w-3 h-3" /> Completed
+        <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+          <span>Completed</span>
+        </span>
+      );
+    case "cancelled":
+    case "canceled":
+      return (
+        <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+          <XCircle className="w-3.5 h-3.5 shrink-0" />
+          <span>Cancelled</span>
+        </span>
+      );
+    case "pending":
+    case "draft":
+      return (
+        <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+          <span>Pending</span>
+        </span>
+      );
+    case "accepted":
+      return (
+        <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+          <span>Accepted</span>
+        </span>
+      );
+    case "rejected":
+      return (
+        <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+          <XCircle className="w-3.5 h-3.5 shrink-0" />
+          <span>Rejected</span>
+        </span>
+      );
+    case "advance_paid":
+    case "advance paid":
+      return (
+        <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+          <CreditCard className="w-3.5 h-3.5 shrink-0" />
+          <span>Advance Paid</span>
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase">
-          {status}
+        <span className="inline-flex items-center justify-center w-36 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase tracking-wider text-center gap-1.5 shadow-2xs">
+          <span>{status?.replace(/_/g, " ")}</span>
         </span>
       );
   }
@@ -93,7 +125,7 @@ const BookingManagementTable = ({
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
                 <th className="py-3.5 px-2 min-w-55">Event & Package</th>
                 <th className="py-3.5 px-2 min-w-45">Customer & Venue</th>
-                <th className="py-3.5 px-2 min-w-40">Decorator Agency</th>
+                <th className="py-3.5 px-2 min-w-44">Agency & Agent</th>
                 <th className="py-3.5 px-2 text-center min-w-35">Amount & Payment</th>
                 <th className="py-3.5 px-2 text-center min-w-40">Status</th>
                 <th className="py-3.5 px-2 text-center min-w-25">Actions</th>
@@ -119,7 +151,7 @@ const BookingManagementTable = ({
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
                 <th className="py-3.5 px-2 min-w-55">Event & Package</th>
                 <th className="py-3.5 px-2 min-w-45">Customer & Venue</th>
-                <th className="py-3.5 px-2 min-w-40">Decorator Agency</th>
+                <th className="py-3.5 px-2 min-w-44">Agency & Agent</th>
                 <th className="py-3.5 px-2 text-center min-w-35">Amount & Payment</th>
                 <th className="py-3.5 px-2 text-center min-w-40">Status</th>
                 <th className="py-3.5 px-2 text-center min-w-25">Actions</th>
@@ -203,8 +235,8 @@ const BookingManagementTable = ({
                       </div>
                     </td>
 
-                    {/* Decorator Agency Cell */}
-                    <td className="py-3.5 px-2 min-w-40">
+                    {/* Agency & Agent Cell */}
+                    <td className="py-3.5 px-2 min-w-44">
                       <div className="space-y-1">
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 truncate">
                           <Building className="w-3 h-3 text-slate-400 shrink-0" />
@@ -214,10 +246,15 @@ const BookingManagementTable = ({
                               "Decorator Agency"}
                           </span>
                         </p>
-                        {(booking.assignedAgent?.name || booking.assignedAgentName) && (
+                        {booking.assignedAgent?.name || booking.assignedAgentName ? (
                           <p className="text-xs text-purple-600 dark:text-purple-400 font-medium flex items-center gap-1 truncate">
                             <UserCheck className="w-3 h-3 shrink-0" />
                             <span>{booking.assignedAgent?.name || booking.assignedAgentName}</span>
+                          </p>
+                        ) : (
+                          <p className="text-[11px] text-slate-400 dark:text-slate-500 italic flex items-center gap-1 truncate">
+                            <User className="w-3 h-3 shrink-0" />
+                            <span>Unassigned Agent</span>
                           </p>
                         )}
                       </div>
