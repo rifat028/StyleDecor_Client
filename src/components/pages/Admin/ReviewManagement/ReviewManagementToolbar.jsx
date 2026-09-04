@@ -3,7 +3,7 @@ import {
   MessageSquare,
   CheckCircle2,
   EyeOff,
-  AlertTriangle,
+  Sparkles,
   Search,
   X,
   ChevronDown,
@@ -174,7 +174,7 @@ const FilterDropdown = ({
   );
 };
 
-// Consolidated toolbar for Review Management with accurate stats and styled dropdowns matching Admin -> Users
+// Consolidated toolbar for Review Management with published/hidden status, featured stats, and styled dropdowns
 const ReviewManagementToolbar = ({
   stats,
   statusFilter,
@@ -194,17 +194,16 @@ const ReviewManagementToolbar = ({
   const totalReviewsCount = stats?.totalReviews ?? stats?.all ?? stats?.total ?? 0;
   const publishedReviewsCount = stats?.publishedCount ?? stats?.published ?? 0;
   const hiddenReviewsCount = stats?.hiddenCount ?? stats?.hidden ?? 0;
-  const flaggedReviewsCount = stats?.flaggedCount ?? stats?.flagged ?? 0;
+  const featuredReviewsCount = stats?.featuredCount ?? stats?.featured ?? 0;
 
-  // Status Filter options with counts
+  // Status Filter options with counts (published and hidden only)
   const statusOptions = useMemo(
     () => [
       { value: "all", label: "All Statuses", count: totalReviewsCount },
       { value: "published", label: "Published", count: publishedReviewsCount },
       { value: "hidden", label: "Hidden", count: hiddenReviewsCount },
-      { value: "flagged", label: "Flagged", count: flaggedReviewsCount },
     ],
-    [totalReviewsCount, publishedReviewsCount, hiddenReviewsCount, flaggedReviewsCount]
+    [totalReviewsCount, publishedReviewsCount, hiddenReviewsCount]
   );
 
   // Decorator options with search support and dynamic counts based on selected status
@@ -214,9 +213,7 @@ const ReviewManagementToolbar = ({
         ? totalReviewsCount
         : statusFilter === "published"
         ? publishedReviewsCount
-        : statusFilter === "hidden"
-        ? hiddenReviewsCount
-        : flaggedReviewsCount;
+        : hiddenReviewsCount;
 
     return [
       {
@@ -243,7 +240,7 @@ const ReviewManagementToolbar = ({
         };
       }),
     ];
-  }, [decoratorsList, stats, statusFilter, totalReviewsCount, publishedReviewsCount, hiddenReviewsCount, flaggedReviewsCount]);
+  }, [decoratorsList, stats, statusFilter, totalReviewsCount, publishedReviewsCount, hiddenReviewsCount]);
 
   // Star Rating Filter options
   const starOptions = useMemo(
@@ -270,7 +267,7 @@ const ReviewManagementToolbar = ({
 
   return (
     <div className="space-y-4">
-      {/* 1. Ultra-Compact Stat Cards Grid */}
+      {/* 1. Ultra-Compact Stat Cards Grid with Published, Hidden, and Featured */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {/* Total Reviews */}
         <StatCard
@@ -305,14 +302,13 @@ const ReviewManagementToolbar = ({
           loading={loadingStats}
         />
 
-        {/* Flagged */}
+        {/* Featured Showcase */}
         <StatCard
-          icon={AlertTriangle}
-          title="Flagged Disputes"
-          value={flaggedReviewsCount}
+          icon={Sparkles}
+          title="Featured Showcase"
+          value={featuredReviewsCount}
           tone="amber"
-          active={statusFilter === "flagged"}
-          onClick={() => onSelectStatusFilter("flagged")}
+          active={false}
           loading={loadingStats}
         />
       </div>

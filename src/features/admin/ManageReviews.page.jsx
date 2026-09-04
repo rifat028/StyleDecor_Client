@@ -102,7 +102,7 @@ const ManageReviews = () => {
     setPage(1);
   };
 
-  // Update Review Status (Publish / Hide / Flag)
+  // Update Review Status (Publish / Hide)
   const handleUpdateStatus = async (reviewId, newStatus) => {
     try {
       const res = await axiosSecure.patch(`/reviews/${reviewId}/status`, {
@@ -119,6 +119,31 @@ const ManageReviews = () => {
     } catch (err) {
       console.error("Failed to update status:", err);
       toast.error(err.response?.data?.message || "Failed to update review status");
+    }
+  };
+
+  // Toggle Featured Status
+  const handleToggleFeatured = async (review) => {
+    try {
+      const newFeatured = !Boolean(review.featured);
+      const res = await axiosSecure.patch(`/reviews/${review._id}/featured`, {
+        featured: newFeatured,
+      });
+
+      if (res.data?.success) {
+        toast.success(
+          newFeatured
+            ? "Review featured on platform showcase"
+            : "Review removed from featured showcase"
+        );
+        if (selectedReview?._id === review._id) {
+          setSelectedReview((prev) => ({ ...prev, featured: newFeatured }));
+        }
+        loadReviews();
+      }
+    } catch (err) {
+      console.error("Failed to toggle featured status:", err);
+      toast.error(err.response?.data?.message || "Failed to update featured status");
     }
   };
 
@@ -166,10 +191,10 @@ const ManageReviews = () => {
       reviewsData?.stats?.hiddenCount ??
       reviewsData?.stats?.hidden ??
       reviews.filter((r) => r.status === "hidden").length,
-    flaggedCount:
-      reviewsData?.stats?.flaggedCount ??
-      reviewsData?.stats?.flagged ??
-      reviews.filter((r) => r.status === "flagged").length,
+    featuredCount:
+      reviewsData?.stats?.featuredCount ??
+      reviewsData?.stats?.featured ??
+      reviews.filter((r) => r.featured).length,
     decoratorStats: reviewsData?.stats?.decoratorStats || {},
     averageRating: reviewsData?.stats?.averageRating ?? 4.8,
   };
@@ -228,6 +253,7 @@ const ManageReviews = () => {
         reviews={reviews}
         loading={loading}
         onView={setSelectedReview}
+        onToggleFeatured={handleToggleFeatured}
         onUpdateStatus={handleUpdateStatus}
         onDelete={handleDeleteReview}
         onResetFilters={handleResetFilters}
@@ -247,6 +273,7 @@ const ManageReviews = () => {
         selectedReview={selectedReview}
         onClose={() => setSelectedReview(null)}
         onUpdateStatus={handleUpdateStatus}
+        onDelete={handleDeleteReview}
       />
     </div>
   );

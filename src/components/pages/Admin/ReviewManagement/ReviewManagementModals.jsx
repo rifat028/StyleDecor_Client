@@ -2,14 +2,14 @@ import React from "react";
 import {
   MessageSquare,
   Star,
-  Building,
+  Building2,
   Calendar,
-  User,
   CheckCircle2,
   EyeOff,
-  AlertTriangle,
   Trash2,
   Tag,
+  UserCheck,
+  Sparkles,
 } from "lucide-react";
 import Modal from "../../../ui/Modal";
 
@@ -19,7 +19,7 @@ const getAvatarUrl = (name = "Customer") => {
   return `https://ui-avatars.com/api/?name=${initials}&background=9333ea&color=ffffff&bold=true&size=100`;
 };
 
-// Consolidated Review Dossier Modal (200-240 lines)
+// Consolidated Review Dossier Modal
 const ReviewManagementModals = ({
   selectedReview,
   onClose,
@@ -33,8 +33,14 @@ const ReviewManagementModals = ({
     selectedReview.user?.name ||
     selectedReview.userName ||
     "Verified Client";
+  const customerEmail =
+    selectedReview.customerEmail ||
+    selectedReview.user?.email ||
+    "client@styledecor.com";
   const rating = Number(selectedReview.rating || 5);
   const status = selectedReview.status || "published";
+  const isPublished = status === "published";
+  const isFeatured = Boolean(selectedReview.featured);
 
   return (
     <Modal
@@ -48,6 +54,7 @@ const ReviewManagementModals = ({
         <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
           <img
             src={
+              selectedReview.customerPhotoUrl ||
               selectedReview.userPhoto ||
               selectedReview.user?.photo ||
               getAvatarUrl(customerName)
@@ -61,14 +68,32 @@ const ReviewManagementModals = ({
           />
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <h4 className="font-bold text-slate-900 dark:text-white truncate">
-                {customerName}
-              </h4>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 uppercase">
-                {status}
-              </span>
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white truncate">
+                  {customerName}
+                </h4>
+                <p className="text-xs text-slate-400 truncate mt-0.5">
+                  {customerEmail}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {isFeatured && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
+                    <Sparkles className="w-3 h-3" /> Featured
+                  </span>
+                )}
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${
+                    isPublished
+                      ? "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300"
+                      : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                  }`}
+                >
+                  {status}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center gap-0.5 text-amber-500">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
@@ -94,26 +119,36 @@ const ReviewManagementModals = ({
           </div>
         </div>
 
-        {/* Target Service & Agency Information */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 space-y-1">
+        {/* Target Service, Agency & Agent Information Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 space-y-1">
             <p className="font-bold text-slate-400 uppercase text-[10px] flex items-center gap-1">
-              <Tag className="w-3 h-3 text-purple-600 dark:text-purple-400" /> Booked Service Package
+              <Tag className="w-3 h-3 text-purple-600 dark:text-purple-400 shrink-0" /> Service
             </p>
             <p className="font-bold text-slate-800 dark:text-slate-200 truncate">
               {selectedReview.serviceTitle ||
                 selectedReview.service?.title ||
-                "Event Decoration Package"}
+                "Event Decoration"}
             </p>
           </div>
-          <div className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 space-y-1">
+          <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 space-y-1">
             <p className="font-bold text-slate-400 uppercase text-[10px] flex items-center gap-1">
-              <Building className="w-3 h-3 text-purple-600 dark:text-purple-400" /> Decorator Vendor
+              <Building2 className="w-3 h-3 text-indigo-600 dark:text-indigo-400 shrink-0" /> Decorator
             </p>
             <p className="font-bold text-slate-800 dark:text-slate-200 truncate">
               {selectedReview.decoratorName ||
                 selectedReview.decorator?.businessName ||
                 "StyleDecor Agency"}
+            </p>
+          </div>
+          <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 space-y-1">
+            <p className="font-bold text-slate-400 uppercase text-[10px] flex items-center gap-1">
+              <UserCheck className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" /> Agent
+            </p>
+            <p className="font-bold text-slate-800 dark:text-slate-200 truncate">
+              {selectedReview.agentName ||
+                selectedReview.agent?.name ||
+                "Field Agent"}
             </p>
           </div>
         </div>
@@ -146,16 +181,6 @@ const ReviewManagementModals = ({
               className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-xs cursor-pointer"
             >
               Close
-            </button>
-
-            {/* Flag Button */}
-            <button
-              type="button"
-              disabled={status === "flagged"}
-              onClick={() => onUpdateStatus(selectedReview._id, "flagged")}
-              className="px-4 py-2.5 rounded-xl border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/50 font-semibold text-xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Flag
             </button>
 
             {/* Hide / Suppress Button */}
