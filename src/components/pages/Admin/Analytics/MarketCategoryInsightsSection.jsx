@@ -23,14 +23,6 @@ import {
   Area,
 } from "recharts";
 
-// Currencies and numbers formatter
-const formatBDT = (value = 0) => {
-  if (value >= 10000000) return `৳${(value / 10000000).toFixed(2)} Cr`;
-  if (value >= 100000) return `৳${(value / 100000).toFixed(1)} L`;
-  if (value >= 1000) return `৳${(value / 1000).toFixed(0)}k`;
-  return `৳${Number(value).toLocaleString("en-BD")}`;
-};
-
 const PIE_COLORS = [
   "#9333ea", // Purple
   "#4f46e5", // Indigo
@@ -47,7 +39,7 @@ const DivisionDensityTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div
-        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[180px] pointer-events-none"
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-45 pointer-events-none"
         style={{
           backgroundColor: "#0f172a",
           border: "1px solid #334155",
@@ -94,7 +86,7 @@ const CategoryServicesTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div
-        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[180px] pointer-events-none"
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-45 pointer-events-none"
         style={{
           backgroundColor: "#0f172a",
           border: "1px solid #334155",
@@ -125,7 +117,7 @@ const CategoryBookingsTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div
-        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[190px] pointer-events-none"
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-47.5 pointer-events-none"
         style={{
           backgroundColor: "#0f172a",
           border: "1px solid #334155",
@@ -167,14 +159,14 @@ const CategoryBookingsTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-// Custom Popmenu Tooltip for Top Revenue-Generating Categories Pie Chart
+// Custom Popup Menu Tooltip for Top Revenue-Generating Categories Pie Chart
 const CategoryPieTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const sliceColor = payload[0].color || payload[0].fill || "#9333ea";
     return (
       <div
-        className="p-3.5 rounded-xl shadow-2xl text-xs space-y-2 z-50 min-w-[220px] pointer-events-none"
+        className="p-3.5 rounded-xl shadow-2xl text-xs space-y-2 z-50 min-w-55 pointer-events-none"
         style={{
           backgroundColor: "#0f172a",
           border: "1px solid #334155",
@@ -234,7 +226,7 @@ const BookingCurveTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div
-        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[170px] pointer-events-none"
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-42.5 pointer-events-none"
         style={{
           backgroundColor: "#0f172a",
           border: "1px solid #334155",
@@ -265,7 +257,7 @@ const DivisionBookingsTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div
-        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[190px] pointer-events-none"
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-47.5 pointer-events-none"
         style={{
           backgroundColor: "#0f172a",
           border: "1px solid #334155",

@@ -30,7 +30,7 @@ const GmvTooltip = ({ active, payload, label }) => {
     const data = payload[0].payload;
     return (
       <div
-        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[200px] pointer-events-none"
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-50 pointer-events-none"
         style={{
           backgroundColor: "#0f172a",
           border: "1px solid #334155",
@@ -77,7 +77,7 @@ const CommissionTooltip = ({ active, payload, label }) => {
     const data = payload[0].payload;
     return (
       <div
-        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[210px] pointer-events-none"
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-52.5 pointer-events-none"
         style={{
           backgroundColor: "#0f172a",
           border: "1px solid #334155",
