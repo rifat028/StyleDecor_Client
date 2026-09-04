@@ -611,14 +611,14 @@ const MarketCategoryInsightsSection = ({
             <div>
               <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                 <Activity className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                <span>Booking Curve (Last 365 Days)</span>
+                <span>Booking Curve</span>
               </h4>
               <p className="text-xs text-slate-400 mt-0.5">
-                Annual volume velocity and seasonality cadence of event bookings
+                Volume velocity and seasonality cadence of event bookings
               </p>
             </div>
             <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
-              365 Days Trajectory
+              Trajectory Curve
             </span>
           </div>
 

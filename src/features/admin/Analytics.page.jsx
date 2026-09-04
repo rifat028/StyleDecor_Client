@@ -18,14 +18,14 @@ const Analytics = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // 1. KPI Stats
+  // 1. KPI Stats (Time-dependent)
   const [kpiStats, setKpiStats] = useState(null);
 
-  // 2. Financial & Revenue Deep Dive
+  // 2. Financial & Revenue Deep Dive (Last 12 months, time-independent)
   const [gmvData, setGmvData] = useState([]);
   const [commissionData, setCommissionData] = useState([]);
 
-  // 3. Market & Category Insights
+  // 3. Market & Category Insights (Static overall + time-filtered)
   const [divisionUsers, setDivisionUsers] = useState([]);
   const [categoryServices, setCategoryServices] = useState([]);
   const [categoryBookings, setCategoryBookings] = useState([]);
@@ -45,12 +45,13 @@ const Analytics = () => {
   const [bookingCurve, setBookingCurve] = useState([]);
   const [divisionBookings, setDivisionBookings] = useState([]);
 
-  // 4. Vendor & Operational Performance
+  // 4. Vendor & Operational Performance (Time-dependent)
   const [topDecorators, setTopDecorators] = useState([]);
   const [topAgents, setTopAgents] = useState([]);
 
-  // Page States
-  const [loading, setLoading] = useState(true);
+  // Loading States
+  const [staticLoading, setStaticLoading] = useState(true);
+  const [filteredLoading, setFilteredLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingCategoryBookings, setLoadingCategoryBookings] = useState(false);
 
@@ -66,43 +67,18 @@ const Analytics = () => {
     return q;
   }, [timeFilter, startDate, endDate]);
 
-  // Load all 11 analytics endpoints in parallel
-  const loadAllAnalytics = useCallback(async () => {
+  // 1. Load Time-INDEPENDENT Analytics (GMV 12m, Net Commission 12m, Division Density, Category Services)
+  // Only called on initial mount and explicit manual Refresh
+  const loadStaticAnalytics = useCallback(async () => {
+    setStaticLoading(true);
     try {
-      const timeQuery = getTimeQuery();
-
-      const [
-        kpiRes,
-        gmvRes,
-        commRes,
-        divUsersRes,
-        catServicesRes,
-        catBookingsRes,
-        topCatRevRes,
-        curveRes,
-        divBookingsRes,
-        decoratorsRes,
-        agentsRes,
-      ] = await Promise.allSettled([
-        axiosSecure.get(`/analytics/kpi-stats?${timeQuery}`),
-        axiosSecure.get(`/analytics/financial-gmv?${timeQuery}`),
-        axiosSecure.get(`/analytics/financial-commission?${timeQuery}`),
-        axiosSecure.get(`/analytics/market-division-users?${timeQuery}`),
-        axiosSecure.get(`/analytics/category-services?${timeQuery}`),
-        axiosSecure.get(
-          `/analytics/category-bookings?division=${selectedDivision}&${timeQuery}`
-        ),
-        axiosSecure.get(`/analytics/top-categories-revenue?${timeQuery}`),
-        axiosSecure.get(`/analytics/booking-curve-365?${timeQuery}`),
-        axiosSecure.get(`/analytics/division-bookings?${timeQuery}`),
-        axiosSecure.get(`/analytics/top-decorators?${timeQuery}`),
-        axiosSecure.get(`/analytics/top-agents?${timeQuery}`),
+      const [gmvRes, commRes, divUsersRes, catServicesRes] = await Promise.allSettled([
+        axiosSecure.get("/analytics/financial-gmv"),
+        axiosSecure.get("/analytics/financial-commission"),
+        axiosSecure.get("/analytics/market-division-users"),
+        axiosSecure.get("/analytics/category-services"),
       ]);
 
-      if (kpiRes.status === "fulfilled") {
-        const kpi = kpiRes.value.data?.data || kpiRes.value.data;
-        if (kpi) setKpiStats(kpi);
-      }
       if (gmvRes.status === "fulfilled") {
         const gmv = gmvRes.value.data?.data || gmvRes.value.data;
         if (Array.isArray(gmv)) setGmvData(gmv);
@@ -118,6 +94,44 @@ const Analytics = () => {
       if (catServicesRes.status === "fulfilled") {
         const catS = catServicesRes.value.data?.data || catServicesRes.value.data;
         if (Array.isArray(catS)) setCategoryServices(catS);
+      }
+    } catch {
+      toast.error("Failed to load macro financial trends");
+    } finally {
+      setStaticLoading(false);
+    }
+  }, [axiosSecure]);
+
+  // 2. Load Time-DEPENDENT Analytics (KPIs, Bookings by Cat/Div, Top Revenue Cats, Booking Curve, Vendors)
+  // Re-runs whenever timeFilter, custom dates, or selectedDivision changes
+  const loadFilteredAnalytics = useCallback(async () => {
+    setFilteredLoading(true);
+    try {
+      const timeQuery = getTimeQuery();
+
+      const [
+        kpiRes,
+        catBookingsRes,
+        topCatRevRes,
+        curveRes,
+        divBookingsRes,
+        decoratorsRes,
+        agentsRes,
+      ] = await Promise.allSettled([
+        axiosSecure.get(`/analytics/kpi-stats?${timeQuery}`),
+        axiosSecure.get(
+          `/analytics/category-bookings?division=${selectedDivision}&${timeQuery}`
+        ),
+        axiosSecure.get(`/analytics/top-categories-revenue?${timeQuery}`),
+        axiosSecure.get(`/analytics/booking-curve-365?${timeQuery}`),
+        axiosSecure.get(`/analytics/division-bookings?${timeQuery}`),
+        axiosSecure.get(`/analytics/top-decorators?${timeQuery}`),
+        axiosSecure.get(`/analytics/top-agents?${timeQuery}`),
+      ]);
+
+      if (kpiRes.status === "fulfilled") {
+        const kpi = kpiRes.value.data?.data || kpiRes.value.data;
+        if (kpi) setKpiStats(kpi);
       }
       if (catBookingsRes.status === "fulfilled") {
         const catB = catBookingsRes.value.data?.data || catBookingsRes.value.data;
@@ -147,17 +161,21 @@ const Analytics = () => {
         if (Array.isArray(ags)) setTopAgents(ags);
       }
     } catch {
-      toast.error("Failed to load some analytics charts");
+      toast.error("Failed to load time-filtered analytics");
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      setFilteredLoading(false);
     }
   }, [axiosSecure, selectedDivision, getTimeQuery]);
 
+  // Initial load of static analytics (only once on mount)
   useEffect(() => {
-    setLoading(true);
-    loadAllAnalytics();
-  }, [loadAllAnalytics]);
+    loadStaticAnalytics();
+  }, [loadStaticAnalytics]);
+
+  // Reactive load on time filter or division change (ONLY calls the time-dependent APIs)
+  useEffect(() => {
+    loadFilteredAnalytics();
+  }, [loadFilteredAnalytics]);
 
   // Handle Division Filter change specifically for Category Bookings chart
   const handleDivisionChange = async (newDivision) => {
@@ -188,12 +206,15 @@ const Analytics = () => {
     setEndDate(end);
   };
 
+  // Manual Refresh Data button reloads both static and filtered datasets
   const handleRefresh = () => {
     setRefreshing(true);
-    toast.promise(loadAllAnalytics(), {
+    toast.promise(Promise.all([loadStaticAnalytics(), loadFilteredAnalytics()]), {
       loading: "Refreshing analytics data...",
       success: "Analytics updated!",
       error: "Could not refresh data",
+    }).finally(() => {
+      setRefreshing(false);
     });
   };
 
@@ -206,7 +227,7 @@ const Analytics = () => {
         subtitle="Real-time revenue monitoring, 10% marketplace commission yields, division penetration, and vendor leaderboards."
         onRefresh={handleRefresh}
         refreshing={refreshing}
-        refreshDisabled={loading || refreshing}
+        refreshDisabled={staticLoading || filteredLoading || refreshing}
         actions={
           <TimeFilter
             timeFilter={timeFilter}
@@ -214,23 +235,23 @@ const Analytics = () => {
             startDate={startDate}
             endDate={endDate}
             onCustomDateChange={handleCustomDateChange}
-            loading={loading || refreshing}
+            loading={filteredLoading || refreshing}
             showRefresh={false}
           />
         }
       />
 
       {/* 2. Top 4 Stat Cards: Total Volume, Platform Commission, Collected Commission, Pending Commission */}
-      <AnalyticsKpiCards stats={kpiStats} loading={loading} />
+      <AnalyticsKpiCards stats={kpiStats} loading={filteredLoading} />
 
-      {/* 3. Financial & Revenue Deep Dive (GMV Line Graph + Net Commission Line Graph) */}
+      {/* 3. Financial & Revenue Deep Dive (GMV Last 12 Months + Net Commission Last 12 Months) */}
       <FinancialDeepDiveSection
         gmvData={gmvData}
         commissionData={commissionData}
-        loading={loading}
+        loading={staticLoading}
       />
 
-      {/* 4. Market & Category Insights (6 Charts) */}
+      {/* 4. Market & Category Insights (Division Density, Category Services, Booking Curve, etc.) */}
       <MarketCategoryInsightsSection
         divisionUsers={divisionUsers}
         categoryServices={categoryServices}
@@ -241,14 +262,14 @@ const Analytics = () => {
         topCategoriesRevenue={topCategoriesRevenue}
         bookingCurve={bookingCurve}
         divisionBookings={divisionBookings}
-        loading={loading || loadingCategoryBookings}
+        loading={filteredLoading || staticLoading || loadingCategoryBookings}
       />
 
       {/* 5. Vendor & Operational Performance (Top 10 Decorators & Top 10 Agents) */}
       <VendorPerformanceSection
         topDecorators={topDecorators}
         topAgents={topAgents}
-        loading={loading}
+        loading={filteredLoading}
       />
     </div>
   );

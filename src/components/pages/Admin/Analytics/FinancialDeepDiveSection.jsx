@@ -148,14 +148,14 @@ const FinancialDeepDiveSection = ({
           <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
             <div>
               <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                Gross Merchandise Value (GMV)
+                Gross Merchandise Value (GMV) (Last 12 Months)
               </h4>
               <p className="text-xs text-slate-400 mt-0.5">
-                Total marketplace transaction volume generated per month
+                Total marketplace transaction volume generated per month over the last 12 months
               </p>
             </div>
             <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
-              Monthly Inflow
+              12 Months Trajectory
             </span>
           </div>
 
@@ -213,14 +213,14 @@ const FinancialDeepDiveSection = ({
           <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
             <div>
               <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                Net Platform Commission
+                Net Platform Commission (Last 12 Months)
               </h4>
               <p className="text-xs text-slate-400 mt-0.5">
-                10% commission entitlement vs collected platform fees
+                10% commission entitlement vs collected platform fees over the last 12 months
               </p>
             </div>
             <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
-              10% Yield
+              12 Months 10% Yield
             </span>
           </div>
 
