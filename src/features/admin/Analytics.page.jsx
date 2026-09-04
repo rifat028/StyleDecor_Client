@@ -265,7 +265,9 @@ const Analytics = () => {
         topCategoriesRevenue={topCategoriesRevenue}
         bookingCurve={bookingCurve}
         divisionBookings={divisionBookings}
-        loading={filteredLoading || staticLoading || loadingCategoryBookings}
+        staticLoading={staticLoading}
+        filteredLoading={filteredLoading}
+        categoryBookingsLoading={loadingCategoryBookings}
       />
 
       {/* 5. Vendor & Operational Performance (Top 10 Decorators & Top 10 Agents) */}

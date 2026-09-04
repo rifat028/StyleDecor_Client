@@ -299,7 +299,6 @@ const DivisionBookingsTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-// Market & Category Insights section
 const MarketCategoryInsightsSection = ({
   divisionUsers = [],
   categoryServices = [],
@@ -311,7 +310,14 @@ const MarketCategoryInsightsSection = ({
   bookingCurve = [],
   divisionBookings = [],
   loading = false,
+  staticLoading,
+  filteredLoading,
+  categoryBookingsLoading = false,
 }) => {
+  const isStaticLoading = staticLoading !== undefined ? staticLoading : loading;
+  const isFilteredLoading = filteredLoading !== undefined ? filteredLoading : loading;
+  const isCategoryBookingsLoading = categoryBookingsLoading || isFilteredLoading;
+
   return (
     <div className="space-y-6">
       {/* Section Header */}
@@ -346,7 +352,7 @@ const MarketCategoryInsightsSection = ({
           </div>
 
           <div className="h-72 w-full pt-4">
-            {loading ? (
+            {isStaticLoading ? (
               <div className="h-full w-full flex items-center justify-center">
                 <div className="loading loading-spinner text-purple-600 loading-md"></div>
               </div>
@@ -416,7 +422,7 @@ const MarketCategoryInsightsSection = ({
           </div>
 
           <div className="h-72 w-full pt-4">
-            {loading ? (
+            {isStaticLoading ? (
               <div className="h-full w-full flex items-center justify-center">
                 <div className="loading loading-spinner text-indigo-600 loading-md"></div>
               </div>
@@ -494,7 +500,7 @@ const MarketCategoryInsightsSection = ({
           </div>
 
           <div className="h-72 w-full pt-4">
-            {loading ? (
+            {isCategoryBookingsLoading ? (
               <div className="h-full w-full flex items-center justify-center">
                 <div className="loading loading-spinner text-purple-600 loading-md"></div>
               </div>
@@ -556,7 +562,7 @@ const MarketCategoryInsightsSection = ({
           </div>
 
           <div className="h-72 w-full pt-4">
-            {loading ? (
+            {isFilteredLoading ? (
               <div className="h-full w-full flex items-center justify-center">
                 <div className="loading loading-spinner text-emerald-600 loading-md"></div>
               </div>
@@ -623,7 +629,7 @@ const MarketCategoryInsightsSection = ({
           </div>
 
           <div className="h-72 w-full pt-4">
-            {loading ? (
+            {isFilteredLoading ? (
               <div className="h-full w-full flex items-center justify-center">
                 <div className="loading loading-spinner text-purple-600 loading-md"></div>
               </div>
@@ -695,7 +701,7 @@ const MarketCategoryInsightsSection = ({
           </div>
 
           <div className="h-72 w-full pt-4">
-            {loading ? (
+            {isFilteredLoading ? (
               <div className="h-full w-full flex items-center justify-center">
                 <div className="loading loading-spinner text-emerald-600 loading-md"></div>
               </div>
