@@ -62,8 +62,8 @@ const AdminDashboard = () => {
 
       const [kpiRes, decRes, srvRes, bkingRes] = await Promise.allSettled([
         axiosSecure.get(`/dashboard/kpi-cards?${timeQuery}`),
-        axiosSecure.get(`/dashboard/decorator-status?${timeQuery}`),
-        axiosSecure.get(`/dashboard/service-status?${timeQuery}`),
+        axiosSecure.get(`/dashboard/decorator-status`),
+        axiosSecure.get(`/dashboard/service-status`),
         axiosSecure.get(`/dashboard/booking-status?${timeQuery}`),
       ]);
 
@@ -180,7 +180,7 @@ const AdminDashboard = () => {
         />
       </section>
 
-      {/* 4. Section: Current Date Filtered Booking Data Status Pie Chart */}
+      {/* 4. Section: Booking Status Distribution */}
       <section className="space-y-3">
         <BookingStatusChart
           bookingData={bookingStatus}

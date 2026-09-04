@@ -81,7 +81,7 @@ const BookingStatusChart = ({
         <div>
           <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <CalendarCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>Date-Filtered Booking Status Distribution</span>
+            <span>Booking Status Distribution</span>
           </h4>
           <p className="text-xs text-slate-400 mt-0.5">
             Operational pipeline stages of customer event bookings for the selected time window

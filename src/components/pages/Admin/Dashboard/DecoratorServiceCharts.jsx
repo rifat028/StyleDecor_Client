@@ -98,7 +98,7 @@ const DecoratorServiceCharts = ({
             </div>
           ) : decoratorData.length === 0 ? (
             <div className="h-full w-full flex items-center justify-center text-xs text-slate-400">
-              No decorator records in this time period
+              No decorator records found
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
@@ -162,7 +162,7 @@ const DecoratorServiceCharts = ({
             </div>
           ) : serviceData.length === 0 ? (
             <div className="h-full w-full flex items-center justify-center text-xs text-slate-400">
-              No service records in this time period
+              No service records found
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
