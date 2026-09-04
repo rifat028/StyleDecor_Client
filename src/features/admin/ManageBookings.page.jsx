@@ -3,6 +3,7 @@ import useAxiosSecure from "../../hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import { Calendar } from "lucide-react";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
+import TimeFilter from "../../components/ui/TimeFilter";
 import BookingManagementToolbar from "../../components/pages/Admin/BookingManagement/BookingManagementToolbar";
 import BookingManagementTable from "../../components/pages/Admin/BookingManagement/BookingManagementTable";
 import BookingManagementModals from "../../components/pages/Admin/BookingManagement/BookingManagementModals";
@@ -18,6 +19,11 @@ const ManageBookings = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Time Filtering State (Default: "max")
+  const [timeFilter, setTimeFilter] = useState("max");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Statistics Summary
   const [stats, setStats] = useState({
@@ -78,6 +84,14 @@ const ManageBookings = () => {
       if (selectedDecorator !== "all") params.append("decoratorId", selectedDecorator);
       if (debouncedSearch.trim()) params.append("search", debouncedSearch.trim());
 
+      if (timeFilter !== "max") {
+        params.append("timeFilter", timeFilter);
+        if (timeFilter === "custom" && startDate) {
+          params.append("startDate", startDate);
+          if (endDate) params.append("endDate", endDate);
+        }
+      }
+
       const res = await axiosSecure.get(`/bookings?${params.toString()}`);
       if (res.data?.success) {
         setBookings(res.data.data || []);
@@ -96,19 +110,28 @@ const ManageBookings = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [axiosSecure, page, limit, statusTab, selectedDecorator, debouncedSearch, sortBy]);
+  }, [axiosSecure, page, limit, statusTab, selectedDecorator, debouncedSearch, sortBy, timeFilter, startDate, endDate]);
 
   // Load Summary Counters
   const loadStats = useCallback(async () => {
     try {
-      const res = await axiosSecure.get("/bookings/stats");
+      const params = new URLSearchParams();
+      if (timeFilter !== "max") {
+        params.append("timeFilter", timeFilter);
+        if (timeFilter === "custom" && startDate) {
+          params.append("startDate", startDate);
+          if (endDate) params.append("endDate", endDate);
+        }
+      }
+      const queryStr = params.toString() ? `?${params.toString()}` : "";
+      const res = await axiosSecure.get(`/bookings/stats${queryStr}`);
       if (res.data?.success && res.data?.stats) {
         setStats(res.data.stats);
       }
     } catch (err) {
       console.warn("Failed to load stats:", err);
     }
-  }, [axiosSecure]);
+  }, [axiosSecure, timeFilter, startDate, endDate]);
 
   useEffect(() => {
     loadBookings();
@@ -122,6 +145,9 @@ const ManageBookings = () => {
     setSearch("");
     setDebouncedSearch("");
     setSortBy("newest");
+    setTimeFilter("max");
+    setStartDate("");
+    setEndDate("");
     setPage(1);
   };
 
@@ -139,6 +165,24 @@ const ManageBookings = () => {
         }}
         refreshing={refreshing}
         refreshDisabled={loading || refreshing}
+        actions={
+          <TimeFilter
+            timeFilter={timeFilter}
+            onTimeFilterChange={(newFilter) => {
+              setTimeFilter(newFilter);
+              setPage(1);
+            }}
+            startDate={startDate}
+            endDate={endDate}
+            onCustomDateChange={(start, end) => {
+              setStartDate(start);
+              setEndDate(end);
+              setPage(1);
+            }}
+            loading={loading || refreshing}
+            showRefresh={false}
+          />
+        }
       />
 
       {/* 2. Consolidated Toolbar (~130 lines) */}

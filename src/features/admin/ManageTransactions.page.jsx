@@ -3,6 +3,7 @@ import useAxiosSecure from "../../hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import { DollarSign } from "lucide-react";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
+import TimeFilter from "../../components/ui/TimeFilter";
 import TransactionManagementToolbar from "../../components/pages/Admin/TransactionManagement/TransactionManagementToolbar";
 import TransactionManagementTable from "../../components/pages/Admin/TransactionManagement/TransactionManagementTable";
 import TransactionManagementModals from "../../components/pages/Admin/TransactionManagement/TransactionManagementModals";
@@ -18,6 +19,11 @@ const ManageTransactions = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Time Filtering State (Default: "max")
+  const [timeFilter, setTimeFilter] = useState("max");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Statistics Summary for 4 Payment Types + Total
   const [stats, setStats] = useState({
@@ -85,6 +91,14 @@ const ManageTransactions = () => {
       if (selectedDecorator !== "all") params.append("decoratorId", selectedDecorator);
       if (debouncedSearch.trim()) params.append("search", debouncedSearch.trim());
 
+      if (timeFilter !== "max") {
+        params.append("timeFilter", timeFilter);
+        if (timeFilter === "custom" && startDate) {
+          params.append("startDate", startDate);
+          if (endDate) params.append("endDate", endDate);
+        }
+      }
+
       const res = await axiosSecure.get(`/payments?${params.toString()}`);
       if (res.data?.success) {
         setPayments(res.data.data || []);
@@ -103,19 +117,28 @@ const ManageTransactions = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [axiosSecure, page, limit, typeFilter, selectedDecorator, debouncedSearch, sortBy]);
+  }, [axiosSecure, page, limit, typeFilter, selectedDecorator, debouncedSearch, sortBy, timeFilter, startDate, endDate]);
 
   // Load Statistics Counters
   const loadStats = useCallback(async () => {
     try {
-      const res = await axiosSecure.get("/payments/stats");
+      const params = new URLSearchParams();
+      if (timeFilter !== "max") {
+        params.append("timeFilter", timeFilter);
+        if (timeFilter === "custom" && startDate) {
+          params.append("startDate", startDate);
+          if (endDate) params.append("endDate", endDate);
+        }
+      }
+      const queryStr = params.toString() ? `?${params.toString()}` : "";
+      const res = await axiosSecure.get(`/payments/stats${queryStr}`);
       if (res.data?.success && res.data?.stats) {
         setStats(res.data.stats);
       }
     } catch (err) {
       console.warn("Failed to load transaction stats:", err);
     }
-  }, [axiosSecure]);
+  }, [axiosSecure, timeFilter, startDate, endDate]);
 
   useEffect(() => {
     loadPayments();
@@ -129,6 +152,9 @@ const ManageTransactions = () => {
     setSearch("");
     setDebouncedSearch("");
     setSortBy("newest");
+    setTimeFilter("max");
+    setStartDate("");
+    setEndDate("");
     setPage(1);
   };
 
@@ -162,6 +188,24 @@ const ManageTransactions = () => {
         }}
         refreshing={refreshing}
         refreshDisabled={loading || refreshing}
+        actions={
+          <TimeFilter
+            timeFilter={timeFilter}
+            onTimeFilterChange={(newFilter) => {
+              setTimeFilter(newFilter);
+              setPage(1);
+            }}
+            startDate={startDate}
+            endDate={endDate}
+            onCustomDateChange={(start, end) => {
+              setStartDate(start);
+              setEndDate(end);
+              setPage(1);
+            }}
+            loading={loading || refreshing}
+            showRefresh={false}
+          />
+        }
       />
 
       {/* 2. Consolidated Toolbar with 5 cards and 3 dropdowns */}

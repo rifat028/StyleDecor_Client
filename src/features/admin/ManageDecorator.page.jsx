@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import { Palette } from "lucide-react";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
+import TimeFilter from "../../components/ui/TimeFilter";
 import DecoratorManagementToolbar from "../../components/pages/Admin/DecoratorManagement/DecoratorManagementToolbar";
 import DecoratorManagementTable from "../../components/pages/Admin/DecoratorManagement/DecoratorManagementTable";
 import DecoratorManagementModals from "../../components/pages/Admin/DecoratorManagement/DecoratorManagementModals";
@@ -25,6 +26,11 @@ const ManageDecorator = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Time Filtering State (Default: "max")
+  const [timeFilter, setTimeFilter] = useState("max");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Filter States
   const [statusFilter, setStatusFilter] = useState("all");
@@ -77,6 +83,14 @@ const ManageDecorator = () => {
       if (divisionFilter !== "all") params.append("division", divisionFilter);
       if (debouncedSearch.trim()) params.append("search", debouncedSearch.trim());
 
+      if (timeFilter !== "max") {
+        params.append("timeFilter", timeFilter);
+        if (timeFilter === "custom" && startDate) {
+          params.append("startDate", startDate);
+          if (endDate) params.append("endDate", endDate);
+        }
+      }
+
       const res = await axiosSecure.get(`/decorators?${params.toString()}`);
       if (res.data?.success) {
         setDecorators(res.data.data || []);
@@ -91,12 +105,21 @@ const ManageDecorator = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [axiosSecure, page, limit, statusFilter, divisionFilter, sortFilter, debouncedSearch]);
+  }, [axiosSecure, page, limit, statusFilter, divisionFilter, sortFilter, debouncedSearch, timeFilter, startDate, endDate]);
 
   // Fetch Global Counter Stats
   const fetchStats = useCallback(async () => {
     try {
-      const res = await axiosSecure.get("/decorators/stats");
+      const params = new URLSearchParams();
+      if (timeFilter !== "max") {
+        params.append("timeFilter", timeFilter);
+        if (timeFilter === "custom" && startDate) {
+          params.append("startDate", startDate);
+          if (endDate) params.append("endDate", endDate);
+        }
+      }
+      const queryStr = params.toString() ? `?${params.toString()}` : "";
+      const res = await axiosSecure.get(`/decorators/stats${queryStr}`);
       const data = res.data?.data || res.data;
       if (data && (data.total !== undefined || data.active !== undefined)) {
         const total = data.total || 0;
@@ -125,7 +148,7 @@ const ManageDecorator = () => {
     } catch (err) {
       console.warn("Failed to load decorator stats:", err);
     }
-  }, [axiosSecure]);
+  }, [axiosSecure, timeFilter, startDate, endDate]);
 
   useEffect(() => {
     fetchDecorators();
@@ -142,6 +165,9 @@ const ManageDecorator = () => {
     setStatusFilter("all");
     setDivisionFilter("all");
     setSortFilter("rating");
+    setTimeFilter("max");
+    setStartDate("");
+    setEndDate("");
     setPage(1);
   };
 
@@ -296,6 +322,24 @@ const ManageDecorator = () => {
         }}
         refreshing={refreshing}
         refreshDisabled={loading || refreshing}
+        actions={
+          <TimeFilter
+            timeFilter={timeFilter}
+            onTimeFilterChange={(newFilter) => {
+              setTimeFilter(newFilter);
+              setPage(1);
+            }}
+            startDate={startDate}
+            endDate={endDate}
+            onCustomDateChange={(start, end) => {
+              setStartDate(start);
+              setEndDate(end);
+              setPage(1);
+            }}
+            loading={loading || refreshing}
+            showRefresh={false}
+          />
+        }
       />
 
       {/* 2. Consolidated Toolbar (~130 lines) */}
