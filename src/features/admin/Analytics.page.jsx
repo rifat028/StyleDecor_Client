@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import { BarChart3 } from "lucide-react";
@@ -30,6 +30,8 @@ const Analytics = () => {
   const [categoryServices, setCategoryServices] = useState([]);
   const [categoryBookings, setCategoryBookings] = useState([]);
   const [selectedDivision, setSelectedDivision] = useState("all");
+  const selectedDivisionRef = useRef(selectedDivision);
+  selectedDivisionRef.current = selectedDivision;
   const [availableDivisions, setAvailableDivisions] = useState([
     "all",
     "Dhaka",
@@ -120,7 +122,7 @@ const Analytics = () => {
       ] = await Promise.allSettled([
         axiosSecure.get(`/analytics/kpi-stats?${timeQuery}`),
         axiosSecure.get(
-          `/analytics/category-bookings?division=${selectedDivision}&${timeQuery}`
+          `/analytics/category-bookings?division=${selectedDivisionRef.current}&${timeQuery}`
         ),
         axiosSecure.get(`/analytics/top-categories-revenue?${timeQuery}`),
         axiosSecure.get(`/analytics/booking-curve-365?${timeQuery}`),
@@ -165,21 +167,22 @@ const Analytics = () => {
     } finally {
       setFilteredLoading(false);
     }
-  }, [axiosSecure, selectedDivision, getTimeQuery]);
+  }, [axiosSecure, getTimeQuery]);
 
   // Initial load of static analytics (only once on mount)
   useEffect(() => {
     loadStaticAnalytics();
   }, [loadStaticAnalytics]);
 
-  // Reactive load on time filter or division change (ONLY calls the time-dependent APIs)
+  // Reactive load on time filter change (ONLY calls the time-dependent APIs)
   useEffect(() => {
     loadFilteredAnalytics();
   }, [loadFilteredAnalytics]);
 
-  // Handle Division Filter change specifically for Category Bookings chart
+  // Handle Division Filter change specifically for Category Bookings chart (ONLY calls this API)
   const handleDivisionChange = async (newDivision) => {
     setSelectedDivision(newDivision);
+    selectedDivisionRef.current = newDivision;
     try {
       setLoadingCategoryBookings(true);
       const timeQuery = getTimeQuery();
@@ -187,7 +190,7 @@ const Analytics = () => {
         `/analytics/category-bookings?division=${newDivision}&${timeQuery}`
       );
       if (res.data?.success) {
-        setCategoryBookings(res.data.data);
+        setCategoryBookings(res.data.data || []);
       }
     } catch {
       toast.error("Failed to update division filter");
