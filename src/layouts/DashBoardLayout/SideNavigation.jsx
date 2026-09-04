@@ -24,7 +24,8 @@ import {
   MessageSquare,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
+  LayoutDashboard,
 } from "lucide-react";
 import LogoutModal from "../../components/ui/LogoutModal";
 
@@ -146,15 +147,16 @@ const SideNavigation = ({ isCollapsed, setIsCollapsed }) => {
 
           {role === "admin" && (
             <>
-              <NavItem to="/dashboard/manage-users" icon={UserCog} label="Users" isCollapsed={isCollapsed} />
-              <NavItem to="/dashboard/manage-categories" icon={Layers} label="Categories" isCollapsed={isCollapsed} />
-              <NavItem to="/dashboard/manage-decorators" icon={Users} label="Decorators" isCollapsed={isCollapsed} />
-              <NavItem to="/dashboard/manage-agents" icon={Users} label="Agents" isCollapsed={isCollapsed} />
-              <NavItem to="/dashboard/manage-services" icon={Briefcase} label="Services" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/admin-dashboard" icon={LayoutDashboard} label="Dashboard" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/analytics" icon={BarChart3} label="Analytics" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/manage-bookings" icon={Calendar} label="Bookings" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/manage-transactions" icon={CreditCard} label="Payments" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-decorators" icon={Building} label="Decorators" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-services" icon={Briefcase} label="Services" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-agents" icon={Users} label="Agents" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-users" icon={UserCog} label="Users" isCollapsed={isCollapsed} />
+              <NavItem to="/dashboard/manage-categories" icon={Layers} label="Categories" isCollapsed={isCollapsed} />
               <NavItem to="/dashboard/manage-reviews" icon={MessageSquare} label="Reviews" isCollapsed={isCollapsed} />
-              <NavItem to="/dashboard/analytics" icon={BarChart3} label="Analytics" isCollapsed={isCollapsed} />
             </>
           )}
 

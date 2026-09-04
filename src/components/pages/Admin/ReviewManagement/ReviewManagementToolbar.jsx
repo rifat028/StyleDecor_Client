@@ -196,14 +196,15 @@ const ReviewManagementToolbar = ({
   const hiddenReviewsCount = stats?.hiddenCount ?? stats?.hidden ?? 0;
   const featuredReviewsCount = stats?.featuredCount ?? stats?.featured ?? 0;
 
-  // Status Filter options with counts (published and hidden only)
+  // Status Filter options with counts (published, hidden, and featured)
   const statusOptions = useMemo(
     () => [
       { value: "all", label: "All Statuses", count: totalReviewsCount },
       { value: "published", label: "Published", count: publishedReviewsCount },
       { value: "hidden", label: "Hidden", count: hiddenReviewsCount },
+      { value: "featured", label: "Featured", count: featuredReviewsCount },
     ],
-    [totalReviewsCount, publishedReviewsCount, hiddenReviewsCount]
+    [totalReviewsCount, publishedReviewsCount, hiddenReviewsCount, featuredReviewsCount]
   );
 
   // Decorator options with search support and dynamic counts based on selected status
@@ -213,7 +214,9 @@ const ReviewManagementToolbar = ({
         ? totalReviewsCount
         : statusFilter === "published"
         ? publishedReviewsCount
-        : hiddenReviewsCount;
+        : statusFilter === "hidden"
+        ? hiddenReviewsCount
+        : featuredReviewsCount;
 
     return [
       {
@@ -228,8 +231,10 @@ const ReviewManagementToolbar = ({
         if (decStats) {
           if (statusFilter === "all") {
             count = decStats.total || 0;
-          } else {
+          } else if (decStats[statusFilter] !== undefined) {
             count = decStats[statusFilter] || 0;
+          } else {
+            count = decStats.total || 0;
           }
         }
 
@@ -240,7 +245,7 @@ const ReviewManagementToolbar = ({
         };
       }),
     ];
-  }, [decoratorsList, stats, statusFilter, totalReviewsCount, publishedReviewsCount, hiddenReviewsCount]);
+  }, [decoratorsList, stats, statusFilter, totalReviewsCount, publishedReviewsCount, hiddenReviewsCount, featuredReviewsCount]);
 
   // Star Rating Filter options
   const starOptions = useMemo(
@@ -305,10 +310,13 @@ const ReviewManagementToolbar = ({
         {/* Featured Showcase */}
         <StatCard
           icon={Sparkles}
-          title="Featured Showcase"
+          title="Featured Reviews"
           value={featuredReviewsCount}
           tone="amber"
-          active={false}
+          active={statusFilter === "featured"}
+          onClick={() =>
+            onSelectStatusFilter(statusFilter === "featured" ? "all" : "featured")
+          }
           loading={loadingStats}
         />
       </div>

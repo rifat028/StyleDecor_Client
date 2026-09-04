@@ -25,6 +25,7 @@ import ManageCategories from "../features/admin/ManageCategories.page";
 import MyProjects from "../features/decorator-dashboard/MyProjects.page";
 import MyEarnings from "../features/decorator-dashboard/MyEarnings.page";
 import Analytics from "../features/admin/Analytics.page";
+import AdminDashboard from "../features/admin/AdminDashboard.page";
 import ManageTransactions from "../features/admin/ManageTransactions.page";
 import ManageAgents from "../features/admin/ManageAgents.page";
 import ManageReviews from "../features/admin/ManageReviews.page";
@@ -228,6 +229,14 @@ const router = createBrowserRouter([
         element: (
           <AdminRoutes>
             <Analytics></Analytics>
+          </AdminRoutes>
+        ),
+      },
+      {
+        path: "admin-dashboard",
+        element: (
+          <AdminRoutes>
+            <AdminDashboard></AdminDashboard>
           </AdminRoutes>
         ),
       },

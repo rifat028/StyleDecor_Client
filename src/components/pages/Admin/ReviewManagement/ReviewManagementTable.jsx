@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   MessageSquare,
   Star,
@@ -10,7 +11,6 @@ import {
   EyeOff,
   Sparkles,
   Tag,
-  UserCheck,
 } from "lucide-react";
 import TableSkeleton from "../../../ui/TableSkeleton";
 import EmptyState from "../../../ui/EmptyState";
@@ -42,7 +42,118 @@ const renderStatusBadge = (status) => {
   );
 };
 
-// Review management table component with Customer, Service & Vendor, Agent, Review & Rating, Status, and Actions columns
+// Rich Popmenu card for full comment preview on hover
+const ReviewCommentPopmenu = ({
+  comment,
+  rating,
+  customerName,
+  customerPhoto,
+  serviceTitle,
+  createdAt,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0, placeAbove: false });
+  const triggerRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const spaceAbove = rect.top;
+      const popoverHeight = 150;
+      const placeAbove = spaceAbove > popoverHeight + 20;
+      const top = placeAbove ? rect.top - 8 : rect.bottom + 8;
+      const left = Math.max(16, Math.min(window.innerWidth - 336, rect.left));
+      setCoords({ top, left, placeAbove });
+      setIsOpen(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsOpen(false);
+  };
+
+  return (
+    <div
+      ref={triggerRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="relative inline-block w-full max-w-full"
+    >
+      <p className="text-xs text-slate-600 dark:text-slate-300 italic truncate line-clamp-1 cursor-pointer hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+        "{comment}"
+      </p>
+
+      {isOpen &&
+        createPortal(
+          <div
+            style={{
+              position: "fixed",
+              top: coords.placeAbove ? undefined : coords.top,
+              bottom: coords.placeAbove ? window.innerHeight - coords.top : undefined,
+              left: coords.left,
+              zIndex: 99999,
+            }}
+            className="w-80 max-w-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150 pointer-events-none space-y-2.5"
+          >
+            {/* Popmenu Header */}
+            <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2 min-w-0">
+                {customerPhoto && (
+                  <img
+                    src={customerPhoto}
+                    alt=""
+                    className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-slate-200 dark:ring-slate-700"
+                  />
+                )}
+                <span className="font-bold text-xs text-slate-900 dark:text-white truncate">
+                  {customerName || "Customer"}
+                </span>
+              </div>
+              <div className="flex items-center gap-0.5 text-amber-500 shrink-0">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-3 h-3 ${
+                      star <= rating
+                        ? "fill-amber-400 text-amber-400"
+                        : "text-slate-300 dark:text-slate-600"
+                    }`}
+                  />
+                ))}
+                <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 ml-1">
+                  {rating}.0
+                </span>
+              </div>
+            </div>
+
+            {/* Full Comment Body */}
+            <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed italic whitespace-normal">
+              "{comment}"
+            </p>
+
+            {/* Popmenu Footer Info */}
+            <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
+              <span className="truncate max-w-[170px]">
+                {serviceTitle || "Event Service"}
+              </span>
+              <span>
+                {createdAt
+                  ? new Date(createdAt).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "Verified"}
+              </span>
+            </div>
+          </div>,
+          document.body
+        )}
+    </div>
+  );
+};
+
+// Review management table component with Customer, Service & Vendor, Agent, Review & Rating (max-w-80 with popmenu), Status, and Actions
 const ReviewManagementTable = ({
   reviews = [],
   loading = false,
@@ -65,10 +176,10 @@ const ReviewManagementTable = ({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
-                <th className="py-3.5 px-3 min-w-44">Customer</th>
+                <th className="py-3.5 px-3 w-52 min-w-52">Customer</th>
                 <th className="py-3.5 px-3 min-w-44">Service & Vendor</th>
-                <th className="py-3.5 px-3 min-w-36">Agent</th>
-                <th className="py-3.5 px-3 min-w-52">Review & Rating</th>
+                <th className="py-3.5 px-3 min-w-32">Agent</th>
+                <th className="py-3.5 px-3 max-w-80 min-w-52">Review & Rating</th>
                 <th className="py-3.5 px-3 text-center min-w-32">Status</th>
                 <th className="py-3.5 px-3 text-center min-w-36">Actions</th>
               </tr>
@@ -91,10 +202,10 @@ const ReviewManagementTable = ({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
-                <th className="py-3.5 px-3 min-w-44">Customer</th>
+                <th className="py-3.5 px-3 w-52 min-w-52">Customer</th>
                 <th className="py-3.5 px-3 min-w-44">Service & Vendor</th>
-                <th className="py-3.5 px-3 min-w-36">Agent</th>
-                <th className="py-3.5 px-3 min-w-52">Review & Rating</th>
+                <th className="py-3.5 px-3 min-w-32">Agent</th>
+                <th className="py-3.5 px-3 max-w-80 min-w-52">Review & Rating</th>
                 <th className="py-3.5 px-3 text-center min-w-32">Status</th>
                 <th className="py-3.5 px-3 text-center min-w-36">Actions</th>
               </tr>
@@ -136,6 +247,10 @@ const ReviewManagementTable = ({
                 const isPublished =
                   review.status === "published" || !review.status;
                 const isFeatured = Boolean(review.featured);
+                const commentText =
+                  review.comment ||
+                  review.reviewText ||
+                  "No feedback text provided.";
 
                 return (
                   <tr
@@ -143,7 +258,7 @@ const ReviewManagementTable = ({
                     className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                   >
                     {/* 1. Customer Column: Photo, Name, Email all with line-clamp-1 */}
-                    <td className="py-3.5 px-3 min-w-44">
+                    <td className="py-3.5 px-3 w-52 min-w-52">
                       <div className="flex items-center gap-2.5">
                         <img
                           src={customerPhoto}
@@ -179,20 +294,15 @@ const ReviewManagementTable = ({
                       </div>
                     </td>
 
-                    {/* 3. Agent Column: Agent Name with line-clamp-1 */}
-                    <td className="py-3.5 px-3 min-w-36">
-                      <div className="space-y-1 min-w-0">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
-                          <UserCheck className="w-2.5 h-2.5 shrink-0" /> Agent
-                        </span>
-                        <p className="font-bold text-xs text-slate-800 dark:text-slate-200 truncate line-clamp-1">
-                          {agentName}
-                        </p>
-                      </div>
+                    {/* 3. Agent Column: Agent Name directly without tag */}
+                    <td className="py-3.5 px-3 min-w-32">
+                      <p className="font-bold text-xs text-slate-800 dark:text-slate-200 truncate line-clamp-1">
+                        {agentName}
+                      </p>
                     </td>
 
-                    {/* 4. Review & Rating Column: Star Count & Comment with line-clamp-1 */}
-                    <td className="py-3.5 px-3 min-w-52">
+                    {/* 4. Review & Rating Column: max-w-80 with hover Popmenu for full comment */}
+                    <td className="py-3.5 px-3 max-w-80 min-w-52">
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-1">
                           <div className="flex items-center gap-0.5 text-amber-500 shrink-0">
@@ -211,9 +321,16 @@ const ReviewManagementTable = ({
                             {rating}.0
                           </span>
                         </div>
-                        <p className="text-xs text-slate-600 dark:text-slate-300 italic truncate line-clamp-1">
-                          "{review.comment || review.reviewText || "No feedback text provided."}"
-                        </p>
+
+                        {/* Hover Popmenu showing full comment card */}
+                        <ReviewCommentPopmenu
+                          comment={commentText}
+                          rating={rating}
+                          customerName={customerName}
+                          customerPhoto={customerPhoto}
+                          serviceTitle={serviceTitle}
+                          createdAt={review.createdAt}
+                        />
                       </div>
                     </td>
 
@@ -227,7 +344,7 @@ const ReviewManagementTable = ({
                     {/* 6. Actions Column: Featured Toggle, View, Quick Status, Delete */}
                     <td className="py-3.5 px-3 text-center min-w-36">
                       <div className="flex items-center justify-center gap-1.5">
-                        {/* New Button: Featured True/False Update */}
+                        {/* Featured True/False Update Button */}
                         <TableActionButton
                           icon={Sparkles}
                           onClick={() => onToggleFeatured && onToggleFeatured(review)}

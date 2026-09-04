@@ -1,152 +1,194 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import { BarChart3 } from "lucide-react";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
-import AnalyticsToolbar from "../../components/pages/Admin/Analytics/AnalyticsToolbar";
-import RevenueChartCard from "../../components/pages/Admin/Analytics/RevenueChartCard";
-import BookingsDistributionCard from "../../components/pages/Admin/Analytics/BookingsDistributionCard";
-import RegionalPerformanceTable from "../../components/pages/Admin/Analytics/RegionalPerformanceTable";
+import AnalyticsKpiCards from "../../components/pages/Admin/Analytics/AnalyticsKpiCards";
+import FinancialDeepDiveSection from "../../components/pages/Admin/Analytics/FinancialDeepDiveSection";
+import MarketCategoryInsightsSection from "../../components/pages/Admin/Analytics/MarketCategoryInsightsSection";
+import VendorPerformanceSection from "../../components/pages/Admin/Analytics/VendorPerformanceSection";
 
-// Admin platform intelligence & financial analytics page
+// Admin Platform Intelligence & Financial Analytics Page
 const Analytics = () => {
   const axiosSecure = useAxiosSecure();
 
-  const [paymentStats, setPaymentStats] = useState(null);
-  const [_reviewStats, setReviewStats] = useState(null);
-  const [allBookings, setAllBookings] = useState([]);
+  // 1. KPI Stats
+  const [kpiStats, setKpiStats] = useState(null);
+
+  // 2. Financial & Revenue Deep Dive
+  const [gmvData, setGmvData] = useState([]);
+  const [commissionData, setCommissionData] = useState([]);
+
+  // 3. Market & Category Insights
+  const [divisionUsers, setDivisionUsers] = useState([]);
+  const [categoryServices, setCategoryServices] = useState([]);
+  const [categoryBookings, setCategoryBookings] = useState([]);
+  const [selectedDivision, setSelectedDivision] = useState("all");
+  const [availableDivisions, setAvailableDivisions] = useState([
+    "all",
+    "Dhaka",
+    "Chattogram",
+    "Khulna",
+    "Rajshahi",
+    "Rangpur",
+    "Barishal",
+    "Sylhet",
+    "Mymensingh",
+  ]);
+  const [topCategoriesRevenue, setTopCategoriesRevenue] = useState([]);
+  const [bookingCurve, setBookingCurve] = useState([]);
+  const [divisionBookings, setDivisionBookings] = useState([]);
+
+  // 4. Vendor & Operational Performance
+  const [topDecorators, setTopDecorators] = useState([]);
+  const [topAgents, setTopAgents] = useState([]);
+
+  // Page States
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [timeframe, setTimeframe] = useState("all");
+  const [loadingCategoryBookings, setLoadingCategoryBookings] = useState(false);
 
-  // 1. Integration: GET /payments/stats (Financial & Revenue KPIs)
-  const loadPaymentStats = async () => {
+  // Load all 11 analytics endpoints in parallel
+  const loadAllAnalytics = useCallback(async () => {
     try {
-      const res = await axiosSecure.get("/payments/stats");
-      if (res.data?.success) {
-        setPaymentStats(res.data.stats);
+      const [
+        kpiRes,
+        gmvRes,
+        commRes,
+        divUsersRes,
+        catServicesRes,
+        catBookingsRes,
+        topCatRevRes,
+        curveRes,
+        divBookingsRes,
+        decoratorsRes,
+        agentsRes,
+      ] = await Promise.allSettled([
+        axiosSecure.get("/analytics/kpi-stats"),
+        axiosSecure.get("/analytics/financial-gmv"),
+        axiosSecure.get("/analytics/financial-commission"),
+        axiosSecure.get("/analytics/market-division-users"),
+        axiosSecure.get("/analytics/category-services"),
+        axiosSecure.get(`/analytics/category-bookings?division=${selectedDivision}`),
+        axiosSecure.get("/analytics/top-categories-revenue"),
+        axiosSecure.get("/analytics/booking-curve-365"),
+        axiosSecure.get("/analytics/division-bookings"),
+        axiosSecure.get("/analytics/top-decorators"),
+        axiosSecure.get("/analytics/top-agents"),
+      ]);
+
+      if (kpiRes.status === "fulfilled" && kpiRes.value.data?.success) {
+        setKpiStats(kpiRes.value.data.data);
       }
-    } catch (err) {
-      console.warn("Failed to load payment statistics:", err);
-    }
-  };
-
-  // 2. Integration: GET /reviews?limit=1 (Review Stats)
-  const loadReviewStats = async () => {
-    try {
-      const res = await axiosSecure.get("/reviews?limit=1");
-      if (res.data?.success) {
-        setReviewStats(res.data.stats);
+      if (gmvRes.status === "fulfilled" && gmvRes.value.data?.success) {
+        setGmvData(gmvRes.value.data.data);
       }
-    } catch (err) {
-      console.warn("Failed to load review statistics:", err);
-    }
-  };
-
-  // 3. Fetch all bookings for demand charts
-  const fetchAllBookings = async () => {
-    try {
-      const res = await axiosSecure.get("/bookings?limit=150");
-      const list = res.data?.data || res.data || [];
-      setAllBookings(Array.isArray(list) ? list : []);
-    } catch (err) {
-      console.warn("Failed to load bookings for demand:", err);
-      setAllBookings([]);
-    }
-  };
-
-  const initData = async () => {
-    try {
-      await Promise.all([loadPaymentStats(), loadReviewStats(), fetchAllBookings()]);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load analytics");
+      if (commRes.status === "fulfilled" && commRes.value.data?.success) {
+        setCommissionData(commRes.value.data.data);
+      }
+      if (divUsersRes.status === "fulfilled" && divUsersRes.value.data?.success) {
+        setDivisionUsers(divUsersRes.value.data.data);
+      }
+      if (catServicesRes.status === "fulfilled" && catServicesRes.value.data?.success) {
+        setCategoryServices(catServicesRes.value.data.data);
+      }
+      if (catBookingsRes.status === "fulfilled" && catBookingsRes.value.data?.success) {
+        setCategoryBookings(catBookingsRes.value.data.data);
+        if (catBookingsRes.value.data.divisions) {
+          setAvailableDivisions(catBookingsRes.value.data.divisions);
+        }
+      }
+      if (topCatRevRes.status === "fulfilled" && topCatRevRes.value.data?.success) {
+        setTopCategoriesRevenue(topCatRevRes.value.data.data);
+      }
+      if (curveRes.status === "fulfilled" && curveRes.value.data?.success) {
+        setBookingCurve(curveRes.value.data.data);
+      }
+      if (divBookingsRes.status === "fulfilled" && divBookingsRes.value.data?.success) {
+        setDivisionBookings(divBookingsRes.value.data.data);
+      }
+      if (decoratorsRes.status === "fulfilled" && decoratorsRes.value.data?.success) {
+        setTopDecorators(decoratorsRes.value.data.data);
+      }
+      if (agentsRes.status === "fulfilled" && agentsRes.value.data?.success) {
+        setTopAgents(agentsRes.value.data.data);
+      }
+    } catch (error) {
+      console.error("Error loading analytics:", error);
+      toast.error("Failed to load some analytics charts");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [axiosSecure, selectedDivision]);
 
   useEffect(() => {
     setLoading(true);
-    initData();
-  }, [axiosSecure]);
+    loadAllAnalytics();
+  }, [loadAllAnalytics]);
 
-  // Category Demand Chart Data
-  const demandChartData = useMemo(() => {
-    const map = {};
-    allBookings.forEach((b) => {
-      const cat =
-        b.serviceSnapshot?.category ||
-        b.serviceCategory ||
-        "General Decoration";
-      map[cat] = (map[cat] || 0) + 1;
-    });
-
-    return Object.entries(map).map(([category, count]) => ({
-      category,
-      count,
-    }));
-  }, [allBookings]);
-
-  // Status Distribution Chart Data
-  const statusChartData = useMemo(() => {
-    const map = {};
-    allBookings.forEach((b) => {
-      const st = (b.status || "pending").replace(/_/g, " ");
-      map[st] = (map[st] || 0) + 1;
-    });
-
-    return Object.entries(map).map(([status, value]) => ({
-      name: status.toUpperCase(),
-      value,
-    }));
-  }, [allBookings]);
-
-  const stats = paymentStats || {
-    totalVolume: 1250000,
-    platformCommission: 125000,
-    vendorReceivables: 1125000,
-    gatewayFees: 25000,
-    totalRefunded: 15000,
-    completedTransactionsCount: 24,
-    totalTransactionsCount: 26,
+  // Handle Division Filter change specifically for Category Bookings chart
+  const handleDivisionChange = async (newDivision) => {
+    setSelectedDivision(newDivision);
+    try {
+      setLoadingCategoryBookings(true);
+      const res = await axiosSecure.get(`/analytics/category-bookings?division=${newDivision}`);
+      if (res.data?.success) {
+        setCategoryBookings(res.data.data);
+      }
+    } catch (err) {
+      console.error("Failed to load category bookings for division:", err);
+      toast.error("Failed to update division filter");
+    } finally {
+      setLoadingCategoryBookings(false);
+    }
   };
 
   return (
-    <div className="space-y-6 animate-fade-in pb-10">
-      {/* 1. Standardized Top Header Bar */}
+    <div className="space-y-8 animate-fade-in pb-12">
+      {/* 1. Dashboard Header */}
       <DashboardPageHeader
         icon={BarChart3}
         title="Platform & Financial Intelligence"
-        subtitle="Real-time revenue monitoring, 10% marketplace commission yields, vendor accounting, and category demand."
+        subtitle="Real-time revenue monitoring, 10% marketplace commission yields, division penetration, and vendor leaderboards."
         onRefresh={() => {
           setRefreshing(true);
-          initData();
+          loadAllAnalytics();
         }}
         refreshing={refreshing}
         refreshDisabled={loading || refreshing}
       />
 
-      {/* 2. Consolidated Toolbar (~120 lines) */}
-      <AnalyticsToolbar
-        stats={stats}
-        timeframe={timeframe}
-        onTimeframeChange={setTimeframe}
-        loadingStats={loading}
+      {/* 2. Top 4 Stat Cards: Total Volume, Platform Commission, Collected Commission, Pending Commission */}
+      <AnalyticsKpiCards stats={kpiStats} loading={loading} />
+
+      {/* 3. Financial & Revenue Deep Dive (GMV Line Graph + Net Commission Line Graph) */}
+      <FinancialDeepDiveSection
+        gmvData={gmvData}
+        commissionData={commissionData}
+        loading={loading}
       />
 
-      {/* 3. Financial Revenue Trend Chart Card (~150 lines) */}
-      <RevenueChartCard />
-
-      {/* 4. Category & Status Distribution Card (~160 lines) */}
-      <BookingsDistributionCard
-        demandData={demandChartData}
-        statusData={statusChartData}
+      {/* 4. Market & Category Insights (6 Charts) */}
+      <MarketCategoryInsightsSection
+        divisionUsers={divisionUsers}
+        categoryServices={categoryServices}
+        categoryBookings={categoryBookings}
+        selectedDivision={selectedDivision}
+        onDivisionChange={handleDivisionChange}
+        availableDivisions={availableDivisions}
+        topCategoriesRevenue={topCategoriesRevenue}
+        bookingCurve={bookingCurve}
+        divisionBookings={divisionBookings}
+        loading={loading || loadingCategoryBookings}
       />
 
-      {/* 5. Regional Territorial Performance Table (~150 lines) */}
-      <RegionalPerformanceTable />
+      {/* 5. Vendor & Operational Performance (Top 10 Decorators & Top 10 Agents) */}
+      <VendorPerformanceSection
+        topDecorators={topDecorators}
+        topAgents={topAgents}
+        loading={loading}
+      />
     </div>
   );
 };
