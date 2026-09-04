@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import { Users, Shield, Palette, Briefcase, UserCheck } from "lucide-react";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
+import TimeFilter from "../../components/ui/TimeFilter";
 import UserManagementToolbar from "../../components/pages/Admin/UserManagement/UserManagementToolbar";
 import UserManagementTable from "../../components/pages/Admin/UserManagement/UserManagementTable";
 import UserManagementModals from "../../components/pages/Admin/UserManagement/UserManagementModals";
@@ -68,6 +69,12 @@ const ManageUser = () => {
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
+
+  // Time Filtering State (Default: "max")
+  const [timeFilter, setTimeFilter] = useState("max");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -106,7 +113,12 @@ const ManageUser = () => {
   const loadStats = useCallback(async () => {
     try {
       setStatsLoading(true);
-      const res = await axiosSecure.get("/users/stats");
+      const params = new URLSearchParams();
+      if (timeFilter && timeFilter !== "max") params.append("timeFilter", timeFilter);
+      if (startDate) params.append("startDate", startDate);
+      if (endDate) params.append("endDate", endDate);
+      const queryString = params.toString() ? `?${params.toString()}` : "";
+      const res = await axiosSecure.get(`/users/stats${queryString}`);
       let statsData = res.data || {};
 
       // If backend does not provide byRole, compute client-side distribution
@@ -168,7 +180,7 @@ const ManageUser = () => {
     } finally {
       setStatsLoading(false);
     }
-  }, [axiosSecure]);
+  }, [axiosSecure, timeFilter, startDate, endDate]);
 
   // Ensure active role distribution is cached if byRole is missing for that role
   useEffect(() => {
@@ -243,6 +255,9 @@ const ManageUser = () => {
         district: districtFilter,
         search: debouncedSearch,
       });
+      if (timeFilter && timeFilter !== "max") queryParams.append("timeFilter", timeFilter);
+      if (startDate) queryParams.append("startDate", startDate);
+      if (endDate) queryParams.append("endDate", endDate);
 
       const res = await axiosSecure.get(`/users?${queryParams.toString()}`);
       const fetchedUsers = res.data?.users || [];
@@ -262,7 +277,7 @@ const ManageUser = () => {
     } finally {
       setLoading(false);
     }
-  }, [axiosSecure, page, limit, roleFilter, divisionFilter, districtFilter, debouncedSearch]);
+  }, [axiosSecure, page, limit, roleFilter, divisionFilter, districtFilter, debouncedSearch, timeFilter, startDate, endDate]);
 
   useEffect(() => {
     loadStats();
@@ -279,6 +294,9 @@ const ManageUser = () => {
     setRoleFilter("all");
     setDivisionFilter("all");
     setDistrictFilter("all");
+    setTimeFilter("max");
+    setStartDate("");
+    setEndDate("");
     setPage(1);
   };
 
@@ -407,6 +425,24 @@ const ManageUser = () => {
         }}
         refreshing={loading && users.length > 0}
         refreshDisabled={loading}
+        actions={
+          <TimeFilter
+            timeFilter={timeFilter}
+            onTimeFilterChange={(newFilter) => {
+              setTimeFilter(newFilter);
+              setPage(1);
+            }}
+            startDate={startDate}
+            endDate={endDate}
+            onCustomDateChange={(start, end) => {
+              setStartDate(start);
+              setEndDate(end);
+              setPage(1);
+            }}
+            loading={loading || statsLoading}
+            showRefresh={false}
+          />
+        }
       />
 
       {/* 2. Consolidated Toolbar (Stats & Search/Filters: ~130 lines) */}

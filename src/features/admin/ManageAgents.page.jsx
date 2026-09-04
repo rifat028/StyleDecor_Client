@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import { Users } from "lucide-react";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
+import TimeFilter from "../../components/ui/TimeFilter";
 import AgentManagementToolbar from "../../components/pages/Admin/AgentManagement/AgentManagementToolbar";
 import AgentManagementTable from "../../components/pages/Admin/AgentManagement/AgentManagementTable";
 import AgentManagementModals from "../../components/pages/Admin/AgentManagement/AgentManagementModals";
@@ -31,6 +32,11 @@ const ManageAgents = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Time Filtering State (Default: "max")
+  const [timeFilter, setTimeFilter] = useState("max");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
   // Filters & Pagination
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -57,14 +63,23 @@ const ManageAgents = () => {
   // Load platform statistics
   const loadStats = useCallback(async () => {
     try {
-      const res = await axiosSecure.get("/agents/stats");
+      const params = new URLSearchParams();
+      if (timeFilter !== "max") {
+        params.append("timeFilter", timeFilter);
+        if (timeFilter === "custom" && startDate) {
+          params.append("startDate", startDate);
+          if (endDate) params.append("endDate", endDate);
+        }
+      }
+      const queryStr = params.toString() ? `?${params.toString()}` : "";
+      const res = await axiosSecure.get(`/agents/stats${queryStr}`);
       if (res.data?.success) {
         setStats(res.data.stats);
       }
     } catch (err) {
       console.warn("Failed to load agent stats:", err);
     }
-  }, [axiosSecure]);
+  }, [axiosSecure, timeFilter, startDate, endDate]);
 
   // Load paginated agents list filtered by division territory & status
   const loadAgents = useCallback(async () => {
@@ -79,6 +94,14 @@ const ManageAgents = () => {
       if (territoryFilter !== "all") params.append("division", territoryFilter);
       if (debouncedSearch.trim()) params.append("search", debouncedSearch.trim());
 
+      if (timeFilter !== "max") {
+        params.append("timeFilter", timeFilter);
+        if (timeFilter === "custom" && startDate) {
+          params.append("startDate", startDate);
+          if (endDate) params.append("endDate", endDate);
+        }
+      }
+
       const res = await axiosSecure.get(`/agents?${params.toString()}`);
       if (res.data?.success) {
         setAgents(res.data.data || []);
@@ -92,7 +115,7 @@ const ManageAgents = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [axiosSecure, page, limit, statusFilter, territoryFilter, debouncedSearch]);
+  }, [axiosSecure, page, limit, statusFilter, territoryFilter, debouncedSearch, timeFilter, startDate, endDate]);
 
   useEffect(() => {
     loadStats();
@@ -108,6 +131,9 @@ const ManageAgents = () => {
     setDebouncedSearch("");
     setStatusFilter("all");
     setTerritoryFilter("all");
+    setTimeFilter("max");
+    setStartDate("");
+    setEndDate("");
     setPage(1);
   };
 
@@ -174,6 +200,24 @@ const ManageAgents = () => {
         }}
         refreshing={refreshing}
         refreshDisabled={loading || refreshing}
+        actions={
+          <TimeFilter
+            timeFilter={timeFilter}
+            onTimeFilterChange={(newFilter) => {
+              setTimeFilter(newFilter);
+              setPage(1);
+            }}
+            startDate={startDate}
+            endDate={endDate}
+            onCustomDateChange={(start, end) => {
+              setStartDate(start);
+              setEndDate(end);
+              setPage(1);
+            }}
+            loading={loading || refreshing}
+            showRefresh={false}
+          />
+        }
       />
 
       {/* 2. Consolidated Toolbar with Dropdown Filters and Stat Cards */}

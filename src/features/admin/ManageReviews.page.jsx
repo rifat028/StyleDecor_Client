@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import { MessageSquare } from "lucide-react";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
+import TimeFilter from "../../components/ui/TimeFilter";
 import ReviewManagementToolbar from "../../components/pages/Admin/ReviewManagement/ReviewManagementToolbar";
 import ReviewManagementTable from "../../components/pages/Admin/ReviewManagement/ReviewManagementTable";
 import ReviewManagementModals from "../../components/pages/Admin/ReviewManagement/ReviewManagementModals";
@@ -18,6 +19,11 @@ const ManageReviews = () => {
   const [decorators, setDecorators] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Time Filtering State (Default: "max")
+  const [timeFilter, setTimeFilter] = useState("max");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Filters & Search
   const [statusFilter, setStatusFilter] = useState("all");
@@ -69,6 +75,9 @@ const ManageReviews = () => {
       if (selectedDecorator !== "all") params.decoratorId = selectedDecorator;
       if (starFilter !== "all") params.rating = starFilter;
       if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
+      if (timeFilter && timeFilter !== "max") params.timeFilter = timeFilter;
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
 
       const res = await axiosSecure.get("/reviews", { params });
       if (res.data?.success) {
@@ -85,7 +94,7 @@ const ManageReviews = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [axiosSecure, page, limit, statusFilter, selectedDecorator, starFilter, debouncedSearch, sortBy]);
+  }, [axiosSecure, page, limit, statusFilter, selectedDecorator, starFilter, debouncedSearch, sortBy, timeFilter, startDate, endDate]);
 
   useEffect(() => {
     loadReviews();
@@ -99,6 +108,9 @@ const ManageReviews = () => {
     setSearch("");
     setDebouncedSearch("");
     setSortBy("newest");
+    setTimeFilter("max");
+    setStartDate("");
+    setEndDate("");
     setPage(1);
   };
 
@@ -212,6 +224,24 @@ const ManageReviews = () => {
         }}
         refreshing={refreshing}
         refreshDisabled={loading || refreshing}
+        actions={
+          <TimeFilter
+            timeFilter={timeFilter}
+            onTimeFilterChange={(newFilter) => {
+              setTimeFilter(newFilter);
+              setPage(1);
+            }}
+            startDate={startDate}
+            endDate={endDate}
+            onCustomDateChange={(start, end) => {
+              setStartDate(start);
+              setEndDate(end);
+              setPage(1);
+            }}
+            loading={loading || refreshing}
+            showRefresh={false}
+          />
+        }
       />
 
       {/* 2. Consolidated Toolbar with styled dropdowns matching Admin -> Users */}

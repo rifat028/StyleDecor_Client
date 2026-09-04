@@ -3,6 +3,7 @@ import useAxiosSecure from "../../hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import { Layers } from "lucide-react";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
+import TimeFilter from "../../components/ui/TimeFilter";
 import ServiceManagementToolbar from "../../components/pages/Admin/ServiceManagement/ServiceManagementToolbar";
 import ServiceManagementTable from "../../components/pages/Admin/ServiceManagement/ServiceManagementTable";
 import ServiceManagementModals from "../../components/pages/Admin/ServiceManagement/ServiceManagementModals";
@@ -27,6 +28,11 @@ const ManageServices = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Time Filtering State (Default: "max")
+  const [timeFilter, setTimeFilter] = useState("max");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Statistics Summary
   const [stats, setStats] = useState({
@@ -95,6 +101,14 @@ const ManageServices = () => {
       if (selectedDecorator !== "all") params.append("decoratorId", selectedDecorator);
       if (debouncedSearch.trim()) params.append("search", debouncedSearch.trim());
 
+      if (timeFilter !== "max") {
+        params.append("timeFilter", timeFilter);
+        if (timeFilter === "custom" && startDate) {
+          params.append("startDate", startDate);
+          if (endDate) params.append("endDate", endDate);
+        }
+      }
+
       const res = await axiosSecure.get(`/services?${params.toString()}`);
       if (res.data?.success) {
         setServices(res.data.data || []);
@@ -113,12 +127,21 @@ const ManageServices = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [axiosSecure, page, limit, statusTab, selectedCategory, selectedDecorator, debouncedSearch, sortBy]);
+  }, [axiosSecure, page, limit, statusTab, selectedCategory, selectedDecorator, debouncedSearch, sortBy, timeFilter, startDate, endDate]);
 
   // Load Stats Overview
   const loadStats = useCallback(async () => {
     try {
-      const res = await axiosSecure.get("/services/stats");
+      const params = new URLSearchParams();
+      if (timeFilter !== "max") {
+        params.append("timeFilter", timeFilter);
+        if (timeFilter === "custom" && startDate) {
+          params.append("startDate", startDate);
+          if (endDate) params.append("endDate", endDate);
+        }
+      }
+      const queryStr = params.toString() ? `?${params.toString()}` : "";
+      const res = await axiosSecure.get(`/services/stats${queryStr}`);
       if (res.data?.success && res.data?.data) {
         setStats({
           total: res.data.data.total || 0,
@@ -130,7 +153,7 @@ const ManageServices = () => {
     } catch (err) {
       console.warn("Failed to load stats:", err);
     }
-  }, [axiosSecure]);
+  }, [axiosSecure, timeFilter, startDate, endDate]);
 
   useEffect(() => {
     loadServices();
@@ -145,6 +168,9 @@ const ManageServices = () => {
     setSearch("");
     setDebouncedSearch("");
     setSortBy("newest");
+    setTimeFilter("max");
+    setStartDate("");
+    setEndDate("");
     setPage(1);
   };
 
@@ -198,6 +224,24 @@ const ManageServices = () => {
         }}
         refreshing={refreshing}
         refreshDisabled={loading || refreshing}
+        actions={
+          <TimeFilter
+            timeFilter={timeFilter}
+            onTimeFilterChange={(newFilter) => {
+              setTimeFilter(newFilter);
+              setPage(1);
+            }}
+            startDate={startDate}
+            endDate={endDate}
+            onCustomDateChange={(start, end) => {
+              setStartDate(start);
+              setEndDate(end);
+              setPage(1);
+            }}
+            loading={loading || refreshing}
+            showRefresh={false}
+          />
+        }
       />
 
       {/* 2. Consolidated Toolbar with Dropdown Filters and Stat Cards */}
