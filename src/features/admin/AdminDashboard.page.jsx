@@ -32,11 +32,7 @@ const AdminDashboard = () => {
     totalUnsettled: 0,
     totalUnsettledAmount: 0,
     totalOrderValue: 0,
-    totalPages: 1,
   });
-  const [unsettledPage, setUnsettledPage] = useState(1);
-  const [unsettledLimit, setUnsettledLimit] = useState(10);
-  const [unsettledSearch, setUnsettledSearch] = useState("");
 
   // Loading States
   const [loading, setLoading] = useState(true);
@@ -87,17 +83,13 @@ const AdminDashboard = () => {
     }
   }, [axiosSecure, getTimeQuery]);
 
-  // Load Unsettled Payments (paginated)
+  // Load Unsettled Payments for current time filter
   const loadUnsettledPayments = useCallback(async () => {
     setUnsettledLoading(true);
     try {
       const timeQuery = getTimeQuery();
-      const pageQuery = `page=${unsettledPage}&limit=${unsettledLimit}&search=${encodeURIComponent(
-        unsettledSearch
-      )}`;
-
       const res = await axiosSecure.get(
-        `/dashboard/unsettled-payments?${timeQuery}&${pageQuery}`
+        `/dashboard/unsettled-payments?${timeQuery}&limit=all`
       );
 
       if (res.data?.success) {
@@ -106,7 +98,6 @@ const AdminDashboard = () => {
           totalUnsettled: res.data.totalUnsettled || 0,
           totalUnsettledAmount: res.data.totalUnsettledAmount || 0,
           totalOrderValue: res.data.totalOrderValue || 0,
-          totalPages: res.data.totalPages || 1,
         });
       }
     } catch {
@@ -114,7 +105,7 @@ const AdminDashboard = () => {
     } finally {
       setUnsettledLoading(false);
     }
-  }, [axiosSecure, getTimeQuery, unsettledPage, unsettledLimit, unsettledSearch]);
+  }, [axiosSecure, getTimeQuery]);
 
   // Initial and reactive load on time filter change
   useEffect(() => {
@@ -122,16 +113,14 @@ const AdminDashboard = () => {
     loadUnsettledPayments();
   }, [loadDashboardData, loadUnsettledPayments]);
 
-  // Handlers for filter and pagination
+  // Handlers for filter
   const handleTimeFilterChange = (newFilter) => {
     setTimeFilter(newFilter);
-    setUnsettledPage(1);
   };
 
   const handleCustomDateChange = (start, end) => {
     setStartDate(start);
     setEndDate(end);
-    setUnsettledPage(1);
   };
 
   const handleRefresh = () => {
@@ -190,26 +179,13 @@ const AdminDashboard = () => {
         />
       </section>
 
-      {/* 5. Section: Unsettled Payment Table with Pagination */}
+      {/* 5. Section: Unsettled Payment Table with Reusable Pagination */}
       <section className="space-y-3">
         <UnsettledPaymentsTable
           unsettledData={unsettledData}
           totalUnsettled={unsettledMeta.totalUnsettled}
           totalUnsettledAmount={unsettledMeta.totalUnsettledAmount}
           totalOrderValue={unsettledMeta.totalOrderValue}
-          page={unsettledPage}
-          limit={unsettledLimit}
-          totalPages={unsettledMeta.totalPages}
-          onPageChange={setUnsettledPage}
-          onLimitChange={(newLimit) => {
-            setUnsettledLimit(newLimit);
-            setUnsettledPage(1);
-          }}
-          onSearchChange={(query) => {
-            setUnsettledSearch(query);
-            setUnsettledPage(1);
-          }}
-          search={unsettledSearch}
           loading={unsettledLoading}
         />
       </section>
