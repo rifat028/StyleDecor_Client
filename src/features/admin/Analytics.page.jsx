@@ -77,41 +77,52 @@ const Analytics = () => {
         axiosSecure.get("/analytics/top-agents"),
       ]);
 
-      if (kpiRes.status === "fulfilled" && kpiRes.value.data?.success) {
-        setKpiStats(kpiRes.value.data.data);
+      if (kpiRes.status === "fulfilled") {
+        const kpi = kpiRes.value.data?.data || kpiRes.value.data;
+        if (kpi) setKpiStats(kpi);
       }
-      if (gmvRes.status === "fulfilled" && gmvRes.value.data?.success) {
-        setGmvData(gmvRes.value.data.data);
+      if (gmvRes.status === "fulfilled") {
+        const gmv = gmvRes.value.data?.data || gmvRes.value.data;
+        if (Array.isArray(gmv)) setGmvData(gmv);
       }
-      if (commRes.status === "fulfilled" && commRes.value.data?.success) {
-        setCommissionData(commRes.value.data.data);
+      if (commRes.status === "fulfilled") {
+        const comm = commRes.value.data?.data || commRes.value.data;
+        if (Array.isArray(comm)) setCommissionData(comm);
       }
-      if (divUsersRes.status === "fulfilled" && divUsersRes.value.data?.success) {
-        setDivisionUsers(divUsersRes.value.data.data);
+      if (divUsersRes.status === "fulfilled") {
+        const divU = divUsersRes.value.data?.data || divUsersRes.value.data;
+        if (Array.isArray(divU)) setDivisionUsers(divU);
       }
-      if (catServicesRes.status === "fulfilled" && catServicesRes.value.data?.success) {
-        setCategoryServices(catServicesRes.value.data.data);
+      if (catServicesRes.status === "fulfilled") {
+        const catS = catServicesRes.value.data?.data || catServicesRes.value.data;
+        if (Array.isArray(catS)) setCategoryServices(catS);
       }
-      if (catBookingsRes.status === "fulfilled" && catBookingsRes.value.data?.success) {
-        setCategoryBookings(catBookingsRes.value.data.data);
-        if (catBookingsRes.value.data.divisions) {
+      if (catBookingsRes.status === "fulfilled") {
+        const catB = catBookingsRes.value.data?.data || catBookingsRes.value.data;
+        if (Array.isArray(catB)) setCategoryBookings(catB);
+        if (catBookingsRes.value.data?.divisions) {
           setAvailableDivisions(catBookingsRes.value.data.divisions);
         }
       }
-      if (topCatRevRes.status === "fulfilled" && topCatRevRes.value.data?.success) {
-        setTopCategoriesRevenue(topCatRevRes.value.data.data);
+      if (topCatRevRes.status === "fulfilled") {
+        const topRev = topCatRevRes.value.data?.data || topCatRevRes.value.data;
+        if (Array.isArray(topRev)) setTopCategoriesRevenue(topRev);
       }
-      if (curveRes.status === "fulfilled" && curveRes.value.data?.success) {
-        setBookingCurve(curveRes.value.data.data);
+      if (curveRes.status === "fulfilled") {
+        const curve = curveRes.value.data?.data || curveRes.value.data;
+        if (Array.isArray(curve)) setBookingCurve(curve);
       }
-      if (divBookingsRes.status === "fulfilled" && divBookingsRes.value.data?.success) {
-        setDivisionBookings(divBookingsRes.value.data.data);
+      if (divBookingsRes.status === "fulfilled") {
+        const divB = divBookingsRes.value.data?.data || divBookingsRes.value.data;
+        if (Array.isArray(divB)) setDivisionBookings(divB);
       }
-      if (decoratorsRes.status === "fulfilled" && decoratorsRes.value.data?.success) {
-        setTopDecorators(decoratorsRes.value.data.data);
+      if (decoratorsRes.status === "fulfilled") {
+        const decs = decoratorsRes.value.data?.data || decoratorsRes.value.data;
+        if (Array.isArray(decs)) setTopDecorators(decs);
       }
-      if (agentsRes.status === "fulfilled" && agentsRes.value.data?.success) {
-        setTopAgents(agentsRes.value.data.data);
+      if (agentsRes.status === "fulfilled") {
+        const ags = agentsRes.value.data?.data || agentsRes.value.data;
+        if (Array.isArray(ags)) setTopAgents(ags);
       }
     } catch (error) {
       console.error("Error loading analytics:", error);
