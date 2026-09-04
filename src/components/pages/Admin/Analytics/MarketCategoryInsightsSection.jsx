@@ -42,6 +42,271 @@ const PIE_COLORS = [
   "#14b8a6", // Teal
 ];
 
+// Custom Tooltip for Division Density Chart
+const DivisionDensityTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[180px] pointer-events-none"
+        style={{
+          backgroundColor: "#0f172a",
+          border: "1px solid #334155",
+          color: "#ffffff",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.6)",
+        }}
+      >
+        <p
+          className="font-bold pb-1"
+          style={{ borderBottom: "1px solid #334155", color: "#ffffff" }}
+        >
+          {label} Division
+        </p>
+        <div className="space-y-1 pt-0.5">
+          {payload.map((entry, index) => (
+            <div
+              key={`item-${index}`}
+              className="flex justify-between items-center gap-3"
+            >
+              <span
+                className="flex items-center gap-1.5"
+                style={{ color: "#cbd5e1" }}
+              >
+                <span
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span>{entry.name}:</span>
+              </span>
+              <span className="font-bold" style={{ color: "#ffffff" }}>
+                {entry.value?.toLocaleString("en-BD")}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom Tooltip for Category Services Count
+const CategoryServicesTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[180px] pointer-events-none"
+        style={{
+          backgroundColor: "#0f172a",
+          border: "1px solid #334155",
+          color: "#ffffff",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.6)",
+        }}
+      >
+        <p
+          className="font-bold pb-1"
+          style={{ borderBottom: "1px solid #334155", color: "#ffffff" }}
+        >
+          {label}
+        </p>
+        <div className="flex justify-between items-center gap-3 pt-0.5">
+          <span style={{ color: "#cbd5e1" }}>Active Packages:</span>
+          <span className="font-bold" style={{ color: "#22d3ee" }}>
+            {payload[0]?.value}
+          </span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom Tooltip for Category Bookings Demand
+const CategoryBookingsTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[190px] pointer-events-none"
+        style={{
+          backgroundColor: "#0f172a",
+          border: "1px solid #334155",
+          color: "#ffffff",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.6)",
+        }}
+      >
+        <p
+          className="font-bold pb-1"
+          style={{ borderBottom: "1px solid #334155", color: "#ffffff" }}
+        >
+          {label}
+        </p>
+        <div className="space-y-1 pt-0.5">
+          {payload.map((entry, index) => (
+            <div
+              key={`item-${index}`}
+              className="flex justify-between items-center gap-3"
+            >
+              <span
+                className="flex items-center gap-1.5"
+                style={{ color: "#cbd5e1" }}
+              >
+                <span
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span>{entry.name}:</span>
+              </span>
+              <span className="font-bold" style={{ color: "#ffffff" }}>
+                {entry.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom Popmenu Tooltip for Top Revenue-Generating Categories Pie Chart
+const CategoryPieTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    const sliceColor = payload[0].color || payload[0].fill || "#9333ea";
+    return (
+      <div
+        className="p-3.5 rounded-xl shadow-2xl text-xs space-y-2 z-50 min-w-[220px] pointer-events-none"
+        style={{
+          backgroundColor: "#0f172a",
+          border: "1px solid #334155",
+          color: "#ffffff",
+          boxShadow:
+            "0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.6)",
+        }}
+      >
+        <div
+          className="flex items-center gap-2 pb-2"
+          style={{ borderBottom: "1px solid #334155" }}
+        >
+          <span
+            className="w-3 h-3 rounded-full shrink-0 shadow-sm"
+            style={{ backgroundColor: sliceColor }}
+          />
+          <span
+            className="font-bold text-xs truncate"
+            style={{ color: "#ffffff" }}
+          >
+            {data.name}
+          </span>
+        </div>
+        <div className="space-y-1.5 pt-0.5">
+          <div className="flex justify-between items-center gap-4">
+            <span style={{ color: "#cbd5e1" }}>Total Revenue:</span>
+            <span className="font-extrabold" style={{ color: "#c084fc" }}>
+              ৳{Number(data.value || 0).toLocaleString("en-BD")}
+            </span>
+          </div>
+          <div className="flex justify-between items-center gap-4">
+            <span style={{ color: "#cbd5e1" }}>Market Share:</span>
+            <span className="font-bold" style={{ color: "#34d399" }}>
+              {data.percentage}%
+            </span>
+          </div>
+          {data.bookingsCount !== undefined && (
+            <div
+              className="flex justify-between items-center gap-4 text-[11px]"
+              style={{ color: "#94a3b8" }}
+            >
+              <span style={{ color: "#cbd5e1" }}>Bookings:</span>
+              <span className="font-semibold" style={{ color: "#ffffff" }}>
+                {data.bookingsCount} orders
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom Tooltip for Booking Curve Last 365 Days
+const BookingCurveTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[170px] pointer-events-none"
+        style={{
+          backgroundColor: "#0f172a",
+          border: "1px solid #334155",
+          color: "#ffffff",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.6)",
+        }}
+      >
+        <p
+          className="font-bold pb-1"
+          style={{ borderBottom: "1px solid #334155", color: "#ffffff" }}
+        >
+          {label}
+        </p>
+        <div className="flex justify-between items-center gap-3 pt-0.5">
+          <span style={{ color: "#cbd5e1" }}>Bookings:</span>
+          <span className="font-bold" style={{ color: "#c084fc" }}>
+            {payload[0]?.value}
+          </span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom Tooltip for Division-Wise Booking Distribution
+const DivisionBookingsTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[190px] pointer-events-none"
+        style={{
+          backgroundColor: "#0f172a",
+          border: "1px solid #334155",
+          color: "#ffffff",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.6)",
+        }}
+      >
+        <p
+          className="font-bold pb-1"
+          style={{ borderBottom: "1px solid #334155", color: "#ffffff" }}
+        >
+          {label} Division
+        </p>
+        <div className="space-y-1 pt-0.5">
+          {payload.map((entry, index) => (
+            <div
+              key={`item-${index}`}
+              className="flex justify-between items-center gap-3"
+            >
+              <span
+                className="flex items-center gap-1.5"
+                style={{ color: "#cbd5e1" }}
+              >
+                <span
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span>{entry.name}:</span>
+              </span>
+              <span className="font-bold" style={{ color: "#ffffff" }}>
+                {entry.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 // Market & Category Insights section
 const MarketCategoryInsightsSection = ({
   divisionUsers = [],
@@ -65,7 +330,8 @@ const MarketCategoryInsightsSection = ({
             <span>Market & Category Insights</span>
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Geographic penetration, vendor density, catalog composition, and category booking dynamics.
+            Geographic penetration, vendor density, catalog composition, and
+            category booking dynamics.
           </p>
         </div>
       </div>
@@ -81,7 +347,8 @@ const MarketCategoryInsightsSection = ({
                 <span>Division-Wise User, Decorator & Agent Density</span>
               </h4>
               <p className="text-xs text-slate-400 mt-0.5">
-                Multi-tier workforce and customer distribution across 8 administrative divisions
+                Multi-tier workforce and customer distribution across 8
+                administrative divisions
               </p>
             </div>
           </div>
@@ -97,8 +364,15 @@ const MarketCategoryInsightsSection = ({
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={divisionUsers} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" opacity={0.2} />
+                <BarChart
+                  data={divisionUsers}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 25 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#94a3b8"
+                    opacity={0.2}
+                  />
                   <XAxis
                     dataKey="division"
                     tick={{ fontSize: 10, fill: "#94a3b8" }}
@@ -107,19 +381,28 @@ const MarketCategoryInsightsSection = ({
                     interval={0}
                   />
                   <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(15, 23, 42, 0.95)",
-                      borderRadius: "12px",
-                      border: "none",
-                      color: "#fff",
-                      fontSize: "12px",
-                    }}
+                  <Tooltip content={<DivisionDensityTooltip />} />
+                  <Legend
+                    wrapperStyle={{ fontSize: "11px", paddingTop: "15px" }}
                   />
-                  <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "15px" }} />
-                  <Bar dataKey="customers" name="Customers" fill="#9333ea" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="decorators" name="Decorators" fill="#4f46e5" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="agents" name="Agents" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  <Bar
+                    dataKey="customers"
+                    name="Customers"
+                    fill="#9333ea"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="decorators"
+                    name="Decorators"
+                    fill="#4f46e5"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="agents"
+                    name="Agents"
+                    fill="#f59e0b"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -151,8 +434,15 @@ const MarketCategoryInsightsSection = ({
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryServices} margin={{ top: 10, right: 10, left: -20, bottom: 35 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" opacity={0.2} />
+                <BarChart
+                  data={categoryServices}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 35 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#94a3b8"
+                    opacity={0.2}
+                  />
                   <XAxis
                     dataKey="category"
                     tick={{ fontSize: 9.5, fill: "#94a3b8" }}
@@ -161,16 +451,13 @@ const MarketCategoryInsightsSection = ({
                     interval={0}
                   />
                   <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(15, 23, 42, 0.95)",
-                      borderRadius: "12px",
-                      border: "none",
-                      color: "#fff",
-                      fontSize: "12px",
-                    }}
+                  <Tooltip content={<CategoryServicesTooltip />} />
+                  <Bar
+                    dataKey="servicesCount"
+                    name="Active Packages"
+                    fill="#06b6d4"
+                    radius={[6, 6, 0, 0]}
                   />
-                  <Bar dataKey="servicesCount" name="Active Packages" fill="#06b6d4" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -188,7 +475,8 @@ const MarketCategoryInsightsSection = ({
                 Category-Wise Bookings Demand
               </h4>
               <p className="text-xs text-slate-400 mt-0.5">
-                Total bookings volume per category filtered by territorial division
+                Total bookings volume per category filtered by territorial
+                division
               </p>
             </div>
 
@@ -197,12 +485,16 @@ const MarketCategoryInsightsSection = ({
               <Filter className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
               <select
                 value={selectedDivision}
-                onChange={(e) => onDivisionChange && onDivisionChange(e.target.value)}
+                onChange={(e) =>
+                  onDivisionChange && onDivisionChange(e.target.value)
+                }
                 className="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 cursor-pointer"
               >
                 {availableDivisions.map((div) => (
                   <option key={div} value={div}>
-                    {div === "all" ? "All Divisions (Nationwide)" : `${div} Division`}
+                    {div === "all"
+                      ? "All Divisions (Nationwide)"
+                      : `${div} Division`}
                   </option>
                 ))}
               </select>
@@ -220,8 +512,15 @@ const MarketCategoryInsightsSection = ({
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryBookings} margin={{ top: 10, right: 10, left: -20, bottom: 35 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" opacity={0.2} />
+                <BarChart
+                  data={categoryBookings}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 35 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#94a3b8"
+                    opacity={0.2}
+                  />
                   <XAxis
                     dataKey="category"
                     tick={{ fontSize: 9.5, fill: "#94a3b8" }}
@@ -230,17 +529,19 @@ const MarketCategoryInsightsSection = ({
                     interval={0}
                   />
                   <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(15, 23, 42, 0.95)",
-                      borderRadius: "12px",
-                      border: "none",
-                      color: "#fff",
-                      fontSize: "12px",
-                    }}
+                  <Tooltip content={<CategoryBookingsTooltip />} />
+                  <Bar
+                    dataKey="bookingsCount"
+                    name="Total Bookings"
+                    fill="#9333ea"
+                    radius={[6, 6, 0, 0]}
                   />
-                  <Bar dataKey="bookingsCount" name="Total Bookings" fill="#9333ea" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="completedCount" name="Completed" fill="#10b981" radius={[6, 6, 0, 0]} />
+                  <Bar
+                    dataKey="completedCount"
+                    name="Completed"
+                    fill="#10b981"
+                    radius={[6, 6, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -256,7 +557,8 @@ const MarketCategoryInsightsSection = ({
                 <span>Top Revenue-Generating Categories</span>
               </h4>
               <p className="text-xs text-slate-400 mt-0.5">
-                Market share percentage and gross revenue contribution by event vertical
+                Market share percentage and gross revenue contribution by event
+                vertical
               </p>
             </div>
           </div>
@@ -293,14 +595,8 @@ const MarketCategoryInsightsSection = ({
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(val) => [`৳${Number(val).toLocaleString("en-BD")}`, "Revenue"]}
-                    contentStyle={{
-                      backgroundColor: "rgba(15, 23, 42, 0.95)",
-                      borderRadius: "12px",
-                      border: "none",
-                      color: "#fff",
-                      fontSize: "12px",
-                    }}
+                    content={<CategoryPieTooltip />}
+                    wrapperStyle={{ outline: "none", zIndex: 1000 }}
                   />
                   <Legend
                     wrapperStyle={{ fontSize: "10.5px", paddingTop: "5px" }}
@@ -345,29 +641,38 @@ const MarketCategoryInsightsSection = ({
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={bookingCurve} margin={{ top: 10, right: 15, left: -20, bottom: 5 }}>
+                <AreaChart
+                  data={bookingCurve}
+                  margin={{ top: 10, right: 15, left: -20, bottom: 5 }}
+                >
                   <defs>
-                    <linearGradient id="bookingCurveGrad" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient
+                      id="bookingCurveGrad"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
                       <stop offset="5%" stopColor="#9333ea" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#9333ea" stopOpacity={0.0} />
+                      <stop
+                        offset="95%"
+                        stopColor="#9333ea"
+                        stopOpacity={0.0}
+                      />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" opacity={0.2} />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#94a3b8"
+                    opacity={0.2}
+                  />
                   <XAxis
                     dataKey="date"
                     tick={{ fontSize: 10, fill: "#94a3b8" }}
                     interval={Math.max(1, Math.floor(bookingCurve.length / 8))}
                   />
                   <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(15, 23, 42, 0.95)",
-                      borderRadius: "12px",
-                      border: "none",
-                      color: "#fff",
-                      fontSize: "12px",
-                    }}
-                  />
+                  <Tooltip content={<BookingCurveTooltip />} />
                   <Area
                     type="monotone"
                     dataKey="bookings"
@@ -408,8 +713,15 @@ const MarketCategoryInsightsSection = ({
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={divisionBookings} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" opacity={0.2} />
+                <BarChart
+                  data={divisionBookings}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 25 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#94a3b8"
+                    opacity={0.2}
+                  />
                   <XAxis
                     dataKey="division"
                     tick={{ fontSize: 10, fill: "#94a3b8" }}
@@ -418,18 +730,22 @@ const MarketCategoryInsightsSection = ({
                     interval={0}
                   />
                   <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(15, 23, 42, 0.95)",
-                      borderRadius: "12px",
-                      border: "none",
-                      color: "#fff",
-                      fontSize: "12px",
-                    }}
+                  <Tooltip content={<DivisionBookingsTooltip />} />
+                  <Legend
+                    wrapperStyle={{ fontSize: "11px", paddingTop: "15px" }}
                   />
-                  <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "15px" }} />
-                  <Bar dataKey="bookingsCount" name="Total Bookings" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="completedCount" name="Completed" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Bar
+                    dataKey="bookingsCount"
+                    name="Total Bookings"
+                    fill="#3b82f6"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="completedCount"
+                    name="Completed"
+                    fill="#10b981"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             )}

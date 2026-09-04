@@ -29,24 +29,41 @@ const GmvTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-xl shadow-xl text-xs space-y-1.5 z-50">
-        <p className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
-          <Calendar className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+      <div
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[200px] pointer-events-none"
+        style={{
+          backgroundColor: "#0f172a",
+          border: "1px solid #334155",
+          color: "#ffffff",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.6)",
+        }}
+      >
+        <p
+          className="font-bold flex items-center gap-1 pb-1"
+          style={{ borderBottom: "1px solid #334155", color: "#ffffff" }}
+        >
+          <Calendar className="w-3.5 h-3.5" style={{ color: "#c084fc" }} />
           <span>{label}</span>
         </p>
-        <div className="pt-1 border-t border-slate-100 dark:border-slate-800 space-y-1">
-          <p className="text-purple-600 dark:text-purple-400 font-semibold flex justify-between gap-4">
-            <span>Total GMV:</span>
-            <span className="font-bold">৳{Number(data.gmv || 0).toLocaleString("en-BD")}</span>
-          </p>
-          <p className="text-emerald-600 dark:text-emerald-400 font-semibold flex justify-between gap-4">
-            <span>Completed GMV:</span>
-            <span className="font-bold">৳{Number(data.completedGmv || 0).toLocaleString("en-BD")}</span>
-          </p>
-          <p className="text-slate-500 dark:text-slate-400 flex justify-between gap-4 text-[11px]">
-            <span>Bookings:</span>
-            <span className="font-bold">{data.bookingsCount || 0}</span>
-          </p>
+        <div className="pt-1 space-y-1">
+          <div className="flex justify-between items-center gap-4">
+            <span style={{ color: "#cbd5e1" }}>Total GMV:</span>
+            <span className="font-bold" style={{ color: "#c084fc" }}>
+              ৳{Number(data.gmv || 0).toLocaleString("en-BD")}
+            </span>
+          </div>
+          <div className="flex justify-between items-center gap-4">
+            <span style={{ color: "#cbd5e1" }}>Completed GMV:</span>
+            <span className="font-bold" style={{ color: "#34d399" }}>
+              ৳{Number(data.completedGmv || 0).toLocaleString("en-BD")}
+            </span>
+          </div>
+          <div className="flex justify-between items-center gap-4 text-[11px]">
+            <span style={{ color: "#94a3b8" }}>Bookings:</span>
+            <span className="font-bold" style={{ color: "#ffffff" }}>
+              {data.bookingsCount || 0}
+            </span>
+          </div>
         </div>
       </div>
     );
@@ -59,24 +76,41 @@ const CommissionTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-xl shadow-xl text-xs space-y-1.5 z-50">
-        <p className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
-          <Calendar className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+      <div
+        className="p-3 rounded-xl shadow-2xl text-xs space-y-1.5 z-50 min-w-[210px] pointer-events-none"
+        style={{
+          backgroundColor: "#0f172a",
+          border: "1px solid #334155",
+          color: "#ffffff",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.6)",
+        }}
+      >
+        <p
+          className="font-bold flex items-center gap-1 pb-1"
+          style={{ borderBottom: "1px solid #334155", color: "#ffffff" }}
+        >
+          <Calendar className="w-3.5 h-3.5" style={{ color: "#818cf8" }} />
           <span>{label}</span>
         </p>
-        <div className="pt-1 border-t border-slate-100 dark:border-slate-800 space-y-1">
-          <p className="text-indigo-600 dark:text-indigo-400 font-semibold flex justify-between gap-4">
-            <span>10% Net Commission:</span>
-            <span className="font-bold">৳{Number(data.netCommission || 0).toLocaleString("en-BD")}</span>
-          </p>
-          <p className="text-emerald-600 dark:text-emerald-400 font-semibold flex justify-between gap-4">
-            <span>Collected:</span>
-            <span className="font-bold">৳{Number(data.collectedCommission || 0).toLocaleString("en-BD")}</span>
-          </p>
-          <p className="text-amber-600 dark:text-amber-400 font-semibold flex justify-between gap-4">
-            <span>Pending:</span>
-            <span className="font-bold">৳{Number(data.pendingCommission || 0).toLocaleString("en-BD")}</span>
-          </p>
+        <div className="pt-1 space-y-1">
+          <div className="flex justify-between items-center gap-4">
+            <span style={{ color: "#cbd5e1" }}>10% Net Commission:</span>
+            <span className="font-bold" style={{ color: "#818cf8" }}>
+              ৳{Number(data.netCommission || 0).toLocaleString("en-BD")}
+            </span>
+          </div>
+          <div className="flex justify-between items-center gap-4">
+            <span style={{ color: "#cbd5e1" }}>Collected:</span>
+            <span className="font-bold" style={{ color: "#34d399" }}>
+              ৳{Number(data.collectedCommission || 0).toLocaleString("en-BD")}
+            </span>
+          </div>
+          <div className="flex justify-between items-center gap-4">
+            <span style={{ color: "#cbd5e1" }}>Pending:</span>
+            <span className="font-bold" style={{ color: "#fbbf24" }}>
+              ৳{Number(data.pendingCommission || 0).toLocaleString("en-BD")}
+            </span>
+          </div>
         </div>
       </div>
     );
