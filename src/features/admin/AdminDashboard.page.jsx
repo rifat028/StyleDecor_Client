@@ -4,7 +4,7 @@ import useAxiosSecure from "../../hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
-import DashboardTimeFilter from "../../components/pages/Admin/Dashboard/DashboardTimeFilter";
+import TimeFilter from "../../components/ui/TimeFilter";
 import DashboardKpiCards from "../../components/pages/Admin/Dashboard/DashboardKpiCards";
 import DecoratorServiceCharts from "../../components/pages/Admin/Dashboard/DecoratorServiceCharts";
 import BookingStatusChart from "../../components/pages/Admin/Dashboard/BookingStatusChart";
@@ -133,27 +133,26 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
-      {/* 1. Header with Time Filter right to the Refresh Data Button */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
-        <DashboardPageHeader
-          icon={LayoutDashboard}
-          title="Admin Executive Dashboard"
-          subtitle="Platform vitals, workforce density, live service catalog, and unsettled platform fees."
-        />
-
-        {/* Top Right Controls: Refresh Button + Time Filter Dropdown */}
-        <div className="shrink-0 self-end md:self-center">
-          <DashboardTimeFilter
+      {/* 1. Header with Refresh Data Button and Time Filter */}
+      <DashboardPageHeader
+        icon={LayoutDashboard}
+        title="Admin Executive Dashboard"
+        subtitle="Platform vitals, workforce density, live service catalog, and unsettled platform fees."
+        onRefresh={handleRefresh}
+        refreshing={loading || unsettledLoading}
+        refreshDisabled={loading || unsettledLoading}
+        actions={
+          <TimeFilter
             timeFilter={timeFilter}
             onTimeFilterChange={handleTimeFilterChange}
             startDate={startDate}
             endDate={endDate}
             onCustomDateChange={handleCustomDateChange}
-            onRefresh={handleRefresh}
             loading={loading || unsettledLoading}
+            showRefresh={false}
           />
-        </div>
-      </div>
+        }
+      />
 
       {/* 2. Section: 6 Data Cards */}
       <section className="space-y-3">

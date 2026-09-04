@@ -3,6 +3,7 @@ import useAxiosSecure from "../../hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import { BarChart3 } from "lucide-react";
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
+import TimeFilter from "../../components/ui/TimeFilter";
 import AnalyticsKpiCards from "../../components/pages/Admin/Analytics/AnalyticsKpiCards";
 import FinancialDeepDiveSection from "../../components/pages/Admin/Analytics/FinancialDeepDiveSection";
 import MarketCategoryInsightsSection from "../../components/pages/Admin/Analytics/MarketCategoryInsightsSection";
@@ -11,6 +12,11 @@ import VendorPerformanceSection from "../../components/pages/Admin/Analytics/Ven
 // Admin Platform Intelligence & Financial Analytics Page
 const Analytics = () => {
   const axiosSecure = useAxiosSecure();
+
+  // Time Filtering State (Default: "max")
+  const [timeFilter, setTimeFilter] = useState("max");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // 1. KPI Stats
   const [kpiStats, setKpiStats] = useState(null);
@@ -48,9 +54,23 @@ const Analytics = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingCategoryBookings, setLoadingCategoryBookings] = useState(false);
 
+  // Build query string for time filter
+  const getTimeQuery = useCallback(() => {
+    let q = `timeFilter=${encodeURIComponent(timeFilter)}`;
+    if (timeFilter === "custom" && startDate) {
+      q += `&startDate=${encodeURIComponent(startDate)}`;
+      if (endDate) {
+        q += `&endDate=${encodeURIComponent(endDate)}`;
+      }
+    }
+    return q;
+  }, [timeFilter, startDate, endDate]);
+
   // Load all 11 analytics endpoints in parallel
   const loadAllAnalytics = useCallback(async () => {
     try {
+      const timeQuery = getTimeQuery();
+
       const [
         kpiRes,
         gmvRes,
@@ -64,17 +84,19 @@ const Analytics = () => {
         decoratorsRes,
         agentsRes,
       ] = await Promise.allSettled([
-        axiosSecure.get("/analytics/kpi-stats"),
-        axiosSecure.get("/analytics/financial-gmv"),
-        axiosSecure.get("/analytics/financial-commission"),
-        axiosSecure.get("/analytics/market-division-users"),
-        axiosSecure.get("/analytics/category-services"),
-        axiosSecure.get(`/analytics/category-bookings?division=${selectedDivision}`),
-        axiosSecure.get("/analytics/top-categories-revenue"),
-        axiosSecure.get("/analytics/booking-curve-365"),
-        axiosSecure.get("/analytics/division-bookings"),
-        axiosSecure.get("/analytics/top-decorators"),
-        axiosSecure.get("/analytics/top-agents"),
+        axiosSecure.get(`/analytics/kpi-stats?${timeQuery}`),
+        axiosSecure.get(`/analytics/financial-gmv?${timeQuery}`),
+        axiosSecure.get(`/analytics/financial-commission?${timeQuery}`),
+        axiosSecure.get(`/analytics/market-division-users?${timeQuery}`),
+        axiosSecure.get(`/analytics/category-services?${timeQuery}`),
+        axiosSecure.get(
+          `/analytics/category-bookings?division=${selectedDivision}&${timeQuery}`
+        ),
+        axiosSecure.get(`/analytics/top-categories-revenue?${timeQuery}`),
+        axiosSecure.get(`/analytics/booking-curve-365?${timeQuery}`),
+        axiosSecure.get(`/analytics/division-bookings?${timeQuery}`),
+        axiosSecure.get(`/analytics/top-decorators?${timeQuery}`),
+        axiosSecure.get(`/analytics/top-agents?${timeQuery}`),
       ]);
 
       if (kpiRes.status === "fulfilled") {
@@ -124,14 +146,13 @@ const Analytics = () => {
         const ags = agentsRes.value.data?.data || agentsRes.value.data;
         if (Array.isArray(ags)) setTopAgents(ags);
       }
-    } catch (error) {
-      console.error("Error loading analytics:", error);
+    } catch {
       toast.error("Failed to load some analytics charts");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [axiosSecure, selectedDivision]);
+  }, [axiosSecure, selectedDivision, getTimeQuery]);
 
   useEffect(() => {
     setLoading(true);
@@ -143,31 +164,60 @@ const Analytics = () => {
     setSelectedDivision(newDivision);
     try {
       setLoadingCategoryBookings(true);
-      const res = await axiosSecure.get(`/analytics/category-bookings?division=${newDivision}`);
+      const timeQuery = getTimeQuery();
+      const res = await axiosSecure.get(
+        `/analytics/category-bookings?division=${newDivision}&${timeQuery}`
+      );
       if (res.data?.success) {
         setCategoryBookings(res.data.data);
       }
-    } catch (err) {
-      console.error("Failed to load category bookings for division:", err);
+    } catch {
       toast.error("Failed to update division filter");
     } finally {
       setLoadingCategoryBookings(false);
     }
   };
 
+  // Handlers for Time Filter
+  const handleTimeFilterChange = (newFilter) => {
+    setTimeFilter(newFilter);
+  };
+
+  const handleCustomDateChange = (start, end) => {
+    setStartDate(start);
+    setEndDate(end);
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    toast.promise(loadAllAnalytics(), {
+      loading: "Refreshing analytics data...",
+      success: "Analytics updated!",
+      error: "Could not refresh data",
+    });
+  };
+
   return (
     <div className="space-y-8 animate-fade-in pb-12">
-      {/* 1. Dashboard Header */}
+      {/* 1. Dashboard Header with Refresh and Time Filter */}
       <DashboardPageHeader
         icon={BarChart3}
         title="Platform & Financial Intelligence"
         subtitle="Real-time revenue monitoring, 10% marketplace commission yields, division penetration, and vendor leaderboards."
-        onRefresh={() => {
-          setRefreshing(true);
-          loadAllAnalytics();
-        }}
+        onRefresh={handleRefresh}
         refreshing={refreshing}
         refreshDisabled={loading || refreshing}
+        actions={
+          <TimeFilter
+            timeFilter={timeFilter}
+            onTimeFilterChange={handleTimeFilterChange}
+            startDate={startDate}
+            endDate={endDate}
+            onCustomDateChange={handleCustomDateChange}
+            loading={loading || refreshing}
+            showRefresh={false}
+          />
+        }
       />
 
       {/* 2. Top 4 Stat Cards: Total Volume, Platform Commission, Collected Commission, Pending Commission */}
