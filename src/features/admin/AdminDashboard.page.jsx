@@ -1,85 +1,218 @@
-import React from "react";
-import { Link } from "react-router";
-import {
-  LayoutDashboard,
-  Clock,
-  Sparkles,
-  BarChart3,
-  Calendar,
-  CreditCard,
-  Building,
-  ArrowRight,
-} from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { LayoutDashboard } from "lucide-react";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
+import toast from "react-hot-toast";
+
 import DashboardPageHeader from "../../components/ui/DashboardPageHeader";
+import DashboardTimeFilter from "../../components/pages/Admin/Dashboard/DashboardTimeFilter";
+import DashboardKpiCards from "../../components/pages/Admin/Dashboard/DashboardKpiCards";
+import DecoratorServiceCharts from "../../components/pages/Admin/Dashboard/DecoratorServiceCharts";
+import BookingStatusChart from "../../components/pages/Admin/Dashboard/BookingStatusChart";
+import UnsettledPaymentsTable from "../../components/pages/Admin/Dashboard/UnsettledPaymentsTable";
 
-// Admin Dashboard - Overview Landing Page (Coming Soon)
+// Admin Executive Dashboard Page
 const AdminDashboard = () => {
+  const axiosSecure = useAxiosSecure();
+
+  // Time Filtering State (Default: "max")
+  const [timeFilter, setTimeFilter] = useState("max");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  // Data States
+  const [kpiStats, setKpiStats] = useState({});
+  const [decoratorStatus, setDecoratorStatus] = useState([]);
+  const [serviceStatus, setServiceStatus] = useState([]);
+  const [bookingStatus, setBookingStatus] = useState([]);
+  const [totalBookings, setTotalBookings] = useState(0);
+
+  // Unsettled Payments State
+  const [unsettledData, setUnsettledData] = useState([]);
+  const [unsettledMeta, setUnsettledMeta] = useState({
+    totalUnsettled: 0,
+    totalUnsettledAmount: 0,
+    totalOrderValue: 0,
+    totalPages: 1,
+  });
+  const [unsettledPage, setUnsettledPage] = useState(1);
+  const [unsettledLimit, setUnsettledLimit] = useState(10);
+  const [unsettledSearch, setUnsettledSearch] = useState("");
+
+  // Loading States
+  const [loading, setLoading] = useState(true);
+  const [unsettledLoading, setUnsettledLoading] = useState(false);
+
+  // Build query string for time filter
+  const getTimeQuery = useCallback(() => {
+    let q = `timeFilter=${encodeURIComponent(timeFilter)}`;
+    if (timeFilter === "custom" && startDate) {
+      q += `&startDate=${encodeURIComponent(startDate)}`;
+      if (endDate) {
+        q += `&endDate=${encodeURIComponent(endDate)}`;
+      }
+    }
+    return q;
+  }, [timeFilter, startDate, endDate]);
+
+  // Load KPI cards, Decorator chart, Service chart, and Booking status chart
+  const loadDashboardData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const timeQuery = getTimeQuery();
+
+      const [kpiRes, decRes, srvRes, bkingRes] = await Promise.allSettled([
+        axiosSecure.get(`/dashboard/kpi-cards?${timeQuery}`),
+        axiosSecure.get(`/dashboard/decorator-status?${timeQuery}`),
+        axiosSecure.get(`/dashboard/service-status?${timeQuery}`),
+        axiosSecure.get(`/dashboard/booking-status?${timeQuery}`),
+      ]);
+
+      if (kpiRes.status === "fulfilled" && kpiRes.value.data?.success) {
+        setKpiStats(kpiRes.value.data.data || {});
+      }
+      if (decRes.status === "fulfilled" && decRes.value.data?.success) {
+        setDecoratorStatus(decRes.value.data.data || []);
+      }
+      if (srvRes.status === "fulfilled" && srvRes.value.data?.success) {
+        setServiceStatus(srvRes.value.data.data || []);
+      }
+      if (bkingRes.status === "fulfilled" && bkingRes.value.data?.success) {
+        setBookingStatus(bkingRes.value.data.data || []);
+        setTotalBookings(bkingRes.value.data.total || 0);
+      }
+    } catch {
+      toast.error("Failed to load dashboard metrics");
+    } finally {
+      setLoading(false);
+    }
+  }, [axiosSecure, getTimeQuery]);
+
+  // Load Unsettled Payments (paginated)
+  const loadUnsettledPayments = useCallback(async () => {
+    setUnsettledLoading(true);
+    try {
+      const timeQuery = getTimeQuery();
+      const pageQuery = `page=${unsettledPage}&limit=${unsettledLimit}&search=${encodeURIComponent(
+        unsettledSearch
+      )}`;
+
+      const res = await axiosSecure.get(
+        `/dashboard/unsettled-payments?${timeQuery}&${pageQuery}`
+      );
+
+      if (res.data?.success) {
+        setUnsettledData(res.data.data || []);
+        setUnsettledMeta({
+          totalUnsettled: res.data.totalUnsettled || 0,
+          totalUnsettledAmount: res.data.totalUnsettledAmount || 0,
+          totalOrderValue: res.data.totalOrderValue || 0,
+          totalPages: res.data.totalPages || 1,
+        });
+      }
+    } catch {
+      toast.error("Failed to load unsettled payments");
+    } finally {
+      setUnsettledLoading(false);
+    }
+  }, [axiosSecure, getTimeQuery, unsettledPage, unsettledLimit, unsettledSearch]);
+
+  // Initial and reactive load on time filter change
+  useEffect(() => {
+    loadDashboardData();
+    loadUnsettledPayments();
+  }, [loadDashboardData, loadUnsettledPayments]);
+
+  // Handlers for filter and pagination
+  const handleTimeFilterChange = (newFilter) => {
+    setTimeFilter(newFilter);
+    setUnsettledPage(1);
+  };
+
+  const handleCustomDateChange = (start, end) => {
+    setStartDate(start);
+    setEndDate(end);
+    setUnsettledPage(1);
+  };
+
+  const handleRefresh = () => {
+    toast.promise(Promise.all([loadDashboardData(), loadUnsettledPayments()]), {
+      loading: "Refreshing dashboard data...",
+      success: "Dashboard updated!",
+      error: "Could not refresh data",
+    });
+  };
+
   return (
-    <div className="space-y-6 animate-fade-in pb-10">
-      {/* 1. Header */}
-      <DashboardPageHeader
-        icon={LayoutDashboard}
-        title="Admin Command Dashboard"
-        subtitle="Unified executive command center, system health telemetry, and fast-track administration shortcuts."
-      />
+    <div className="space-y-6 animate-fade-in pb-12">
+      {/* 1. Header with Time Filter right to the Refresh Data Button */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
+        <DashboardPageHeader
+          icon={LayoutDashboard}
+          title="Admin Executive Dashboard"
+          subtitle="Platform vitals, workforce density, live service catalog, and unsettled platform fees."
+        />
 
-      {/* 2. Coming Soon Hero Card */}
-      <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs p-8 sm:p-12 text-center">
-        {/* Background glow accents */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-xl mx-auto space-y-6">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 text-xs font-bold tracking-wide uppercase">
-            <Sparkles className="w-3.5 h-3.5 text-purple-500" />
-            <span>Next Generation Platform</span>
-          </div>
-
-          {/* Icon */}
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-xl shadow-purple-500/25">
-            <Clock className="w-10 h-10 animate-pulse" />
-          </div>
-
-          {/* Titles */}
-          <div className="space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Executive Dashboard Coming Soon
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              We are finalizing the real-time operational overview, automated alerts, and fast-track dispatch controls. In the meantime, explore live data and financial reports in the Analytics center.
-            </p>
-          </div>
-
-          {/* Quick Action Shortcuts */}
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              to="/dashboard/analytics"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md shadow-purple-500/20 transition-all cursor-pointer"
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span>Explore Analytics</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-
-            <Link
-              to="/dashboard/manage-bookings"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-purple-400 text-xs font-semibold transition-all cursor-pointer"
-            >
-              <Calendar className="w-4 h-4 text-purple-500" />
-              <span>Manage Bookings</span>
-            </Link>
-
-            <Link
-              to="/dashboard/manage-transactions"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-purple-400 text-xs font-semibold transition-all cursor-pointer"
-            >
-              <CreditCard className="w-4 h-4 text-emerald-500" />
-              <span>Payment Audits</span>
-            </Link>
-          </div>
+        {/* Top Right Controls: Refresh Button + Time Filter Dropdown */}
+        <div className="shrink-0 self-end md:self-center">
+          <DashboardTimeFilter
+            timeFilter={timeFilter}
+            onTimeFilterChange={handleTimeFilterChange}
+            startDate={startDate}
+            endDate={endDate}
+            onCustomDateChange={handleCustomDateChange}
+            onRefresh={handleRefresh}
+            loading={loading || unsettledLoading}
+          />
         </div>
       </div>
+
+      {/* 2. Section: 6 Data Cards */}
+      <section className="space-y-3">
+        <DashboardKpiCards stats={kpiStats} loading={loading} />
+      </section>
+
+      {/* 3. Section: Status-Wise Decorator & Service Pie Charts */}
+      <section className="space-y-3">
+        <DecoratorServiceCharts
+          decoratorData={decoratorStatus}
+          serviceData={serviceStatus}
+          loading={loading}
+        />
+      </section>
+
+      {/* 4. Section: Current Date Filtered Booking Data Status Pie Chart */}
+      <section className="space-y-3">
+        <BookingStatusChart
+          bookingData={bookingStatus}
+          totalBookings={totalBookings}
+          timeFilter={timeFilter}
+          loading={loading}
+        />
+      </section>
+
+      {/* 5. Section: Unsettled Payment Table with Pagination */}
+      <section className="space-y-3">
+        <UnsettledPaymentsTable
+          unsettledData={unsettledData}
+          totalUnsettled={unsettledMeta.totalUnsettled}
+          totalUnsettledAmount={unsettledMeta.totalUnsettledAmount}
+          totalOrderValue={unsettledMeta.totalOrderValue}
+          page={unsettledPage}
+          limit={unsettledLimit}
+          totalPages={unsettledMeta.totalPages}
+          onPageChange={setUnsettledPage}
+          onLimitChange={(newLimit) => {
+            setUnsettledLimit(newLimit);
+            setUnsettledPage(1);
+          }}
+          onSearchChange={(query) => {
+            setUnsettledSearch(query);
+            setUnsettledPage(1);
+          }}
+          search={unsettledSearch}
+          loading={unsettledLoading}
+        />
+      </section>
     </div>
   );
 };
