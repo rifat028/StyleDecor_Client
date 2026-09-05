@@ -123,20 +123,18 @@ const ManageDecorator = () => {
       const data = res.data?.data || res.data;
       if (data && (data.total !== undefined || data.active !== undefined)) {
         const total = data.total || 0;
-        const pending = data.pending || 0;
-        const suspended = data.suspended || 0;
-        const featured = data.featured || 0;
-        const verified = data.verified || 0;
+        const pending = Math.min(total, data.pending || 0);
+        const suspended = Math.min(total, data.suspended || 0);
         const active =
-          data.active !== undefined &&
-          data.active !== null &&
-          !(data.active === 0 && total > 0 && pending === 0 && suspended === 0)
-            ? data.active
-            : total - pending - suspended;
+          data.active !== undefined
+            ? Math.min(total, data.active)
+            : Math.max(0, total - pending - suspended);
+        const verified = Math.min(total, data.verified || 0);
+        const featured = Math.min(total, data.featured || 0);
 
         setStats({
           total,
-          active: Math.max(0, active),
+          active,
           pending,
           suspended,
           verified,
