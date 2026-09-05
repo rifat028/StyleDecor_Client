@@ -71,8 +71,16 @@ const MyBookings = () => {
       if (!user?.email) return;
       try {
         setProfileLoading(true);
-        const res = await axiosSecure.get("/users/me");
-        const profile = res.data?.data || res.data;
+        let profile = null;
+        try {
+          const res = await axiosSecure.get("/users/me");
+          profile = res.data?.data || res.data;
+        } catch {
+          const res = await axiosSecure.get(
+            `/users/${encodeURIComponent(user.email)}`
+          );
+          profile = res.data?.data || res.data;
+        }
         if (profile?._id) {
           setCustomerId(profile._id);
         }
@@ -85,16 +93,22 @@ const MyBookings = () => {
     loadProfile();
   }, [axiosSecure, user?.email]);
 
-  // 2. Load Bookings by Customer ID
+  // 2. Load Bookings by Customer ID or fallback to /bookings/my-bookings
   const loadBookings = useCallback(async () => {
-    if (!customerId) {
+    if (!customerId && !user?.email) {
       setLoading(false);
       return;
     }
     try {
       setLoading(true);
-      const res = await axiosSecure.get(`/bookings/customer/${customerId}`);
-      const list = res.data?.data || res.data || [];
+      let list = [];
+      if (customerId) {
+        const res = await axiosSecure.get(`/bookings/customer/${customerId}`);
+        list = res.data?.data || res.data || [];
+      } else {
+        const res = await axiosSecure.get("/bookings/my-bookings");
+        list = res.data?.data || res.data || [];
+      }
       setBookings(Array.isArray(list) ? list : []);
     } catch (err) {
       console.error("Failed to load customer bookings:", err);
@@ -103,15 +117,15 @@ const MyBookings = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [axiosSecure, customerId]);
+  }, [axiosSecure, customerId, user?.email]);
 
   useEffect(() => {
-    if (customerId) {
+    if (customerId || user?.email) {
       loadBookings();
     } else if (!profileLoading) {
       setLoading(false);
     }
-  }, [customerId, loadBookings, profileLoading]);
+  }, [customerId, loadBookings, profileLoading, user?.email]);
 
   // Combined Loading State for Immediate Skeletons
   const isInitialLoading = profileLoading || loading;

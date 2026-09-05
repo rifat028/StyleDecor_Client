@@ -73,7 +73,7 @@ const Transactions = () => {
       let list = [];
       if (customerId) {
         const res = await axiosSecure.get(`/payments/customer/${customerId}`);
-        list = res.data?.data || [];
+        list = res.data?.data || (Array.isArray(res.data) ? res.data : []);
       } else {
         const res = await axiosSecure.get(
           `/payments/transactions?email=${encodeURIComponent(user.email)}`
